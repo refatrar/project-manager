@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { BookOpen, FolderGit2, LayoutGrid, ListTree } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -15,6 +15,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as scopesIndex } from '@/routes/setup/scopes';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -30,6 +31,16 @@ export function AppSidebar() {
             icon: LayoutGrid,
         },
     ];
+
+    const setupNavItems: NavItem[] = page.props.currentTeam
+        ? [
+              {
+                  title: 'Scopes',
+                  href: scopesIndex(page.props.currentTeam.slug),
+                  icon: ListTree,
+              },
+          ]
+        : [];
 
     const footerNavItems: NavItem[] = [
         {
@@ -65,6 +76,9 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                {setupNavItems.length > 0 ? (
+                    <NavMain items={setupNavItems} label="Setup" />
+                ) : null}
             </SidebarContent>
 
             <SidebarFooter>

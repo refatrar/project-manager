@@ -1,5 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    ListTree,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
 import { Breadcrumbs } from '@/components/breadcrumbs';
@@ -35,6 +42,7 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as scopesIndex } from '@/routes/setup/scopes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -70,6 +78,15 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             href: dashboardUrl,
             icon: LayoutGrid,
         },
+        ...(currentTeam
+            ? [
+                  {
+                      title: 'Scopes',
+                      href: scopesIndex(currentTeam.slug),
+                      icon: ListTree,
+                  } satisfies NavItem,
+              ]
+            : []),
     ];
 
     return (
