@@ -44,9 +44,9 @@ return new class extends Migration
             $table->dropColumn('role');
             $table->dropColumn('status');
             $table->dropColumn('deleted_at');
-            $table->dropColumn('created_by');
-            $table->dropColumn('updated_by');
-            $table->dropColumn('deleted_by');
+            $table->dropConstrainedForeignId('created_by');
+            $table->dropConstrainedForeignId('updated_by');
+            $table->dropConstrainedForeignId('deleted_by');
         });
 
     }

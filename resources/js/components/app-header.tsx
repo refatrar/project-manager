@@ -3,6 +3,7 @@ import {
     BookOpen,
     Folder,
     LayoutGrid,
+    ListChecks,
     ListTree,
     Menu,
     Search,
@@ -43,6 +44,7 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as scopesIndex } from '@/routes/setup/scopes';
+import { index as taskTypesIndex } from '@/routes/setup/task-types';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {
@@ -84,6 +86,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                       title: 'Scopes',
                       href: scopesIndex(currentTeam.slug),
                       icon: ListTree,
+                  } satisfies NavItem,
+                  {
+                      title: 'Task types',
+                      href: taskTypesIndex(currentTeam.slug),
+                      icon: ListChecks,
                   } satisfies NavItem,
               ]
             : []),

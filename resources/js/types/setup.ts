@@ -12,6 +12,13 @@ export type ScopeStatusOption = {
     label: string;
 };
 
+export type TaskType = {
+    id: number;
+    name: string;
+    description: string | null;
+    status: ScopeStatus;
+};
+
 export type Paginated<T> = {
     data: T[];
     current_page: number;

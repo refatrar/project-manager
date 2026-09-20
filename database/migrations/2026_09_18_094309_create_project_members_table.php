@@ -13,16 +13,23 @@ return new class extends Migration
     {
         Schema::create('project_members', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->index()->references('id')->on('projects')->onUpdate('cascade')->onDelete('cascade');
-            $table->foreignId('user_id')->index()->references('id')->on('users')->onUpdate('cascade')->onDelete('cascade');
-            $table->string('role');
-            $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->foreignId('created_by')->index()->nullable()->references('id')->on('users')->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('project_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('role', 32)->default('developer');
+            $table->string('status', 16)->default('active');
+            $table->unsignedTinyInteger('allocation_percentage')->default(100);
+            $table->decimal('hourly_rate', 10, 2)->nullable();
+            $table->date('joined_on')->nullable();
+            $table->date('left_on')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('created_at')->useCurrent();
-            $table->foreignId('updated_by')->index()->nullable()->references('id')->on('users')->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('updated_at')->nullable();
-            $table->foreignId('deleted_by')->index()->nullable()->references('id')->on('users')->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('deleted_at')->nullable();
+
+            $table->unique(['project_id', 'user_id']);
+            $table->index(['user_id', 'status']);
         });
     }
 

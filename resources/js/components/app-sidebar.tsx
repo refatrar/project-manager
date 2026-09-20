@@ -1,5 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, ListTree } from 'lucide-react';
+import {
+    BookOpen,
+    FolderGit2,
+    LayoutGrid,
+    ListChecks,
+    ListTree,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -16,6 +22,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { index as scopesIndex } from '@/routes/setup/scopes';
+import { index as taskTypesIndex } from '@/routes/setup/task-types';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -38,6 +45,11 @@ export function AppSidebar() {
                   title: 'Scopes',
                   href: scopesIndex(page.props.currentTeam.slug),
                   icon: ListTree,
+              },
+              {
+                  title: 'Task types',
+                  href: taskTypesIndex(page.props.currentTeam.slug),
+                  icon: ListChecks,
               },
           ]
         : [];

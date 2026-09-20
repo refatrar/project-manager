@@ -3,7 +3,19 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Concerns\HasProjectWork;
 use App\Concerns\HasTeams;
+use App\Models\Git\GitCommit;
+use App\Models\Git\GitIdentity;
+use App\Models\OMS\Project;
+use App\Models\OMS\ProjectMember;
+use App\Models\OMS\ResourceAllocation;
+use App\Models\OMS\Task;
+use App\Models\OMS\TaskAssignment;
+use App\Models\OMS\TimeLog;
+use App\Models\OMS\TimeOffRequest;
+use App\Models\OMS\TodoList;
+use App\Models\OMS\UserWorkSchedule;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -33,13 +45,24 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Team> $ownedTeams
  * @property-read Collection<int, Membership> $teamMemberships
  * @property-read Collection<int, Team> $teams
+ * @property-read Collection<int, Project> $projects
+ * @property-read Collection<int, ProjectMember> $projectMemberships
+ * @property-read Collection<int, TaskAssignment> $taskAssignments
+ * @property-read Collection<int, Task> $assignedTasks
+ * @property-read Collection<int, TodoList> $todoLists
+ * @property-read Collection<int, TimeLog> $timeLogs
+ * @property-read Collection<int, UserWorkSchedule> $workSchedules
+ * @property-read Collection<int, TimeOffRequest> $timeOffRequests
+ * @property-read Collection<int, ResourceAllocation> $resourceAllocations
+ * @property-read Collection<int, GitIdentity> $gitIdentities
+ * @property-read Collection<int, GitCommit> $commits
  */
 #[Fillable(['name', 'email', 'password', 'current_team_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use HasFactory, HasProjectWork, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.

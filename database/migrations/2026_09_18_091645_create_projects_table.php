@@ -13,17 +13,37 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->text('description');
-            $table->enum('status', ['active', 'completed', 'on_hold', 'cancelled'])->default('active');
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->foreignId('created_by')->index()->nullable()->references('id')->on('users')->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('team_id')->constrained()->cascadeOnDelete();
+            $table->string('code', 32);
+            $table->string('slug');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('status', 32)->default('planning');
+            $table->string('priority', 16)->default('medium');
+            $table->string('health', 16)->default('on_track');
+            $table->string('color', 9)->nullable();
+            $table->string('client_name')->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->date('actual_start_date')->nullable();
+            $table->date('actual_end_date')->nullable();
+            $table->decimal('estimated_hours', 10, 2)->nullable();
+            $table->decimal('budget', 14, 2)->nullable();
+            $table->char('currency', 3)->nullable();
+            $table->unsignedTinyInteger('progress_percentage')->default(0);
+            $table->unsignedInteger('next_task_number')->default(1);
+            $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('archived_at')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('created_at')->useCurrent();
-            $table->foreignId('updated_by')->index()->nullable()->references('id')->on('users')->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('updated_at')->nullable();
-            $table->foreignId('deleted_by')->index()->nullable()->references('id')->on('users')->onUpdate('cascade')->onDelete('set null');
+            $table->foreignId('deleted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('deleted_at')->nullable();
+
+            $table->unique(['team_id', 'code']);
+            $table->unique(['team_id', 'slug']);
+            $table->index(['team_id', 'status', 'end_date']);
         });
     }
 
@@ -33,6 +53,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('projects');
-        Schema::dropIfExists('project_members');
     }
 };

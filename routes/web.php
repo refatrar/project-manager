@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Setup\ScopeController;
+use App\Http\Controllers\Setup\TaskTypeController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,7 @@ Route::prefix('{current_team}')
 
         Route::prefix('setup')->name('setup.')->group(function () {
             Route::resource('scopes', ScopeController::class)->except(['create', 'show', 'edit']);
+            Route::resource('task-types', TaskTypeController::class)->except(['create', 'show', 'edit']);
         });
     });
 
