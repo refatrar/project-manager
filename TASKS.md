@@ -43,9 +43,8 @@ Status key: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [x] Larastan level 7 clean, Pint clean
 
 ### 0.4 Remaining data-layer work
-- [ ] **Apply the schema to the development database.** The reshaped migrations require a rebuild:
-      `DB_SOCKET=/var/run/mysqld/mysqld.sock php artisan migrate:fresh --seed`
-- [ ] Drop the scratch verification database when no longer needed: `DROP DATABASE pm_schema_check;`
+- [x] **Apply the schema to the development database.** Confirmed via `migrate:status` against `project_manager`: all 21 migrations have run.
+- [ ] Drop the scratch verification database when no longer needed: `DROP DATABASE pm_schema_check;` (confirmed still present as of this audit)
 - [ ] Install `php8.3-sqlite3` so the configured test connection works and all 110 pre-existing tests can run
 - [ ] Factories for the remaining models: `TaskDependency`, `TaskStatusHistory`, `ProjectProgressSnapshot`, `MeetingAttendee`, `MeetingAgendaItem`, `Comment`, `Attachment`, `Activity`, `GitBranch`, `GitPullRequest`, `GitEvent`, `GitIdentity`
 - [ ] A demo seeder that builds one team with two projects, members, a sprint, tasks, assignments, time logs, a meeting with minutes, and a connected repository
