@@ -61,35 +61,35 @@ Status key: `[x]` done, `[~]` in progress, `[ ]` not started.
 - [ ] `Label` TypeScript types in `resources/js/types/setup.ts`
 
 ### 1.2 Projects
-- [ ] `ProjectPolicy` deriving permissions from the team role and `ProjectMemberRole`
-- [ ] `OMS\ProjectController` index, store, show, update, destroy, archive
+- [ ] `ProjectPolicy` deriving permissions from the team role and `ProjectMemberRole`, per `docs/architecture-decisions.md` ADR-008 and ADR-011
+- [ ] `OMS\ProjectController` index, store, update, destroy, archive — route with `->except(['create', 'edit'])`; `store`/`update` return JSON for a modal per ADR-013, `show` renders the project detail shell
 - [ ] `CreateProject` action allocating `code` and `slug` and adding the creator as owner
 - [ ] Project list page with status, priority and health filters
-- [ ] Project detail shell with tabs for overview, board, modules, members and activity
+- [ ] Project detail shell with tabs for overview, board, modules, members and activity — a single page; creating or editing anything below (modules, members, tasks, milestones, sprints) happens in a modal on this page, never a separate route (ADR-013)
 
 ### 1.3 Modules
-- [ ] `OMS\ProjectModuleController` with nesting and reordering
-- [ ] Module tree component with drag-to-reorder writing `position`
+- [ ] `OMS\ProjectModuleController` with nesting and reordering — route with `->except(['create', 'show', 'edit'])`, modal-driven (ADR-013)
+- [ ] Module tree component with drag-to-reorder writing `position`, create/edit via modal on the project detail page
 
 ### 1.4 Members
-- [ ] `OMS\ProjectMemberController`, restoring a soft-deleted membership rather than inserting a duplicate
-- [ ] Member management page with role and allocation editing
+- [ ] `OMS\ProjectMemberController`, restoring a soft-deleted membership rather than inserting a duplicate — route with `->except(['create', 'show', 'edit'])`, modal-driven (ADR-013)
+- [ ] Member management surface (modal/panel on the project detail page, not a separate page) with role and allocation editing
 
 ### 1.5 Tasks
 - [ ] `TaskPolicy`
-- [ ] `OMS\TaskController` index, store, show, update, destroy
+- [ ] `OMS\TaskController` index, store, show, update, destroy — route with `->except(['create', 'edit'])`; `store`/`update` return JSON for a modal per ADR-013, `show` is the task detail page (a legitimate deep-linkable exception, not a create/edit route)
 - [ ] `CreateTask` action allocating `number` from `projects.next_task_number` inside a transaction
 - [ ] `ChangeTaskStatus` action writing `task_status_histories` and stamping `started_at` / `completed_at`
 - [ ] `AssignTask` action supporting multiple users and roles, and preserving history on reassignment
-- [ ] Kanban board grouped by `status`, persisting `position`
+- [ ] Kanban board grouped by `status`, persisting `position` — the default view on the project detail page's board tab; task creation from the board opens the create-task modal in place, no navigation (ADR-013)
 - [ ] Task list view with filters for assignee, label, milestone, sprint and due date
-- [ ] Task detail page: description, subtasks, dependencies, checklist, comments, attachments, linked commits
+- [ ] Task detail page: description, subtasks, dependencies, checklist, comments, attachments, linked commits — all edits happen in place or via modal, no separate `/edit` route
 - [ ] Dependency editor with cycle rejection
 - [ ] `tasks.logged_hours` recalculation on time log write
 
 ### 1.6 Milestones and sprints
-- [ ] `OMS\MilestoneController` and `OMS\SprintController`
-- [ ] Sprint planning screen showing committed hours against capacity
+- [ ] `OMS\MilestoneController` and `OMS\SprintController` — route with `->except(['create', 'show', 'edit'])`, modal-driven (ADR-013)
+- [ ] Sprint planning screen showing committed hours against capacity; sprint/milestone creation and editing via modal on the project detail page
 - [ ] Milestone timeline view
 
 ---

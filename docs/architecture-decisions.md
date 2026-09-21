@@ -158,6 +158,27 @@ Accepted.
 
 ---
 
+## ADR-013: The project workspace is a single page — no route navigation to create or edit an item
+
+### Context
+`Setup\ScopeController` and `Setup\TaskTypeController` already establish the precedent: `Route::resource(...)->except(['create', 'show', 'edit'])`, with `store`/`update` returning JSON for a modal on the same page rather than redirecting to a separate create/edit route (`RULES.md` §5, `ARCHITECTURE.md`'s Request Flow section). The user has now stated this explicitly as a product requirement for the project workspace: tasks, modules, members, milestones, and sprints must all be creatable and editable from the project detail page — including the Kanban board — without navigating to another URL.
+
+The Kanban board itself was already planned (`RD.md` FR-2.6 "ordered on a board"; `TASKS.md` Phase 1.5 "Kanban board grouped by `status`, persisting `position`") — this decision does not add the board, it fixes how every create/edit interaction around it behaves.
+
+### Decision
+Every domain controller reachable from the project workspace (`OMS\ProjectController`, `ProjectModuleController`, `ProjectMemberController`, `TaskController`, `MilestoneController`, `SprintController`) follows the existing dual-response pattern and registers routes with `->except(['create', 'show', 'edit'])`. Creating a task, adding a member, adding a module, or creating a milestone/sprint opens a modal on the project detail page and posts to the existing `store`/`update` endpoint; the page never navigates away. `show` is only excluded where a dedicated detail view isn't needed — the task detail page (`TASKS.md` 1.5) is a legitimate exception since it's a distinct, deep-linkable view of a single task, not a create/edit surface; it should still perform all *editing* in-place or via modals rather than a separate `/edit` route.
+
+### Alternatives
+- Traditional multi-page CRUD (separate `/create` and `/edit` routes): rejected — contradicts the explicit product requirement and the pattern already established for Setup screens; would also mean two different UX patterns coexisting in the same app for no reason.
+
+### Consequences
+`TASKS.md` Phase 1 controller and page line items are updated to state this explicitly (see below) so it isn't left to per-developer interpretation. The task detail page remains a real, navigable URL (deep-linkable, shareable) — "single page" means no navigation *for create/edit*, not that the entire application collapses into one literal URL.
+
+### Status
+Accepted.
+
+---
+
 ## ADR-009: Attachments use local disk storage for now
 
 ### Context
