@@ -55,6 +55,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, MeetingAgendaItem> $agendaItems
  * @property-read Collection<int, TodoList> $actionItemLists
  * @property-read Collection<int, Attachment> $attachments
+ * @property-read Collection<int, TimeLog> $timeLogs
  */
 #[Fillable([
     'project_id', 'sprint_id', 'title', 'type', 'status', 'agenda', 'minutes', 'decisions',
@@ -168,6 +169,16 @@ class Meeting extends Model
     }
 
     /**
+     * Get the time logged against the meeting.
+     *
+     * @return HasMany<TimeLog, $this>
+     */
+    public function timeLogs(): HasMany
+    {
+        return $this->hasMany(TimeLog::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -182,6 +193,59 @@ class Meeting extends Model
             'started_at' => 'datetime',
             'ended_at' => 'datetime',
             'minutes_published_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Get the lightweight payload used for the meeting list. Assumes
+     * `project` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'type' => $this->type->value,
+            'status' => $this->status->value,
+            'project' => $this->project ? [
+                'id' => $this->project->id,
+                'code' => $this->project->code,
+                'name' => $this->project->name,
+            ] : null,
+            'scheduled_start' => $this->scheduled_start->toIso8601String(),
+            'scheduled_end' => $this->scheduled_end->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Get the full payload used for the meeting workspace. Assumes
+     * `project`, `organizer` and `recorder` are loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDetailArray(): array
+    {
+        return [
+            ...$this->toListArray(),
+            'sprint_id' => $this->sprint_id,
+            'agenda' => $this->agenda,
+            'minutes' => $this->minutes,
+            'decisions' => $this->decisions,
+            'location' => $this->location,
+            'meeting_url' => $this->meeting_url,
+            'started_at' => $this->started_at?->toIso8601String(),
+            'ended_at' => $this->ended_at?->toIso8601String(),
+            'minutes_published_at' => $this->minutes_published_at?->toIso8601String(),
+            'organizer' => $this->organizer ? [
+                'id' => $this->organizer->id,
+                'name' => $this->organizer->name,
+            ] : null,
+            'recorder' => $this->recorder ? [
+                'id' => $this->recorder->id,
+                'name' => $this->recorder->name,
+            ] : null,
         ];
     }
 }

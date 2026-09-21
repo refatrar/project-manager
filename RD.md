@@ -94,6 +94,8 @@ Every record belongs to a team. A user may belong to many teams and holds a role
 - FR-8.5 The system must answer, for a required number of hours and a date range, which users have enough free capacity.
 - FR-8.6 Actual effort is recorded as time logs, which are separate from planned allocations.
 - FR-8.7 Time logs support a running timer, manual entry and import, and may require approval before billing.
+- FR-8.8 A member's work schedule is visible to a project manager only in the context of a project that member and manager share. A manager on Project A must not see the confidential detail (which project, which task, how many hours) of that member's commitments on Project B, a project the manager has no membership on.
+- FR-8.9 If a member is booked or over-committed elsewhere at a time a manager is trying to schedule them on the manager's own project, the manager must see a warning that a conflict exists, even though FR-8.8 forbids showing the confidential detail behind it.
 
 ### FR-9 Collaboration
 

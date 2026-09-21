@@ -112,11 +112,35 @@ class ProjectModule extends Model
     protected function casts(): array
     {
         return [
+            'parent_id' => 'integer',
             'status' => ProjectModuleStatus::class,
             'priority' => Priority::class,
             'start_date' => 'date',
             'end_date' => 'date',
             'completed_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Get the payload used for the project's module tree.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'parent_id' => $this->parent_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'status' => $this->status->value,
+            'priority' => $this->priority->value,
+            'position' => $this->position,
+            'start_date' => $this->start_date?->toDateString(),
+            'end_date' => $this->end_date?->toDateString(),
+            'estimated_hours' => $this->estimated_hours,
+            'progress_percentage' => $this->progress_percentage,
         ];
     }
 }

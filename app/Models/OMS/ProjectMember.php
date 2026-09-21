@@ -89,4 +89,28 @@ class ProjectMember extends Model
             'left_on' => 'date',
         ];
     }
+
+    /**
+     * Get the payload used for the project's member list. Assumes `user` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+            ],
+            'role' => $this->role->value,
+            'status' => $this->status->value,
+            'allocation_percentage' => $this->allocation_percentage,
+            'hourly_rate' => $this->hourly_rate,
+            'joined_on' => $this->joined_on?->toDateString(),
+            'left_on' => $this->left_on?->toDateString(),
+        ];
+    }
 }

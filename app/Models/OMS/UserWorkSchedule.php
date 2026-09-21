@@ -90,4 +90,22 @@ class UserWorkSchedule extends Model
             'effective_until' => 'date',
         ];
     }
+
+    /**
+     * Get the payload used for the work schedule page.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'day_of_week' => $this->day_of_week,
+            'is_working_day' => $this->is_working_day,
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'break_minutes' => $this->break_minutes,
+            'capacity_hours' => (float) $this->capacity_hours,
+        ];
+    }
 }

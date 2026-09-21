@@ -5,7 +5,9 @@ namespace App\Models\OMS;
 use App\Enums\MeetingAttendanceStatus;
 use App\Enums\MeetingAttendeeRole;
 use App\Models\User;
+use Database\Factories\OMS\MeetingAttendeeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -32,6 +34,9 @@ use Illuminate\Support\Carbon;
 ])]
 class MeetingAttendee extends Model
 {
+    /** @use HasFactory<MeetingAttendeeFactory> */
+    use HasFactory;
+
     /**
      * Get the meeting the attendee belongs to.
      *
@@ -65,6 +70,28 @@ class MeetingAttendee extends Model
             'responded_at' => 'datetime',
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Get the payload used for the meeting workspace. Assumes `user` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'meeting_id' => $this->meeting_id,
+            'user' => $this->user ? [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'email' => $this->user->email,
+            ] : null,
+            'guest_name' => $this->guest_name,
+            'guest_email' => $this->guest_email,
+            'role' => $this->role->value,
+            'attendance_status' => $this->attendance_status->value,
         ];
     }
 }

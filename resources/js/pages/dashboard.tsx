@@ -1,18 +1,38 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import type { DashboardInvitation } from '@/types';
+import { show as showProject } from '@/routes/projects';
+import type { DashboardInvitation, PortfolioHealthCounts, Project } from '@/types';
 
 type Props = {
     pendingInvitations?: DashboardInvitation[];
+    projects: Project[];
+    healthCounts: PortfolioHealthCounts;
+    overdueTasks: number;
+    blockedTasks: number;
 };
 
-export default function Dashboard({ pendingInvitations = [] }: Props) {
+const healthVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {
+    on_track: 'default',
+    at_risk: 'secondary',
+    off_track: 'destructive',
+};
+
+export default function Dashboard({
+    pendingInvitations = [],
+    projects,
+    healthCounts,
+    overdueTasks,
+    blockedTasks,
+}: Props) {
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
     );
+    const teamSlug = usePage().props.currentTeam?.slug;
 
     return (
         <>
@@ -22,20 +42,126 @@ export default function Dashboard({ pendingInvitations = [] }: Props) {
                 open={pendingInvitations.length > 0 && showInvitations}
                 onOpenChange={setShowInvitations}
             />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
+            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Projects</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold">
+                                {projects.length}
+                            </p>
+                            <p className="text-muted-foreground text-sm">active</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>On track</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold">
+                                {healthCounts.on_track}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>At risk</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p className="text-2xl font-semibold">
+                                {healthCounts.at_risk}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card data-test="portfolio-overdue">
+                        <CardHeader>
+                            <CardTitle>Overdue tasks</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p
+                                className={cn(
+                                    'text-2xl font-semibold',
+                                    overdueTasks > 0 && 'text-destructive',
+                                )}
+                            >
+                                {overdueTasks}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card data-test="portfolio-blocked">
+                        <CardHeader>
+                            <CardTitle>Blocked tasks</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p
+                                className={cn(
+                                    'text-2xl font-semibold',
+                                    blockedTasks > 0 && 'text-destructive',
+                                )}
+                            >
+                                {blockedTasks}
+                            </p>
+                        </CardContent>
+                    </Card>
                 </div>
-                <div className="border-sidebar-border/70 dark:border-sidebar-border relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border md:min-h-min">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+
+                <div className="space-y-2">
+                    <h2 className="text-sm font-medium">Your projects</h2>
+
+                    {projects.length > 0 ? (
+                        <div className="space-y-2">
+                            {projects.map((project) => (
+                                <Link
+                                    key={project.id}
+                                    href={
+                                        teamSlug
+                                            ? showProject.url([
+                                                  teamSlug,
+                                                  project.id,
+                                              ])
+                                            : '#'
+                                    }
+                                    data-test="portfolio-project-row"
+                                    className="hover:bg-accent flex items-center justify-between gap-4 rounded-lg border p-4"
+                                >
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="text-muted-foreground font-mono text-xs">
+                                                {project.code}
+                                            </span>
+                                            <span className="font-medium">
+                                                {project.name}
+                                            </span>
+                                            <Badge
+                                                variant={
+                                                    healthVariant[
+                                                        project.health
+                                                    ] ?? 'default'
+                                                }
+                                            >
+                                                {project.health.replace('_', ' ')}
+                                            </Badge>
+                                        </div>
+                                        <p className="text-muted-foreground mt-1 text-sm">
+                                            {project.status.replace('_', ' ')} ·{' '}
+                                            {project.progress_percentage}%
+                                            complete
+                                        </p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-muted-foreground py-8 text-center text-sm">
+                            No projects yet.
+                        </p>
+                    )}
                 </div>
             </div>
         </>

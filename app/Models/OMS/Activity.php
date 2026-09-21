@@ -84,4 +84,23 @@ class Activity extends Model
             'properties' => 'array',
         ];
     }
+
+    /**
+     * Get the payload used for the project activity feed. Assumes `user` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'event' => $this->event,
+            'description' => $this->description,
+            'user' => $this->user ? [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ] : null,
+            'createdAt' => $this->created_at?->toIso8601String(),
+        ];
+    }
 }

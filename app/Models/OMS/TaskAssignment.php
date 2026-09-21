@@ -106,4 +106,24 @@ class TaskAssignment extends Model
             'unassigned_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for a task's assignment list. Assumes `user` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'task_id' => $this->task_id,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ],
+            'role' => $this->role->value,
+            'status' => $this->status->value,
+            'allocated_hours' => $this->allocated_hours,
+        ];
+    }
 }

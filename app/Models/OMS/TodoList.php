@@ -143,4 +143,23 @@ class TodoList extends Model
             'completed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for the to-do lists page. Assumes `items` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'type' => $this->type->value,
+            'status' => $this->status->value,
+            'scheduled_for' => $this->scheduled_for?->toDateString(),
+            'position' => $this->position,
+            'items' => $this->items->map(fn (TodoItem $item): array => $item->toListArray())->all(),
+        ];
+    }
 }

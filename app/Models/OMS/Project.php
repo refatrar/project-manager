@@ -64,6 +64,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, ResourceAllocation> $resourceAllocations
  * @property-read Collection<int, ProjectProgressSnapshot> $progressSnapshots
  * @property-read Collection<int, GitRepository> $gitRepositories
+ * @property-read Collection<int, Activity> $activities
  */
 #[Fillable([
     'code', 'slug', 'name', 'description', 'status', 'priority', 'health', 'color',
@@ -226,6 +227,16 @@ class Project extends Model
     }
 
     /**
+     * Get the activity feed entries recorded against the project.
+     *
+     * @return HasMany<Activity, $this>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    /**
      * Scope the query to projects that are not archived or closed.
      *
      * @param  Builder<Project>  $query
@@ -271,6 +282,52 @@ class Project extends Model
             'actual_start_date' => 'date',
             'actual_end_date' => 'date',
             'archived_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Get the lightweight payload used for project list rows.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'code' => $this->code,
+            'slug' => $this->slug,
+            'name' => $this->name,
+            'status' => $this->status->value,
+            'priority' => $this->priority->value,
+            'health' => $this->health->value,
+            'progress_percentage' => $this->progress_percentage,
+            'start_date' => $this->start_date?->toDateString(),
+            'end_date' => $this->end_date?->toDateString(),
+            'archived_at' => $this->archived_at?->toIso8601String(),
+        ];
+    }
+
+    /**
+     * Get the full payload used for the project workspace.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDetailArray(): array
+    {
+        return [
+            ...$this->toListArray(),
+            'description' => $this->description,
+            'color' => $this->color,
+            'client_name' => $this->client_name,
+            'actual_start_date' => $this->actual_start_date?->toDateString(),
+            'actual_end_date' => $this->actual_end_date?->toDateString(),
+            'estimated_hours' => $this->estimated_hours,
+            'budget' => $this->budget,
+            'currency' => $this->currency,
+            'owner' => $this->owner ? [
+                'id' => $this->owner->id,
+                'name' => $this->owner->name,
+            ] : null,
         ];
     }
 }

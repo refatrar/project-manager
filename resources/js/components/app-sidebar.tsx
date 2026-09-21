@@ -1,10 +1,17 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    CalendarCheck,
+    CalendarClock,
+    CalendarDays,
     FolderGit2,
+    FolderKanban,
     LayoutGrid,
     ListChecks,
+    ListTodo,
     ListTree,
+    Plane,
+    Tag,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -20,9 +27,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, myDay } from '@/routes';
+import { index as meetingsIndex } from '@/routes/meetings';
+import { index as projectsIndex } from '@/routes/projects';
+import { index as labelsIndex } from '@/routes/setup/labels';
 import { index as scopesIndex } from '@/routes/setup/scopes';
 import { index as taskTypesIndex } from '@/routes/setup/task-types';
+import { index as timeOffIndex } from '@/routes/time-off-requests';
+import { index as todoListsIndex } from '@/routes/todo-lists';
+import { index as workScheduleIndex } from '@/routes/work-schedule';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -37,6 +50,40 @@ export function AppSidebar() {
             href: dashboardUrl,
             icon: LayoutGrid,
         },
+        ...(page.props.currentTeam
+            ? [
+                  {
+                      title: 'My Day',
+                      href: myDay(page.props.currentTeam.slug),
+                      icon: CalendarCheck,
+                  },
+                  {
+                      title: 'Projects',
+                      href: projectsIndex(page.props.currentTeam.slug),
+                      icon: FolderKanban,
+                  },
+                  {
+                      title: 'Meetings',
+                      href: meetingsIndex(page.props.currentTeam.slug),
+                      icon: CalendarDays,
+                  },
+                  {
+                      title: 'My To-Dos',
+                      href: todoListsIndex(page.props.currentTeam.slug),
+                      icon: ListTodo,
+                  },
+                  {
+                      title: 'Work Schedule',
+                      href: workScheduleIndex(page.props.currentTeam.slug),
+                      icon: CalendarClock,
+                  },
+                  {
+                      title: 'Time Off',
+                      href: timeOffIndex(page.props.currentTeam.slug),
+                      icon: Plane,
+                  },
+              ]
+            : []),
     ];
 
     const setupNavItems: NavItem[] = page.props.currentTeam
@@ -50,6 +97,11 @@ export function AppSidebar() {
                   title: 'Task types',
                   href: taskTypesIndex(page.props.currentTeam.slug),
                   icon: ListChecks,
+              },
+              {
+                  title: 'Labels',
+                  href: labelsIndex(page.props.currentTeam.slug),
+                  icon: Tag,
               },
           ]
         : [];

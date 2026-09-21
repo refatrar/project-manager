@@ -89,4 +89,24 @@ class Sprint extends Model
             'completed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for the project's sprint list.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'name' => $this->name,
+            'goal' => $this->goal,
+            'status' => $this->status->value,
+            'starts_on' => $this->starts_on->toDateString(),
+            'ends_on' => $this->ends_on->toDateString(),
+            'capacity_hours' => $this->capacity_hours,
+            'committed_hours' => $this->committed_hours,
+        ];
+    }
 }

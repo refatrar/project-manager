@@ -114,4 +114,34 @@ class ResourceAllocation extends Model
             'ends_on' => 'date',
         ];
     }
+
+    /**
+     * Get the payload used for the project workspace. Assumes `user` and
+     * `task:id,number,title` are loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ],
+            'task_id' => $this->task_id,
+            'task' => $this->task ? [
+                'id' => $this->task->id,
+                'number' => $this->task->number,
+                'title' => $this->task->title,
+            ] : null,
+            'sprint_id' => $this->sprint_id,
+            'status' => $this->status->value,
+            'starts_on' => $this->starts_on->toDateString(),
+            'ends_on' => $this->ends_on->toDateString(),
+            'hours_per_day' => (float) $this->hours_per_day,
+            'allocation_percentage' => $this->allocation_percentage,
+            'notes' => $this->notes,
+        ];
+    }
 }

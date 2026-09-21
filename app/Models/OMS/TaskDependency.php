@@ -4,7 +4,9 @@ namespace App\Models\OMS;
 
 use App\Enums\TaskDependencyType;
 use App\Models\User;
+use Database\Factories\OMS\TaskDependencyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -23,6 +25,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['task_id', 'related_task_id', 'type'])]
 class TaskDependency extends Model
 {
+    /** @use HasFactory<TaskDependencyFactory> */
+    use HasFactory;
+
     public const UPDATED_AT = null;
 
     /**
@@ -64,6 +69,25 @@ class TaskDependency extends Model
     {
         return [
             'type' => TaskDependencyType::class,
+        ];
+    }
+
+    /**
+     * Get the payload used for the task detail page. Assumes `relatedTask` is loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'type' => $this->type->value,
+            'relatedTask' => [
+                'id' => $this->relatedTask->id,
+                'reference' => $this->relatedTask->reference(),
+                'title' => $this->relatedTask->title,
+                'status' => $this->relatedTask->status->value,
+            ],
         ];
     }
 }

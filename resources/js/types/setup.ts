@@ -19,6 +19,13 @@ export type TaskType = {
     status: ScopeStatus;
 };
 
+export type Label = {
+    id: number;
+    name: string;
+    color: string | null;
+    description: string | null;
+};
+
 export type Paginated<T> = {
     data: T[];
     current_page: number;

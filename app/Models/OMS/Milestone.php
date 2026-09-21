@@ -77,4 +77,25 @@ class Milestone extends Model
             'completed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for the project's milestone list.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'status' => $this->status->value,
+            'due_on' => $this->due_on?->toDateString(),
+            'position' => $this->position,
+            'progress_percentage' => $this->progress_percentage,
+            'is_billable' => $this->is_billable,
+            'payment_amount' => $this->payment_amount,
+        ];
+    }
 }

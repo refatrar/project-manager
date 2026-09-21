@@ -109,4 +109,37 @@ class TodoItem extends Model
             'completed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for the to-do lists page. Assumes `assignee` and
+     * `task.project` are loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'todo_list_id' => $this->todo_list_id,
+            'task_id' => $this->task_id,
+            'assignee' => $this->assignee ? [
+                'id' => $this->assignee->id,
+                'name' => $this->assignee->name,
+            ] : null,
+            'task' => $this->task ? [
+                'id' => $this->task->id,
+                'project_id' => $this->task->project_id,
+                'reference' => $this->task->reference(),
+                'title' => $this->task->title,
+                'status' => $this->task->status->value,
+            ] : null,
+            'title' => $this->title,
+            'notes' => $this->notes,
+            'priority' => $this->priority->value,
+            'is_completed' => $this->is_completed,
+            'due_at' => $this->due_at?->toIso8601String(),
+            'estimated_minutes' => $this->estimated_minutes,
+            'position' => $this->position,
+        ];
+    }
 }

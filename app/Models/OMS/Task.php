@@ -350,4 +350,67 @@ class Task extends Model
             'closed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for a Kanban board card. Assumes `taskType`,
+     * `assignees`, `assignments.user` and `labels` are loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toBoardArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'project_module_id' => $this->project_module_id,
+            'milestone_id' => $this->milestone_id,
+            'sprint_id' => $this->sprint_id,
+            'reference' => $this->reference(),
+            'title' => $this->title,
+            'status' => $this->status->value,
+            'priority' => $this->priority->value,
+            'position' => $this->position,
+            'due_at' => $this->due_at?->toIso8601String(),
+            'taskType' => [
+                'id' => $this->taskType->id,
+                'name' => $this->taskType->name,
+            ],
+            'assignees' => $this->assignees->map(fn (User $user): array => [
+                'id' => $user->id,
+                'name' => $user->name,
+            ])->values(),
+            'assignments' => $this->assignments
+                ->filter(fn (TaskAssignment $assignment): bool => $assignment->unassigned_at === null)
+                ->map(fn (TaskAssignment $assignment): array => $assignment->toListArray())
+                ->values(),
+            'labels' => $this->labels->map(fn (Label $label): array => [
+                'id' => $label->id,
+                'name' => $label->name,
+                'color' => $label->color,
+            ])->values(),
+        ];
+    }
+
+    /**
+     * Get the full payload used for the task detail page.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDetailArray(): array
+    {
+        return [
+            ...$this->toBoardArray(),
+            'description' => $this->description,
+            'review_status' => $this->review_status?->value,
+            'deployment_stage' => $this->deployment_stage?->value,
+            'estimated_hours' => $this->estimated_hours,
+            'logged_hours' => $this->logged_hours,
+            'remaining_hours' => $this->remaining_hours,
+            'progress_percentage' => $this->progress_percentage,
+            'is_billable' => $this->is_billable,
+            'starts_at' => $this->starts_at?->toIso8601String(),
+            'started_at' => $this->started_at?->toIso8601String(),
+            'completed_at' => $this->completed_at?->toIso8601String(),
+        ];
+    }
 }

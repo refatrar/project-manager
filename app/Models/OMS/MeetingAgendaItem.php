@@ -3,7 +3,9 @@
 namespace App\Models\OMS;
 
 use App\Models\User;
+use Database\Factories\OMS\MeetingAgendaItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -31,6 +33,9 @@ use Illuminate\Support\Carbon;
 ])]
 class MeetingAgendaItem extends Model
 {
+    /** @use HasFactory<MeetingAgendaItemFactory> */
+    use HasFactory;
+
     /**
      * Get the meeting the agenda item belongs to.
      *
@@ -70,6 +75,36 @@ class MeetingAgendaItem extends Model
     {
         return [
             'is_discussed' => 'boolean',
+        ];
+    }
+
+    /**
+     * Get the payload used for the meeting workspace. Assumes `task` and
+     * `presenter` are loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'meeting_id' => $this->meeting_id,
+            'title' => $this->title,
+            'description' => $this->description,
+            'notes' => $this->notes,
+            'duration_minutes' => $this->duration_minutes,
+            'position' => $this->position,
+            'is_discussed' => $this->is_discussed,
+            'task' => $this->task ? [
+                'id' => $this->task->id,
+                'reference' => $this->task->reference(),
+                'title' => $this->task->title,
+                'status' => $this->task->status->value,
+            ] : null,
+            'presenter' => $this->presenter ? [
+                'id' => $this->presenter->id,
+                'name' => $this->presenter->name,
+            ] : null,
         ];
     }
 }

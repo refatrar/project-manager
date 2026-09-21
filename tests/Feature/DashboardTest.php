@@ -2,7 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ProjectHealth;
+use App\Enums\TaskStatus;
 use App\Enums\TeamRole;
+use App\Models\OMS\Project;
+use App\Models\OMS\ProjectMember;
+use App\Models\OMS\Task;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
@@ -117,6 +122,68 @@ class DashboardTest extends TestCase
         $this->assertDatabaseHas('team_invitations', [
             'id' => $invitation->id,
         ]);
+    }
+
+    public function test_the_portfolio_lists_the_current_teams_open_projects(): void
+    {
+        $user = User::factory()->create();
+        $team = $user->currentTeam;
+        $visible = Project::factory()->for($team)->create(['name' => 'Visible Project']);
+        Project::factory()->for($team)->create(['archived_at' => now()]);
+        Project::factory()->create(); // another team entirely
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->has('projects', 1)
+            ->where('projects.0.id', $visible->id),
+        );
+    }
+
+    public function test_a_plain_member_only_sees_projects_they_belong_to_on_the_portfolio(): void
+    {
+        $owner = User::factory()->create();
+        $team = $owner->currentTeam;
+        $member = User::factory()->create();
+        $team->members()->attach($member, ['role' => TeamRole::Member->value]);
+
+        $visible = Project::factory()->for($team)->create();
+        ProjectMember::factory()->for($visible)->create(['user_id' => $member->id]);
+        Project::factory()->for($team)->create();
+
+        $member->switchTeam($team);
+
+        $response = $this->actingAs($member)->get(route('dashboard'));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->has('projects', 1)
+            ->where('projects.0.id', $visible->id),
+        );
+    }
+
+    public function test_the_portfolio_reports_health_counts_and_overdue_and_blocked_totals(): void
+    {
+        $user = User::factory()->create();
+        $team = $user->currentTeam;
+        $onTrack = Project::factory()->for($team)->create(['health' => ProjectHealth::OnTrack]);
+        Project::factory()->for($team)->create(['health' => ProjectHealth::AtRisk]);
+
+        Task::factory()->for($onTrack)->create([
+            'status' => TaskStatus::InProgress,
+            'due_at' => now()->subDay(),
+        ]);
+        Task::factory()->for($onTrack)->create(['status' => TaskStatus::Blocked]);
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+
+        $response->assertInertia(fn (Assert $page) => $page
+            ->where('healthCounts.on_track', 1)
+            ->where('healthCounts.at_risk', 1)
+            ->where('healthCounts.off_track', 0)
+            ->where('overdueTasks', 1)
+            ->where('blockedTasks', 1),
+        );
     }
 
     public function test_dashboard_does_not_include_or_delete_other_users_invitations()

@@ -125,7 +125,7 @@ Three kinds of work belong on the queue, not in a request:
 | --- | --- | --- |
 | Git webhook ingest | Webhook receipt persists a `git_events` row, then dispatches | `git_commits`, `git_branches`, `git_pull_requests`, `git_commit_task` |
 | Repository backfill | Connecting a repository | Same as above, plus `git_repositories.sync_status` |
-| Nightly progress snapshot | Scheduler | `project_progress_snapshots`, `projects.progress_percentage` |
+| Nightly progress snapshot | Scheduler (`oms:snapshot-project-progress`, daily) | `project_progress_snapshots`, `projects.progress_percentage`, `projects.health`, `project_modules.progress_percentage`, `milestones.progress_percentage` |
 
 `git_events` is the durability seam. The webhook endpoint only validates the signature and stores the payload, so ingest failures are replayable from `GitEvent::unprocessed()`.
 
@@ -135,9 +135,11 @@ Some columns cache values that could be computed. Each is a deliberate trade, an
 
 | Column | Derived from | Written by |
 | --- | --- | --- |
-| `tasks.logged_hours` | `sum(time_logs.duration_minutes)` | Time log observer or action |
-| `projects.progress_percentage` | Task completion across the project | Nightly snapshot job |
-| `project_modules.progress_percentage` | Task completion within the module | Nightly snapshot job |
+| `tasks.logged_hours` | `sum(time_logs.duration_minutes)` | Time log observer or action (Phase 6, not yet built) |
+| `projects.progress_percentage` | Task completion across the project | `SnapshotProjectProgress` (`oms:snapshot-project-progress`, scheduled daily) |
+| `projects.health` | Schedule position and hours variance (`App\Actions\OMS\DetermineProjectHealth`) | `SnapshotProjectProgress`, same run as progress. A project manager can still edit `health` by hand between runs; the next nightly run recomputes and overwrites it — there is no "manual override" flag. |
+| `project_modules.progress_percentage` | Task completion within the module (direct tasks only, not recursive into child modules) | `SnapshotProjectProgress` |
+| `milestones.progress_percentage` | Task completion within the milestone | `SnapshotProjectProgress` |
 | `projects.next_task_number` | `max(tasks.number) + 1` | Task creation action, inside a transaction |
 
 `next_task_number` exists so a per-project task reference can be allocated without a `MAX()` scan and without a race. Increment it in the same transaction that inserts the task.
