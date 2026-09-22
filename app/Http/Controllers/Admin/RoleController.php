@@ -125,7 +125,7 @@ class RoleController extends Controller
      * which throws before its `onSuccess` ever runs. So a redirect only
      * works for a real Inertia visit (`X-Inertia` header present, e.g. a
      * no-JS fallback); everything else gets a plain JSON body instead,
-     * matching `UserWorkScheduleController::store()`'s established
+     * matching `WorkScheduleController::store()`'s established
      * convention.
      */
     private function respond(Request $request, string $message): JsonResponse|RedirectResponse

@@ -22,7 +22,6 @@ use App\Http\Controllers\OMS\TimesheetApprovalController;
 use App\Http\Controllers\OMS\TimesheetController;
 use App\Http\Controllers\OMS\TodoItemController;
 use App\Http\Controllers\OMS\TodoListController;
-use App\Http\Controllers\OMS\UserWorkScheduleController;
 use App\Http\Controllers\Setup\LabelController;
 use App\Http\Controllers\Setup\ScopeController;
 use App\Http\Controllers\Setup\TaskTypeController;
@@ -96,11 +95,6 @@ Route::prefix('{current_team}')
         Route::resource('todo-lists.items', TodoItemController::class)->except(['create', 'index', 'show', 'edit']);
 
         Route::get('my-day', [MyDayController::class, 'index'])->name('my-day');
-
-        // The acting user's own weekly capacity template (FR-8.1) — no
-        // route-bound model, always scoped to the authenticated user.
-        Route::get('work-schedule', [UserWorkScheduleController::class, 'index'])->name('work-schedule.index');
-        Route::post('work-schedule', [UserWorkScheduleController::class, 'store'])->name('work-schedule.store');
 
         // Registered before the resource so the literal "cancel"/"decide"
         // segments aren't swallowed by the {time_off_request} binding.

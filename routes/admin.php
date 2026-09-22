@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\WorkScheduleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -20,6 +21,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
         Route::post('teams', [TeamController::class, 'store'])->name('teams.store');
         Route::post('teams/{team}/leader', [TeamController::class, 'assignLeader'])->name('teams.assign-leader');
+
+        Route::get('work-schedules', [WorkScheduleController::class, 'index'])->name('work-schedules.index');
+        Route::post('work-schedules', [WorkScheduleController::class, 'store'])->name('work-schedules.store');
 
         Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
         Route::post('roles', [RoleController::class, 'store'])->name('roles.store');

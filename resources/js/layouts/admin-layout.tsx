@@ -8,17 +8,19 @@ import { dashboard, logout } from '@/routes/admin';
 import { index as adminsIndex } from '@/routes/admin/admins';
 import { index as rolesIndex } from '@/routes/admin/roles';
 import { index as teamsIndex } from '@/routes/admin/teams';
+import { index as workSchedulesIndex } from '@/routes/admin/work-schedules';
 import type { NavItem } from '@/types';
 
 const navItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard() },
     { title: 'Teams', href: teamsIndex() },
+    { title: 'Work schedules', href: workSchedulesIndex() },
     { title: 'Roles', href: rolesIndex() },
     { title: 'Admins', href: adminsIndex() },
 ];
 
 export default function AdminLayout({ children }: PropsWithChildren) {
-    const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { isCurrentUrl } = useCurrentUrl();
     const admin = usePage<{ admin?: { name: string } }>().props.admin;
 
     return (
@@ -40,7 +42,7 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                                 href={item.href}
                                 className={cn(
                                     'text-muted-foreground hover:text-foreground',
-                                    isCurrentOrParentUrl(item.href) &&
+                                    isCurrentUrl(item.href) &&
                                         'text-foreground font-medium',
                                 )}
                             >

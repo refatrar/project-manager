@@ -12,6 +12,7 @@ namespace App\Enums;
 enum AdminPermission: string
 {
     case ManageTeams = 'teams.manage';
+    case ManageWorkSchedules = 'work-schedules.manage';
     case ManageRoles = 'roles.manage';
     case ManageAdmins = 'admins.manage';
 
@@ -19,6 +20,7 @@ enum AdminPermission: string
     {
         return match ($this) {
             self::ManageTeams => 'Create teams and assign team leaders',
+            self::ManageWorkSchedules => 'Set weekly work schedules for users',
             self::ManageRoles => 'Manage roles and permissions',
             self::ManageAdmins => 'Manage admin accounts',
         };
@@ -28,6 +30,7 @@ enum AdminPermission: string
     {
         return match ($this) {
             self::ManageTeams => 'Teams',
+            self::ManageWorkSchedules => 'Teams',
             self::ManageRoles => 'Access control',
             self::ManageAdmins => 'Access control',
         };

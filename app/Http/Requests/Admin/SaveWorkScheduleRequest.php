@@ -1,18 +1,23 @@
 <?php
 
-namespace App\Http\Requests\OMS;
+namespace App\Http\Requests\Admin;
 
+use App\Enums\AdminPermission;
+use App\Models\Admin;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SaveUserWorkScheduleRequest extends FormRequest
+class SaveWorkScheduleRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determine if the admin is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $admin = $this->user('admin');
+
+        return $admin instanceof Admin
+            && $admin->hasPermission(AdminPermission::ManageWorkSchedules->value);
     }
 
     /**
@@ -20,11 +25,16 @@ class SaveUserWorkScheduleRequest extends FormRequest
      * may not be backdated — a schedule change always starts today or
      * later, so history stays append-only.
      *
+     * `required_if` must use the literal `true`, not `1`: the sibling
+     * `is_working_day` rule casts to a real boolean, and `required_if`
+     * only coerces the strings "true" and "false".
+     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
+            'user_id' => ['required', 'integer', 'exists:users,id'],
             'effective_from' => ['required', 'date', 'after_or_equal:today'],
             'days' => ['required', 'array', 'size:7'],
             'days.*.day_of_week' => ['required', 'integer', 'between:1,7', 'distinct'],

@@ -66,7 +66,7 @@ class AdminController extends Controller
         // which throws before its `onSuccess` ever runs. So a redirect
         // only works for a real Inertia visit (`X-Inertia` header
         // present); everything else gets a plain JSON body instead,
-        // matching `UserWorkScheduleController::store()`'s established
+        // matching `WorkScheduleController::store()`'s established
         // convention.
         if ($request->header('X-Inertia')) {
             Inertia::flash('toast', ['type' => 'success', 'message' => $message]);

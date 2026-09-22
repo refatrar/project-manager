@@ -79,7 +79,7 @@ class TeamController extends Controller
      * `onSuccess` ever runs. So a redirect only works for a real Inertia
      * visit (`X-Inertia` header present, e.g. a no-JS fallback); everything
      * else gets a plain JSON body instead, matching
-     * `UserWorkScheduleController::store()`'s established convention.
+     * `WorkScheduleController::store()`'s established convention.
      */
     private function respond(Request $request, string $message): JsonResponse|RedirectResponse
     {

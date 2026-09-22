@@ -1,7 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     CalendarCheck,
-    CalendarClock,
     CalendarDays,
     ClipboardCheck,
     ClipboardList,
@@ -42,7 +41,6 @@ import { index as timeOffIndex } from '@/routes/time-off-requests';
 import { index as timesheetIndex } from '@/routes/timesheet';
 import { index as timesheetApprovalsIndex } from '@/routes/timesheet-approvals';
 import { index as todoListsIndex } from '@/routes/todo-lists';
-import { index as workScheduleIndex } from '@/routes/work-schedule';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -78,11 +76,6 @@ export function AppSidebar() {
                       title: 'My To-Dos',
                       href: todoListsIndex(page.props.currentTeam.slug),
                       icon: ListTodo,
-                  },
-                  {
-                      title: 'Work Schedule',
-                      href: workScheduleIndex(page.props.currentTeam.slug),
-                      icon: CalendarClock,
                   },
                   {
                       title: 'Time Off',

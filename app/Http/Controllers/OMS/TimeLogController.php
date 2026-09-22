@@ -27,8 +27,8 @@ class TimeLogController extends Controller
     /**
      * Display the acting user's own time logs from the last 30 days, plus
      * their running timer if any (RD.md FR-8.6, FR-8.7). Self-scoped, no
-     * team-admin override — same reasoning as the work schedule and
-     * time-off pages; a manager acting on someone else's logs belongs to
+     * team-admin override — same reasoning as the time-off page; a
+     * manager acting on someone else's logs belongs to
      * the not-yet-built timesheet approval screen, not this one.
      */
     public function index(Request $request, Team $current_team): Response

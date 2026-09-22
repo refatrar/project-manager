@@ -18,7 +18,7 @@ class TimeLogPolicy
 
     /**
      * Determine whether the user can view their time logs on the team.
-     * Personal, like the work schedule and time-off requests — there is
+     * Personal, like time-off requests — there is
      * no team-admin override here; timesheet approval (a separate,
      * not-yet-built surface) is where a manager acts on someone else's
      * logs, not this policy.
