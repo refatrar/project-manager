@@ -24,7 +24,7 @@ class MeetingAgendaItemController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $item = new MeetingAgendaItem($request->safe()->only([
             'title', 'description', 'notes', 'duration_minutes', 'task_id', 'presenter_id',
@@ -45,7 +45,7 @@ class MeetingAgendaItemController extends Controller
         $this->authorizeItemOnMeeting($current_team, $meeting, $item);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $item->fill($request->safe()->only([
             'title', 'description', 'notes', 'duration_minutes', 'task_id', 'presenter_id', 'is_discussed',
@@ -84,7 +84,7 @@ class MeetingAgendaItemController extends Controller
         $this->authorizeItemOnMeeting($current_team, $meeting, $item);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $item->is_discussed = $request->boolean('is_discussed');
         $item->save();
@@ -101,7 +101,7 @@ class MeetingAgendaItemController extends Controller
         $this->authorizeItemOnMeeting($current_team, $meeting, $item);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $item->delete();
 

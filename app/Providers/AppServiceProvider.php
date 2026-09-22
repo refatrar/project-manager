@@ -8,12 +8,14 @@ use App\Models\OMS\ProjectMember;
 use App\Models\OMS\ProjectModule;
 use App\Models\OMS\Sprint;
 use App\Models\OMS\Task;
+use App\Models\OMS\TimeLog;
 use App\Observers\OMS\MilestoneObserver;
 use App\Observers\OMS\ProjectMemberObserver;
 use App\Observers\OMS\ProjectModuleObserver;
 use App\Observers\OMS\ProjectObserver;
 use App\Observers\OMS\SprintObserver;
 use App\Observers\OMS\TaskObserver;
+use App\Observers\OMS\TimeLogObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->registerActivityObservers();
+        $this->registerDerivedValueObservers();
     }
 
     /**
@@ -54,6 +57,16 @@ class AppServiceProvider extends ServiceProvider
         Task::observe(TaskObserver::class);
         Milestone::observe(MilestoneObserver::class);
         Sprint::observe(SprintObserver::class);
+    }
+
+    /**
+     * Keep cached/derived columns correct as their source rows change,
+     * on top of the nightly `oms:reconcile` safety net (ARCHITECTURE.md's
+     * Derived Values table).
+     */
+    protected function registerDerivedValueObservers(): void
+    {
+        TimeLog::observe(TimeLogObserver::class);
     }
 
     /**

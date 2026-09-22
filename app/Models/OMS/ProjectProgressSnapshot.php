@@ -3,7 +3,9 @@
 namespace App\Models\OMS;
 
 use App\Enums\ProjectHealth;
+use Database\Factories\OMS\ProjectProgressSnapshotFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -37,6 +39,9 @@ use Illuminate\Support\Carbon;
 ])]
 class ProjectProgressSnapshot extends Model
 {
+    /** @use HasFactory<ProjectProgressSnapshotFactory> */
+    use HasFactory;
+
     /**
      * Get the project the snapshot describes.
      *

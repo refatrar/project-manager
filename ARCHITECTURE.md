@@ -145,7 +145,7 @@ Some columns cache values that could be computed. Each is a deliberate trade, an
 
 | Column | Derived from | Written by |
 | --- | --- | --- |
-| `tasks.logged_hours` | `sum(time_logs.duration_minutes)`, excluding rejected/cancelled entries | `ReconcileTaskLoggedHours` (`oms:reconcile`, scheduled daily) — the one writer; nothing recalculates it on every `time_logs` write |
+| `tasks.logged_hours` | `sum(time_logs.duration_minutes)`, excluding rejected/cancelled entries | `ReconcileTaskLoggedHours` — called directly by `TimeLogObserver` on every `time_logs` create/update/delete/restore (reassigning an entry to a different task recalculates both), and also by `oms:reconcile` nightly as a safety net against any drift (a manual DB fix, a bug, a row changed outside Eloquent) |
 | `projects.progress_percentage` | Task completion across the project | `SnapshotProjectProgress` (`oms:snapshot-project-progress`, scheduled daily) |
 | `projects.health` | Schedule position and hours variance (`App\Actions\OMS\DetermineProjectHealth`) | `SnapshotProjectProgress`, same run as progress. A project manager can still edit `health` by hand between runs; the next nightly run recomputes and overwrites it — there is no "manual override" flag. |
 | `project_modules.progress_percentage` | Task completion within the module (direct tasks only, not recursive into child modules) | `SnapshotProjectProgress` |

@@ -26,7 +26,7 @@ class ResourceAllocationController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $allocation = new ResourceAllocation($request->safe()->only([

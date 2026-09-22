@@ -27,7 +27,7 @@ class TeamInvitationController extends Controller
         $invitation = $team->invitations()->create([
             'email' => $request->validated('email'),
             'role' => TeamRole::from($request->validated('role')),
-            'invited_by' => $request->user()->id,
+            'invited_by' => $request->user('web')->id,
             'expires_at' => now()->addDays(3),
         ]);
 
@@ -60,7 +60,7 @@ class TeamInvitationController extends Controller
      */
     public function accept(RespondToTeamInvitationRequest $request, TeamInvitation $invitation): RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         DB::transaction(function () use ($user, $invitation) {
             $team = $invitation->team;

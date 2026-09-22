@@ -1,13 +1,11 @@
 import { router, usePage } from '@inertiajs/react';
-import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react';
-import CreateTeamModal from '@/components/create-team-modal';
+import { Check, ChevronsUpDown, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -132,21 +130,6 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                         )}
                     </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator />
-                <CreateTeamModal>
-                    <DropdownMenuItem
-                        data-test="team-switcher-new-team"
-                        className={
-                            inHeader
-                                ? 'cursor-pointer gap-2'
-                                : 'cursor-pointer gap-2 p-2'
-                        }
-                        onSelect={(event) => event.preventDefault()}
-                    >
-                        <Plus className={inHeader ? 'size-4' : 'h-4 w-4'} />
-                        <span className="text-muted-foreground">New team</span>
-                    </DropdownMenuItem>
-                </CreateTeamModal>
             </DropdownMenuContent>
         </DropdownMenu>
     );

@@ -37,7 +37,7 @@ class TaskTypeController extends Controller
      */
     public function store(SaveTaskTypeRequest $request): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $taskType = new TaskType($request->safe()->only(['name', 'description', 'status']));
@@ -52,7 +52,7 @@ class TaskTypeController extends Controller
      */
     public function update(SaveTaskTypeRequest $request, string $current_team, TaskType $task_type): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $task_type->fill($request->safe()->only(['name', 'description', 'status']));
@@ -67,7 +67,7 @@ class TaskTypeController extends Controller
      */
     public function destroy(Request $request, string $current_team, TaskType $task_type): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $task_type->deleted_by = $user->id;

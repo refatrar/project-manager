@@ -25,7 +25,7 @@ class TaskAssignmentController extends Controller
         $this->authorizeTaskOnProject($current_team, $project, $task);
         Gate::authorize('update', $task);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         try {
@@ -57,7 +57,7 @@ class TaskAssignmentController extends Controller
         Gate::authorize('update', $task);
 
         abort_unless($assignment->task_id === $task->id, 404);
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $assignTask->unassign($assignment, $user);

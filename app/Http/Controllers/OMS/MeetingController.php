@@ -41,7 +41,7 @@ class MeetingController extends Controller
     {
         Gate::authorize('viewAny', [Meeting::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
 
         $meetings = Meeting::query()
             ->where('team_id', $current_team->id)
@@ -84,7 +84,7 @@ class MeetingController extends Controller
     {
         Gate::authorize('create', [Meeting::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $meeting = new Meeting($request->safe()->only([
@@ -131,7 +131,7 @@ class MeetingController extends Controller
 
         $projects = Project::query()
             ->where('team_id', $current_team->id)
-            ->forMember($request->user())
+            ->forMember($request->user('web'))
             ->orderBy('name')
             ->get(['id', 'code', 'name']);
 
@@ -168,7 +168,7 @@ class MeetingController extends Controller
             'attendees' => $attendees,
             'agendaItems' => $agendaItems,
             'actionList' => $actionList->toListArray(),
-            'timer' => $this->timerPayload($meeting, $request->user()),
+            'timer' => $this->timerPayload($meeting, $request->user('web')),
             'teamMembers' => $teamMembers,
             'projects' => $projects,
             'projectTasks' => $projectTasks,
@@ -187,7 +187,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('update', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $meeting->fill($request->safe()->only([
@@ -211,7 +211,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('recordMinutes', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $meeting->fill($request->safe()->only(['minutes', 'decisions']));
@@ -232,7 +232,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('recordMinutes', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         if ($meeting->minutes_published_at === null) {
@@ -257,7 +257,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('view', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         try {
@@ -277,7 +277,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('view', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         try {
@@ -297,7 +297,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('cancel', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $meeting->status = MeetingStatus::Cancelled;
@@ -316,7 +316,7 @@ class MeetingController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('delete', $meeting);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $meeting->deleted_by = $user->id;
@@ -348,7 +348,7 @@ class MeetingController extends Controller
      */
     private function hasWideVisibility(Request $request, Team $team): bool
     {
-        $role = $request->user()?->teamRole($team);
+        $role = $request->user('web')?->teamRole($team);
 
         return $role !== null && $role->isAtLeast(TeamRole::Admin);
     }

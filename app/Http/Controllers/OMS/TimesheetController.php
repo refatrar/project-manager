@@ -28,7 +28,7 @@ class TimesheetController extends Controller
      */
     public function index(Request $request, Team $current_team): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $weekStart = $this->weekStart($request);
@@ -64,7 +64,7 @@ class TimesheetController extends Controller
      */
     public function submit(Request $request, Team $current_team, SubmitTimesheet $submitTimesheet): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $weekStart = $this->weekStart($request);

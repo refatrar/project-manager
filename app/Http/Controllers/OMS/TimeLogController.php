@@ -35,7 +35,7 @@ class TimeLogController extends Controller
     {
         Gate::authorize('viewAny', [TimeLog::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $logs = TimeLog::query()
@@ -75,7 +75,7 @@ class TimeLogController extends Controller
     {
         Gate::authorize('create', [TimeLog::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         try {
@@ -97,7 +97,7 @@ class TimeLogController extends Controller
         $this->authorizeOnTeam($current_team, $time_log);
         Gate::authorize('stop', $time_log);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         try {
@@ -116,7 +116,7 @@ class TimeLogController extends Controller
     {
         Gate::authorize('create', [TimeLog::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $timeLog = new TimeLog($request->safe()->only([

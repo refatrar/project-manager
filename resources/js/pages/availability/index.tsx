@@ -34,7 +34,11 @@ export default function AvailabilityIndex({ filters, results }: Props) {
         router.get(
             availabilityIndex(teamSlug),
             { from, to, hours_per_day: hoursPerDay },
-            { preserveState: true, preserveScroll: true, only: ['filters', 'results'] },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['filters', 'results'],
+            },
         );
     };
 
@@ -53,15 +57,21 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                         <CardTitle>Search</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <form onSubmit={submit} className="flex flex-wrap items-end gap-4">
+                        <form
+                            onSubmit={submit}
+                            className="flex flex-wrap items-end gap-4"
+                        >
                             <div className="grid gap-2">
                                 <Label htmlFor="availability-from">From</Label>
                                 <Input
                                     id="availability-from"
                                     type="date"
                                     value={from}
-                                    onChange={(event) => setFrom(event.target.value)}
+                                    onChange={(event) =>
+                                        setFrom(event.target.value)
+                                    }
                                     data-test="availability-from"
+                                    required
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -70,12 +80,17 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                                     id="availability-to"
                                     type="date"
                                     value={to}
-                                    onChange={(event) => setTo(event.target.value)}
+                                    onChange={(event) =>
+                                        setTo(event.target.value)
+                                    }
                                     data-test="availability-to"
+                                    required
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="availability-hours">Hours per day</Label>
+                                <Label htmlFor="availability-hours">
+                                    Hours per day
+                                </Label>
                                 <Input
                                     id="availability-hours"
                                     type="number"
@@ -84,11 +99,17 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                                     step="0.5"
                                     className="w-32"
                                     value={hoursPerDay}
-                                    onChange={(event) => setHoursPerDay(event.target.value)}
+                                    onChange={(event) =>
+                                        setHoursPerDay(event.target.value)
+                                    }
                                     data-test="availability-hours"
+                                    required
                                 />
                             </div>
-                            <Button type="submit" data-test="availability-search">
+                            <Button
+                                type="submit"
+                                data-test="availability-search"
+                            >
                                 Search
                             </Button>
                         </form>
@@ -109,14 +130,20 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                                             data-test="availability-result-row"
                                             className="rounded-lg border p-3 text-sm"
                                         >
-                                            <span className="font-medium">{available.name}</span>
-                                            <span className="text-muted-foreground"> · {available.email}</span>
+                                            <span className="font-medium">
+                                                {available.name}
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                {' '}
+                                                · {available.email}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>
                             ) : (
                                 <p className="text-muted-foreground py-4 text-center text-sm">
-                                    Nobody has enough free capacity for that window.
+                                    Nobody has enough free capacity for that
+                                    window.
                                 </p>
                             )}
                         </CardContent>
@@ -127,11 +154,15 @@ export default function AvailabilityIndex({ filters, results }: Props) {
     );
 }
 
-AvailabilityIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
+AvailabilityIndex.layout = (props: {
+    currentTeam?: { slug: string } | null;
+}) => ({
     breadcrumbs: [
         {
             title: 'Find Available People',
-            href: props.currentTeam ? availabilityIndex(props.currentTeam.slug) : '/',
+            href: props.currentTeam
+                ? availabilityIndex(props.currentTeam.slug)
+                : '/',
         },
     ],
 });

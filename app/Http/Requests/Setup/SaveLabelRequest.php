@@ -14,7 +14,7 @@ class SaveLabelRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user('web') !== null;
     }
 
     /**
@@ -25,7 +25,7 @@ class SaveLabelRequest extends FormRequest
     public function rules(): array
     {
         $label = $this->route('label');
-        $teamId = $this->user()?->currentTeam?->id;
+        $teamId = $this->user('web')?->currentTeam?->id;
 
         return [
             'name' => [

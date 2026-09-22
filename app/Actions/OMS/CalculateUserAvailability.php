@@ -3,6 +3,7 @@
 namespace App\Actions\OMS;
 
 use App\Data\AvailabilityDayData;
+use App\Models\OMS\Project;
 use App\Models\OMS\ResourceAllocation;
 use App\Models\OMS\TimeOffRequest;
 use App\Models\OMS\UserWorkSchedule;
@@ -26,9 +27,17 @@ class CalculateUserAvailability
      * No column stores "available hours" anywhere — it's derived fresh
      * from the three source tables every time, never cached on the user.
      *
+     * `$scopeToProject`, when given, counts only *that* project's own
+     * bookings toward "occupied" (RD.md FR-8.8: a project manager may see
+     * a member's capacity in the context of their shared project, but
+     * never the hours, task or existence of that member's bookings on a
+     * project the manager has no visibility into). Time off stays global
+     * either way — it isn't tied to any project, so it isn't the
+     * confidential "Project B" detail FR-8.8 is about.
+     *
      * @return Collection<int, AvailabilityDayData>
      */
-    public function handle(User $user, Carbon $from, Carbon $to): Collection
+    public function handle(User $user, Carbon $from, Carbon $to, ?Project $scopeToProject = null): Collection
     {
         $schedules = UserWorkSchedule::query()
             ->where('user_id', $user->id)
@@ -40,6 +49,7 @@ class CalculateUserAvailability
 
         $allocations = ResourceAllocation::query()
             ->where('user_id', $user->id)
+            ->when($scopeToProject !== null, fn ($query) => $query->where('project_id', $scopeToProject->id))
             ->reservingBetween($from, $to)
             ->get(['starts_on', 'ends_on', 'hours_per_day']);
 

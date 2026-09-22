@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Http\Requests\Settings\UpdateAvatarRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,7 +22,7 @@ class ProfileController extends Controller
     public function edit(Request $request): Response
     {
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $request->user('web') instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -30,13 +32,13 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $request->user('web')->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($request->user('web')->isDirty('email')) {
+            $request->user('web')->email_verified_at = null;
         }
 
-        $request->user()->save();
+        $request->user('web')->save();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
@@ -48,7 +50,11 @@ class ProfileController extends Controller
      */
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
+
+        if ($user->profile_picture !== null) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
 
         Auth::logout();
 
@@ -58,5 +64,41 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Upload or replace the user's profile picture.
+     */
+    public function updateAvatar(UpdateAvatarRequest $request): RedirectResponse
+    {
+        $user = $request->user('web');
+
+        if ($user->profile_picture !== null) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
+
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $user->forceFill(['profile_picture' => $path])->save();
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile picture updated.')]);
+
+        return to_route('profile.edit');
+    }
+
+    /**
+     * Remove the user's profile picture, falling back to initials.
+     */
+    public function destroyAvatar(Request $request): RedirectResponse
+    {
+        $user = $request->user('web');
+
+        if ($user->profile_picture !== null) {
+            Storage::disk('public')->delete($user->profile_picture);
+            $user->forceFill(['profile_picture' => null])->save();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile picture removed.')]);
+
+        return to_route('profile.edit');
     }
 }

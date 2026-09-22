@@ -1,10 +1,19 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import AllocationDeleteModal from '@/components/projects/allocation-delete-modal';
 import AllocationFormModal from '@/components/projects/allocation-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import type { AllocationStatusOption, ProjectMember, ResourceAllocation } from '@/types';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type {
+    AllocationStatusOption,
+    ProjectMember,
+    ResourceAllocation,
+} from '@/types';
 
 type Props = {
     projectId: number;
@@ -14,7 +23,10 @@ type Props = {
     onChanged: () => void;
 };
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const statusVariant: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     planned: 'outline',
     confirmed: 'secondary',
     completed: 'default',
@@ -28,8 +40,10 @@ export default function AllocationList({
     statusOptions,
     onChanged,
 }: Props) {
-    const [editingAllocation, setEditingAllocation] = useState<ResourceAllocation | null>(null);
-    const [deletingAllocation, setDeletingAllocation] = useState<ResourceAllocation | null>(null);
+    const [editingAllocation, setEditingAllocation] =
+        useState<ResourceAllocation | null>(null);
+    const [deletingAllocation, setDeletingAllocation] =
+        useState<ResourceAllocation | null>(null);
 
     return (
         <div className="space-y-4">
@@ -56,25 +70,56 @@ export default function AllocationList({
                         >
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="font-medium">{allocation.user.name}</span>
-                                    <Badge variant={statusVariant[allocation.status] ?? 'outline'}>
+                                    <span className="font-medium">
+                                        {allocation.user.name}
+                                    </span>
+                                    <Badge
+                                        variant={
+                                            statusVariant[allocation.status] ??
+                                            'outline'
+                                        }
+                                    >
                                         {allocation.status}
                                     </Badge>
+                                    {allocation.over_allocated ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <span
+                                                    className="text-destructive inline-flex items-center gap-1 text-xs font-medium"
+                                                    data-test="allocation-over-allocated"
+                                                >
+                                                    <TriangleAlert className="h-3.5 w-3.5" />
+                                                    Over capacity
+                                                </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                This person is booked at or
+                                                above capacity on at least one
+                                                day in this range — possibly
+                                                from a commitment on another
+                                                project.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ) : null}
                                     {allocation.task ? (
                                         <span className="text-muted-foreground text-xs">
-                                            #{allocation.task.number} {allocation.task.title}
+                                            #{allocation.task.number}{' '}
+                                            {allocation.task.title}
                                         </span>
                                     ) : null}
                                 </div>
                                 <p className="text-muted-foreground mt-1 text-sm">
-                                    {allocation.starts_on} – {allocation.ends_on} ·{' '}
+                                    {allocation.starts_on} –{' '}
+                                    {allocation.ends_on} ·{' '}
                                     {allocation.hours_per_day}h/day
                                     {allocation.allocation_percentage
                                         ? ` · ${allocation.allocation_percentage}%`
                                         : ''}
                                 </p>
                                 {allocation.notes ? (
-                                    <p className="text-muted-foreground mt-1 text-sm">{allocation.notes}</p>
+                                    <p className="text-muted-foreground mt-1 text-sm">
+                                        {allocation.notes}
+                                    </p>
                                 ) : null}
                             </div>
 
@@ -82,7 +127,9 @@ export default function AllocationList({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setEditingAllocation(allocation)}
+                                    onClick={() =>
+                                        setEditingAllocation(allocation)
+                                    }
                                     data-test="allocation-edit"
                                 >
                                     <Pencil className="h-4 w-4" />
@@ -90,7 +137,9 @@ export default function AllocationList({
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => setDeletingAllocation(allocation)}
+                                    onClick={() =>
+                                        setDeletingAllocation(allocation)
+                                    }
                                     data-test="allocation-delete"
                                 >
                                     <Trash2 className="h-4 w-4" />

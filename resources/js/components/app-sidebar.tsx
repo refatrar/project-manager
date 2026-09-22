@@ -1,12 +1,10 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
-    BookOpen,
     CalendarCheck,
     CalendarClock,
     CalendarDays,
     ClipboardCheck,
     ClipboardList,
-    FolderGit2,
     FolderKanban,
     LayoutGrid,
     ListChecks,
@@ -16,9 +14,9 @@ import {
     Search,
     Tag,
     Timer,
+    Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
@@ -38,6 +36,7 @@ import { index as labelsIndex } from '@/routes/setup/labels';
 import { index as scopesIndex } from '@/routes/setup/scopes';
 import { index as availabilityIndex } from '@/routes/availability';
 import { index as taskTypesIndex } from '@/routes/setup/task-types';
+import { index as teamCapacityIndex } from '@/routes/team-capacity';
 import { index as timeLogsIndex } from '@/routes/time-logs';
 import { index as timeOffIndex } from '@/routes/time-off-requests';
 import { index as timesheetIndex } from '@/routes/timesheet';
@@ -102,15 +101,27 @@ export function AppSidebar() {
                   },
                   {
                       title: 'Timesheet Approvals',
-                      href: timesheetApprovalsIndex(page.props.currentTeam.slug),
+                      href: timesheetApprovalsIndex(
+                          page.props.currentTeam.slug,
+                      ),
                       icon: ClipboardCheck,
                   },
-                  ...(page.props.currentTeam.role === 'owner' || page.props.currentTeam.role === 'admin'
+                  ...(page.props.currentTeam.role === 'owner' ||
+                  page.props.currentTeam.role === 'admin'
                       ? [
                             {
                                 title: 'Find Available People',
-                                href: availabilityIndex(page.props.currentTeam.slug),
+                                href: availabilityIndex(
+                                    page.props.currentTeam.slug,
+                                ),
                                 icon: Search,
+                            },
+                            {
+                                title: 'Team Capacity',
+                                href: teamCapacityIndex(
+                                    page.props.currentTeam.slug,
+                                ),
+                                icon: Users,
                             },
                         ]
                       : []),
@@ -137,19 +148,6 @@ export function AppSidebar() {
               },
           ]
         : [];
-
-    const footerNavItems: NavItem[] = [
-        {
-            title: 'Repository',
-            href: 'https://github.com/laravel/react-starter-kit',
-            icon: FolderGit2,
-        },
-        {
-            title: 'Documentation',
-            href: 'https://laravel.com/docs/starter-kits#react',
-            icon: BookOpen,
-        },
-    ];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -178,7 +176,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

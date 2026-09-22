@@ -99,6 +99,22 @@ export type ProjectMember = {
     left_on: string | null;
 };
 
+export type ProjectMemberCapacity = {
+    user_id: number;
+    schedule: {
+        day_of_week: number;
+        is_working_day: boolean;
+        capacity_hours: number;
+    }[];
+    available_hours_14d: number;
+    days: {
+        date: string;
+        capacity_hours: number;
+        occupied_hours: number;
+        available_hours: number;
+    }[];
+};
+
 export type TaskStatus =
     | 'backlog'
     | 'todo'
@@ -303,7 +319,12 @@ export type CycleTimeReport = {
     statusBreakdown: StatusDuration[];
 };
 
-export type TodoListType = 'custom' | 'daily' | 'task_checklist' | 'meeting_actions' | 'generated';
+export type TodoListType =
+    | 'custom'
+    | 'daily'
+    | 'task_checklist'
+    | 'meeting_actions'
+    | 'generated';
 export type TodoListStatus = 'open' | 'completed' | 'archived';
 
 export type TodoListTypeOption = { value: TodoListType; label: string };
@@ -314,7 +335,7 @@ export type TodoItem = {
     todo_list_id: number;
     task_id: number | null;
     assignee: { id: number; name: string } | null;
-    task: TaskReference & { project_id: number } | null;
+    task: (TaskReference & { project_id: number }) | null;
     title: string;
     notes: string | null;
     priority: Priority;
@@ -343,11 +364,19 @@ export type MeetingType =
     | 'client'
     | 'one_on_one'
     | 'general';
-export type MeetingStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+export type MeetingStatus =
+    | 'scheduled'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled';
 export type MeetingTypeOption = { value: MeetingType; label: string };
 export type MeetingStatusOption = { value: MeetingStatus; label: string };
 
-export type MeetingAttendeeRole = 'organizer' | 'note_taker' | 'participant' | 'optional';
+export type MeetingAttendeeRole =
+    | 'organizer'
+    | 'note_taker'
+    | 'participant'
+    | 'optional';
 export type MeetingAttendanceStatus =
     | 'invited'
     | 'accepted'
@@ -355,8 +384,14 @@ export type MeetingAttendanceStatus =
     | 'tentative'
     | 'attended'
     | 'absent';
-export type MeetingAttendeeRoleOption = { value: MeetingAttendeeRole; label: string };
-export type MeetingAttendanceStatusOption = { value: MeetingAttendanceStatus; label: string };
+export type MeetingAttendeeRoleOption = {
+    value: MeetingAttendeeRole;
+    label: string;
+};
+export type MeetingAttendanceStatusOption = {
+    value: MeetingAttendanceStatus;
+    label: string;
+};
 
 export type MeetingAttendee = {
     id: number;
@@ -437,7 +472,10 @@ export type TimeLogActivityType =
     | 'deployment'
     | 'support'
     | 'admin';
-export type TimeLogActivityTypeOption = { value: TimeLogActivityType; label: string };
+export type TimeLogActivityTypeOption = {
+    value: TimeLogActivityType;
+    label: string;
+};
 export type TimeLogSource = 'manual' | 'timer' | 'import' | 'git_activity';
 
 export type TimeLog = {
@@ -487,7 +525,17 @@ export type AvailableUser = {
     email: string;
 };
 
-export type AllocationStatus = 'planned' | 'confirmed' | 'completed' | 'cancelled';
+export type TeamCapacityMember = {
+    id: number;
+    name: string;
+    days: AvailabilityDay[];
+};
+
+export type AllocationStatus =
+    | 'planned'
+    | 'confirmed'
+    | 'completed'
+    | 'cancelled';
 export type AllocationStatusOption = { value: AllocationStatus; label: string };
 
 export type ResourceAllocation = {
@@ -502,11 +550,23 @@ export type ResourceAllocation = {
     hours_per_day: number;
     allocation_percentage: number | null;
     notes: string | null;
+    over_allocated: boolean;
 };
 
-export type TimeOffType = 'vacation' | 'sick' | 'public_holiday' | 'training' | 'personal' | 'unpaid';
+export type TimeOffType =
+    | 'vacation'
+    | 'sick'
+    | 'public_holiday'
+    | 'training'
+    | 'personal'
+    | 'unpaid';
 export type TimeOffTypeOption = { value: TimeOffType; label: string };
-export type ApprovalStatus = 'pending' | 'submitted' | 'approved' | 'rejected' | 'cancelled';
+export type ApprovalStatus =
+    | 'pending'
+    | 'submitted'
+    | 'approved'
+    | 'rejected'
+    | 'cancelled';
 
 export type TimeOffRequest = {
     id: number;
@@ -523,4 +583,11 @@ export type TimeOffRequest = {
     approver: { id: number; name: string } | null;
     approved_at: string | null;
     decision_note: string | null;
+};
+
+export type EstimatedVsActualRow = {
+    user: { id: number; name: string };
+    estimated_hours: number;
+    actual_hours: number;
+    variance_hours: number;
 };

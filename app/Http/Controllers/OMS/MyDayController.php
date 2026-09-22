@@ -29,7 +29,7 @@ class MyDayController extends Controller
      */
     public function index(Request $request, Team $current_team, GenerateDailyTodoList $generateDailyTodoList): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $generateDailyTodoList->handle($user, $current_team, Carbon::now());

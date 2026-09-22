@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Teams;
 
-use App\Actions\Teams\CreateTeam;
 use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\DeleteTeamRequest;
@@ -24,7 +23,7 @@ class TeamController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         return Inertia::render('teams/index', [
             'teams' => $user->toUserTeams(includeCurrent: true),
@@ -32,23 +31,11 @@ class TeamController extends Controller
     }
 
     /**
-     * Store a newly created team.
-     */
-    public function store(SaveTeamRequest $request, CreateTeam $createTeam): RedirectResponse
-    {
-        $team = $createTeam->handle($request->user(), $request->validated('name'));
-
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Team created.')]);
-
-        return to_route('teams.edit', ['team' => $team->slug]);
-    }
-
-    /**
      * Show the team edit page.
      */
     public function edit(Request $request, Team $team): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
 
         return Inertia::render('teams/edit', [
             'team' => [
@@ -110,9 +97,9 @@ class TeamController extends Controller
      */
     public function switch(Request $request, Team $team): RedirectResponse
     {
-        abort_unless($request->user()->belongsToTeam($team), 403);
+        abort_unless($request->user('web')->belongsToTeam($team), 403);
 
-        $request->user()->switchTeam($team);
+        $request->user('web')->switchTeam($team);
 
         return back();
     }
@@ -124,7 +111,7 @@ class TeamController extends Controller
     {
         Gate::authorize('leave', $team);
 
-        $user = $request->user();
+        $user = $request->user('web');
 
         $fallbackTeam = $user->isCurrentTeam($team)
             ? $user->fallbackTeam($team)
@@ -148,7 +135,7 @@ class TeamController extends Controller
      */
     public function destroy(DeleteTeamRequest $request, Team $team): RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         $fallbackTeam = $user->isCurrentTeam($team)
             ? $user->fallbackTeam($team)
             : null;

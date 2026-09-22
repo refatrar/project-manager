@@ -61,7 +61,10 @@ export default function MyDayIndex({
                         statusOptions={statusOptions}
                         onSaved={refresh}
                     >
-                        <Button type="button" data-test="my-day-create-list-button">
+                        <Button
+                            type="button"
+                            data-test="my-day-create-list-button"
+                        >
                             <Plus /> New list
                         </Button>
                     </TodoListFormModal>
@@ -106,8 +109,7 @@ export default function MyDayIndex({
                     </CardHeader>
                     <CardContent>
                         <p className="text-muted-foreground text-sm">
-                            Action items from your meetings will show up here
-                            once meetings are built.
+                            No meeting action items assigned to you yet.
                         </p>
                     </CardContent>
                 </Card>

@@ -4,7 +4,9 @@ namespace App\Models\OMS;
 
 use App\Enums\TaskStatus;
 use App\Models\User;
+use Database\Factories\OMS\TaskStatusHistoryFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -24,6 +26,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['from_status', 'to_status', 'note', 'duration_minutes', 'changed_by', 'changed_at'])]
 class TaskStatusHistory extends Model
 {
+    /** @use HasFactory<TaskStatusHistoryFactory> */
+    use HasFactory;
+
     public $timestamps = false;
 
     /**

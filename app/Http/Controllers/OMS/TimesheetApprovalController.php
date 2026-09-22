@@ -31,7 +31,7 @@ class TimesheetApprovalController extends Controller
      */
     public function index(Request $request, Team $current_team): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $query = TimeLog::query()
@@ -71,7 +71,7 @@ class TimesheetApprovalController extends Controller
         abort_unless($time_log->team_id === $current_team->id, 404);
         Gate::authorize('decide', $time_log);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $approved = $request->validated('decision') === 'approved';

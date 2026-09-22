@@ -36,7 +36,7 @@ class LabelController extends Controller
      */
     public function store(SaveLabelRequest $request, Team $current_team): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $label = new Label($request->safe()->only(['name', 'color', 'description']));
@@ -54,7 +54,7 @@ class LabelController extends Controller
     {
         $this->authorizeLabelOnTeam($current_team, $label);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $label->fill($request->safe()->only(['name', 'color', 'description']));
@@ -71,7 +71,7 @@ class LabelController extends Controller
     public function destroy(Request $request, Team $current_team, Label $label): JsonResponse|RedirectResponse
     {
         $this->authorizeLabelOnTeam($current_team, $label);
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $label->delete();
 

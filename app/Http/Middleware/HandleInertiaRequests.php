@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -37,6 +38,13 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
 
+        // `$request->user()` is guard-agnostic and, since `Authenticate`
+        // switches the default guard to whichever one it just checked
+        // (`Auth::shouldUse($guard)`), can resolve to an `App\Models\Admin`
+        // on an `/admin/*` request — which has no team relationships at
+        // all. Only a real `User` has teams to share here.
+        $teamUser = $user instanceof User ? $user : null;
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -44,8 +52,8 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'currentTeam' => fn () => $user?->currentTeam ? $user->toUserTeam($user->currentTeam) : null,
-            'teams' => fn () => $user?->toUserTeams(includeCurrent: true) ?? [],
+            'currentTeam' => fn () => $teamUser?->currentTeam ? $teamUser->toUserTeam($teamUser->currentTeam) : null,
+            'teams' => fn () => $teamUser?->toUserTeams(includeCurrent: true) ?? [],
         ];
     }
 }

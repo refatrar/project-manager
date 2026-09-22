@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Teams\FindPendingInvitations;
 use App\Enums\ProjectHealth;
 use App\Enums\TaskStatus;
 use App\Enums\TeamRole;
 use App\Models\OMS\Project;
 use App\Models\OMS\Task;
 use App\Models\Team;
-use App\Models\TeamInvitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -16,30 +16,10 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, Team $current_team): Response
+    public function __invoke(Request $request, Team $current_team, FindPendingInvitations $findPendingInvitations): Response
     {
-        $email = strtolower($request->user()->email);
-
-        $pendingInvitations = TeamInvitation::query()
-            ->with(['inviter', 'team'])
-            ->whereRaw('LOWER(email) = ?', [$email])
-            ->whereNull('accepted_at')
-            ->where(fn ($query) => $query
-                ->whereNull('expires_at')
-                ->orWhere('expires_at', '>=', now()))
-            ->latest()
-            ->get()
-            ->map(fn (TeamInvitation $invitation) => [
-                'code' => $invitation->code,
-                'inviterName' => $invitation->inviter->name,
-                'team' => [
-                    'name' => $invitation->team->name,
-                    'slug' => $invitation->team->slug,
-                ],
-            ]);
-
         return Inertia::render('dashboard', [
-            'pendingInvitations' => $pendingInvitations,
+            'pendingInvitations' => $findPendingInvitations->handle($request->user('web')),
             ...$this->portfolio($request, $current_team),
         ]);
     }
@@ -54,7 +34,7 @@ class DashboardController extends Controller
      */
     private function portfolio(Request $request, Team $current_team): array
     {
-        $user = $request->user();
+        $user = $request->user('web');
         $role = $user?->teamRole($current_team);
         $hasWideVisibility = $role !== null && $role->isAtLeast(TeamRole::Admin);
 

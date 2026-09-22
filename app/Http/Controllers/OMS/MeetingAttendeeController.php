@@ -27,7 +27,7 @@ class MeetingAttendeeController extends Controller
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $attendee = new MeetingAttendee($request->safe()->only(['user_id', 'guest_name', 'guest_email', 'role']));
         $attendee->meeting_id = $meeting->id;
@@ -47,7 +47,7 @@ class MeetingAttendeeController extends Controller
         $this->authorizeAttendeeOnMeeting($current_team, $meeting, $attendee);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $attendee->role = $request->safe()->only(['role'])['role'];
 
@@ -81,7 +81,7 @@ class MeetingAttendeeController extends Controller
         $this->authorizeAttendeeOnMeeting($current_team, $meeting, $attendee);
         Gate::authorize('update', $meeting);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $attendee->delete();
 

@@ -26,7 +26,7 @@ class FindAvailableUsersController extends Controller
      */
     public function index(Request $request, Team $current_team, FindAvailableUsers $findAvailableUsers): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $role = $user->teamRole($current_team);

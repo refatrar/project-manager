@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\OMS;
 
 use App\Actions\OMS\CalculateCycleTimeReport;
+use App\Actions\OMS\CalculateEstimatedVersusActual;
+use App\Actions\OMS\CalculateProjectMemberCapacity;
 use App\Actions\OMS\CalculateProjectProgress;
+use App\Actions\OMS\CalculateUserAvailability;
 use App\Actions\OMS\CreateProject;
+use App\Actions\OMS\DetectOverAllocatedBookings;
 use App\Actions\OMS\RecordActivity;
 use App\Enums\AllocationStatus;
 use App\Enums\MilestoneStatus;
@@ -49,7 +53,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('viewAny', [Project::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
 
         $projects = Project::query()
             ->where('team_id', $current_team->id)
@@ -82,7 +86,7 @@ class ProjectController extends Controller
     {
         Gate::authorize('create', [Project::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $project = $createProject->handle($current_team, $user, $request->safe()->only([
@@ -96,8 +100,16 @@ class ProjectController extends Controller
     /**
      * Display the project workspace.
      */
-    public function show(Team $current_team, Project $project, CalculateProjectProgress $calculateProgress, CalculateCycleTimeReport $calculateCycleTime): Response
-    {
+    public function show(
+        Team $current_team,
+        Project $project,
+        CalculateProjectProgress $calculateProgress,
+        CalculateCycleTimeReport $calculateCycleTime,
+        DetectOverAllocatedBookings $detectOverAllocatedBookings,
+        CalculateUserAvailability $calculateUserAvailability,
+        CalculateEstimatedVersusActual $calculateEstimatedVersusActual,
+        CalculateProjectMemberCapacity $calculateProjectMemberCapacity,
+    ): Response {
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('view', $project);
 
@@ -108,10 +120,23 @@ class ProjectController extends Controller
             ->get()
             ->map(fn (ProjectModule $module): array => $module->toListArray());
 
-        $members = $project->members()
+        $memberModels = $project->members()
             ->with('user:id,name,email')
-            ->get()
-            ->map(fn (ProjectMember $member): array => $member->toListArray());
+            ->get();
+        $members = $memberModels->map(fn (ProjectMember $member): array => $member->toListArray());
+
+        // FR-8.8: a member's schedule and project-scoped availability is
+        // visible only to whoever can manage this project (the same
+        // threshold `Gate::authorize('update', $project)` already applies
+        // to booking hours) — never to every project viewer, and never
+        // touching another project's bookings even for someone who can.
+        $memberCapacity = Gate::allows('update', $project)
+            ? $calculateProjectMemberCapacity->handle(
+                $project,
+                $project->members()->active()->with('user:id,name,email')->get(),
+                $calculateUserAvailability,
+            )
+            : collect();
 
         $memberUserIds = $project->members()->active()->pluck('user_id');
 
@@ -141,11 +166,15 @@ class ProjectController extends Controller
             ->get()
             ->map(fn (Sprint $sprint): array => $sprint->toListArray());
 
-        $resourceAllocations = $project->resourceAllocations()
+        $allocations = $project->resourceAllocations()
             ->with(['user:id,name', 'task:id,number,title'])
             ->orderBy('starts_on')
-            ->get()
-            ->map(fn (ResourceAllocation $allocation): array => $allocation->toListArray());
+            ->get();
+        $overAllocatedFlags = $detectOverAllocatedBookings->handle($allocations, $calculateUserAvailability);
+        $resourceAllocations = $allocations->map(fn (ResourceAllocation $allocation): array => [
+            ...$allocation->toListArray(),
+            'over_allocated' => $overAllocatedFlags[$allocation->id] ?? false,
+        ]);
 
         $labels = Label::query()
             ->where('team_id', $current_team->id)
@@ -181,6 +210,7 @@ class ProjectController extends Controller
             'project' => $project->toDetailArray(),
             'modules' => $modules,
             'members' => $members,
+            'memberCapacity' => $memberCapacity,
             'availableUsers' => $availableUsers,
             'tasks' => $tasks,
             'taskTypes' => $taskTypes,
@@ -188,6 +218,7 @@ class ProjectController extends Controller
             'sprints' => $sprints,
             'resourceAllocations' => $resourceAllocations,
             'allocationStatusOptions' => AllocationStatus::options(),
+            'estimatedVsActual' => $calculateEstimatedVersusActual->handle($project),
             'labels' => $labels,
             'progress' => [
                 'totalTasks' => $progress->totalTasks,
@@ -225,7 +256,7 @@ class ProjectController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $project->fill($request->safe()->only([
@@ -246,7 +277,7 @@ class ProjectController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('archive', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $project->archived_at = Carbon::now();
@@ -273,7 +304,7 @@ class ProjectController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('delete', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $project->deleted_by = $user->id;
@@ -306,7 +337,7 @@ class ProjectController extends Controller
      */
     private function hasWideVisibility(Request $request, Team $team): bool
     {
-        $role = $request->user()?->teamRole($team);
+        $role = $request->user('web')?->teamRole($team);
 
         return $role !== null && $role->isAtLeast(TeamRole::Admin);
     }

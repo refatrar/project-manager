@@ -26,7 +26,7 @@ class TaskDependencyController extends Controller
         $this->authorizeTaskOnProject($current_team, $project, $task);
         Gate::authorize('update', $task);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $relatedTask = Task::query()
@@ -62,7 +62,7 @@ class TaskDependencyController extends Controller
         Gate::authorize('update', $task);
 
         abort_unless($dependency->task_id === $task->id, 404);
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $dependency->load('relatedTask:id,project_id,number,title,status');

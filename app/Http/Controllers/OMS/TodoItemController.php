@@ -29,7 +29,7 @@ class TodoItemController extends Controller
         $this->authorizeListOnTeam($current_team, $todo_list);
         Gate::authorize('update', $todo_list);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $item = new TodoItem($request->safe()->only(['title', 'notes', 'priority', 'due_at', 'estimated_minutes', 'assigned_to']));
@@ -49,7 +49,7 @@ class TodoItemController extends Controller
         $this->authorizeItemOnList($current_team, $todo_list, $item);
         Gate::authorize('update', $todo_list);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $item->fill($request->safe()->only(['title', 'notes', 'priority', 'due_at', 'estimated_minutes', 'assigned_to']));
         $item->save();
@@ -66,7 +66,7 @@ class TodoItemController extends Controller
         $this->authorizeItemOnList($current_team, $todo_list, $item);
         Gate::authorize('update', $todo_list);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $item = $toggleTodoItem->handle($item, $request->boolean('is_completed'), $user);
@@ -85,7 +85,7 @@ class TodoItemController extends Controller
         $this->authorizeItemOnList($current_team, $todo_list, $item);
         Gate::authorize('update', $todo_list);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         if ($todo_list->type === TodoListType::TaskChecklist) {
@@ -113,7 +113,7 @@ class TodoItemController extends Controller
         $this->authorizeItemOnList($current_team, $todo_list, $item);
         Gate::authorize('update', $todo_list);
 
-        abort_unless($request->user() !== null, 403);
+        abort_unless($request->user('web') !== null, 403);
 
         $item->delete();
 

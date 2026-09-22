@@ -32,7 +32,7 @@ class TimeOffRequestController extends Controller
     {
         Gate::authorize('viewAny', [TimeOffRequest::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $isAdmin = $this->isApprover($user, $current_team);
@@ -71,7 +71,7 @@ class TimeOffRequestController extends Controller
     {
         Gate::authorize('create', [TimeOffRequest::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $timeOffRequest = new TimeOffRequest($request->safe()->only([
@@ -131,7 +131,7 @@ class TimeOffRequestController extends Controller
         $this->authorizeOnTeam($current_team, $time_off_request);
         Gate::authorize('decide', $time_off_request);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $approved = $request->validated('decision') === 'approved';

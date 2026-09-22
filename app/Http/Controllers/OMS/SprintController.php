@@ -23,7 +23,7 @@ class SprintController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $sprint = new Sprint($request->safe()->only([
@@ -44,7 +44,7 @@ class SprintController extends Controller
         $this->authorizeSprintOnProject($current_team, $project, $sprint);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $sprint->fill($request->safe()->only([
@@ -64,7 +64,7 @@ class SprintController extends Controller
         $this->authorizeSprintOnProject($current_team, $project, $sprint);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $sprint->deleted_by = $user->id;

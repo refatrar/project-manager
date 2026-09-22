@@ -23,7 +23,7 @@ class MilestoneController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $milestone = new Milestone($request->safe()->only([
@@ -45,7 +45,7 @@ class MilestoneController extends Controller
         $this->authorizeMilestoneOnProject($current_team, $project, $milestone);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $milestone->fill($request->safe()->only([
@@ -65,7 +65,7 @@ class MilestoneController extends Controller
         $this->authorizeMilestoneOnProject($current_team, $project, $milestone);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $milestone->deleted_by = $user->id;

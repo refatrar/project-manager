@@ -176,6 +176,25 @@ export default function TaskShow({
                             )}
                         </CardContent>
                     </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Assignees</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {task.assignees.length > 0 ? (
+                                <p className="text-sm">
+                                    {task.assignees
+                                        .map((assignee) => assignee.name)
+                                        .join(', ')}
+                                </p>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">
+                                    Unassigned.
+                                </p>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <Card>
@@ -314,7 +333,9 @@ TaskShow.layout = (props: {
     breadcrumbs: [
         {
             title: 'Projects',
-            href: props.currentTeam ? projectsIndex(props.currentTeam.slug) : '/',
+            href: props.currentTeam
+                ? projectsIndex(props.currentTeam.slug)
+                : '/',
         },
         {
             title: props.project.name,

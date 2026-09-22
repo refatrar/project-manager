@@ -253,3 +253,45 @@ None beyond removing the ambiguity. No code or documentation changes are require
 
 ### Status
 Accepted.
+
+---
+
+## ADR-014: FR-8.9's over-allocation warning is a boolean flag, computed from the same all-projects occupancy FR-8.4 already exposes
+
+### Context
+`RD.md` FR-8.9: "If a member is booked or over-committed elsewhere at a time a manager is trying to schedule them on the manager's own project, the manager must see a warning that a conflict exists, even though FR-8.8 forbids showing the confidential detail behind it." Left open: what counts as "over-committed" (any overlapping booking at all, or specifically over 100% capacity), and how the warning is computed without leaking which other project or task is responsible — the same cross-project privacy boundary FR-8.8 draws for schedule *visibility*, applied here to a *derived signal* instead.
+
+### Decision
+"Over-committed" means the FR-8.4 formula's own numbers going negative before the floor: on at least one day, `occupied_hours + unavailable_hours > capacity_hours`, using `CalculateUserAvailability`'s existing all-projects aggregation — not a separate threshold, and not "any overlap" (a lightly-booked day elsewhere is not a conflict). The check runs over each booking's own date range, across every project the person is booked on, and surfaces as a single `over_allocated: bool` per booking (`App\Actions\OMS\DetectOverAllocatedBookings`) — no count, no project name, no task, nothing beyond "yes/no, on this date range." Shown as a small "Over capacity" badge on the project's Allocations tab, generic-worded ("possibly from a commitment on another project") rather than naming anything.
+
+### Alternatives
+- Any overlapping booking at all (not just over-capacity) counts as a conflict: rejected — RD.md's own FR-8.4 language treats capacity as the meaningful boundary (`available = capacity − occupied − unavailable`, floored at zero); a second booking that still fits inside remaining capacity is not a real conflict, and flagging it would make the warning noisy enough to be ignored.
+- A live "check before you book" preview as the manager fills in the allocation form: deferred — the always-current badge on the list (recomputed on every page load from whatever's in the database right now) already satisfies "the manager must see a warning," and is simpler than adding a new endpoint plus debounced client-side validation for a first pass. A live preview is a reasonable future enhancement, not a requirement this ADR blocks.
+- Compute and store the flag as a column on `resource_allocations`: rejected for the same reason `ARCHITECTURE.md`'s Derived Values table keeps availability itself uncached (ADR-007) — the set of "other" bookings that make someone over-allocated changes independently of the booking being flagged, so a stored flag would drift the moment any other booking on any other project is added, edited or removed, with nothing to invalidate it.
+
+### Consequences
+The flag is recomputed on every load of a project's Allocations tab, one `CalculateUserAvailability` call per unique booked user on that project (not per booking) — acceptable at a single project's scale, same reasoning `ProjectController::show` already applies to its unpaginated activity feed and task list. Nothing about this consequence is specific to FR-8.9 that the project-scoped work schedule (FR-8.8, still unimplemented) can't reuse unchanged, since `DetectOverAllocatedBookings` never touches which project the "other" hours came from.
+
+### Status
+Accepted.
+
+---
+
+## ADR-015: Phase 7's platform-admin RBAC is a separate system from `TeamRole`/`TeamPermission`, not a replacement
+
+### Context
+Phase 7 (added 2026-09-22, direct user request) moved team creation out of self-service and into a super-admin-controlled process: an admin creates a team, assigns an existing user as its leader, and manages other admins — and the user asked for "a role permission module... to manage this process." The app already has a working, enum-based authorization system (`TeamRole` — Owner/Admin/Member — and `TeamPermission`, wired through `TeamPolicy` and used directly in most OMS controllers) covering everything built in Phases 1-6. Left open by the request's own wording: does "a role permission module" mean extending that existing system, or building something new — and if new, does it replace the old one or sit beside it?
+
+### Decision
+A new, separate, database-backed RBAC — `admins`, `roles`, `permissions` tables, `permission_role` and `admin_role` many-to-many pivots — scoped strictly to the platform-admin process Phase 7 introduces: who can create a team, assign or reassign a team leader, and manage other admin accounts and roles. `App\Models\Admin` is a completely separate `Authenticatable` from `App\Models\User`, authenticated through its own `admin` guard, and never becomes a team member. `TeamRole`/`TeamPermission` are untouched and keep governing every existing OMS feature exactly as before; nothing in Phases 1-6 changes. This was confirmed directly with the user before any code was written (see TASKS.md's Phase 7 preamble), specifically because the alternative — folding admin-panel permissions into the existing team-level system, or migrating `TeamRole` itself onto database-backed roles — would have meant touching the authorization surface of nearly every OMS controller (`teamRole()`, `isAtLeast()`, `hasTeamPermission()` are called directly throughout `ProjectPolicy`, `TeamPolicy`, and ~15 OMS controllers) for a request that only asked for a scoped provisioning workflow.
+
+### Alternatives
+- Extend `TeamRole`/`TeamPermission` with a new "super admin" case and a platform-level flag on `users`: rejected — conflates "runs the whole platform, no team membership at all" with "the highest role within one team," which are genuinely different concepts (a super admin's authority has nothing to do with any team's `team_members` row), and the user explicitly chose "a separate admin guard" over a flag on the existing `User` model when asked directly.
+- Replace `TeamRole`/`TeamPermission` outright with the new database-backed `roles`/`permissions` tables, migrating `team_members.role` to a foreign key: rejected as disproportionate scope for what was asked — a full rewrite of an already-shipped, already-tested authorization system, not "a role permission module to manage this process." Left as a possible future direction if the product genuinely needs configurable *team-level* roles later, but not assumed here.
+- A single unified `roles`/`permissions` system serving both admins and team members via a polymorphic "holder" relation: rejected for the same reason as the previous option, plus added complexity (polymorphic pivots, a permission catalogue that would need to distinguish admin-panel capabilities from team capabilities anyway) for no immediate requirement.
+
+### Consequences
+Two authorization systems now coexist in the codebase with different shapes — one fixed/enum-based (`TeamRole`), one configurable/database-based (the new `roles`/`permissions` tables) — and future contributors need to know which one governs which surface: `admin/*` routes check `Admin::hasPermission()`; every `{current_team}/*` route keeps checking `TeamRole`/`TeamPermission` exactly as documented in `ARCHITECTURE.md`. If team-level roles ever need to become genuinely configurable (not just admin-panel-assignable), that is a separate, later decision, not an extension of this one.
+
+### Status
+Accepted.

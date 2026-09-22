@@ -26,7 +26,7 @@ class ProjectModuleController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $module = new ProjectModule($request->safe()->only([
@@ -49,7 +49,7 @@ class ProjectModuleController extends Controller
         $this->authorizeModuleOnProject($current_team, $project, $module);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $newParentId = $request->validated('parent_id');
@@ -77,7 +77,7 @@ class ProjectModuleController extends Controller
         $this->authorizeModuleOnProject($current_team, $project, $module);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $module->deleted_by = $user->id;
@@ -97,7 +97,7 @@ class ProjectModuleController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         try {

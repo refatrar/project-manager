@@ -26,7 +26,7 @@ class ProjectMemberController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $member = $addProjectMember->handle(
@@ -49,7 +49,7 @@ class ProjectMemberController extends Controller
         $this->authorizeMemberOnProject($current_team, $project, $member);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $member->fill($request->safe()->only(['role', 'status', 'allocation_percentage', 'hourly_rate', 'joined_on']));
@@ -69,7 +69,7 @@ class ProjectMemberController extends Controller
         $this->authorizeMemberOnProject($current_team, $project, $member);
         Gate::authorize('update', $project);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $member->left_on = Carbon::now();

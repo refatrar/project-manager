@@ -37,7 +37,7 @@ class TaskController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('create', [Task::class, $project]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $task = $createTask->handle($project, $user, $request->safe()->only([
@@ -123,7 +123,7 @@ class TaskController extends Controller
         $this->authorizeTaskOnProject($current_team, $project, $task);
         Gate::authorize('update', $task);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $task->fill($request->safe()->only([
@@ -146,7 +146,7 @@ class TaskController extends Controller
         $this->authorizeTaskOnProject($current_team, $project, $task);
         Gate::authorize('changeStatus', $task);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $status = TaskStatus::from($request->validated('status'));
@@ -167,7 +167,7 @@ class TaskController extends Controller
         $this->authorizeTaskOnProject($current_team, $project, $task);
         Gate::authorize('delete', $task);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $task->deleted_by = $user->id;

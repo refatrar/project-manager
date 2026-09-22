@@ -33,15 +33,6 @@ type Props = {
     onChanged: () => void;
 };
 
-const attendanceVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    invited: 'outline',
-    accepted: 'default',
-    tentative: 'secondary',
-    declined: 'destructive',
-    attended: 'default',
-    absent: 'destructive',
-};
-
 export default function AttendeeList({
     meetingId,
     attendees,
@@ -61,7 +52,10 @@ export default function AttendeeList({
             return;
         }
 
-        form.transform(() => ({ role: attendee.role, attendance_status: status }));
+        form.transform(() => ({
+            role: attendee.role,
+            attendance_status: status,
+        }));
 
         void form.put(update.url([teamSlug, meetingId, attendee.id]), {
             onSuccess: onChanged,
@@ -176,16 +170,6 @@ export default function AttendeeList({
                                         )}
                                     </SelectContent>
                                 </Select>
-
-                                <Badge
-                                    variant={
-                                        attendanceVariant[
-                                            attendee.attendance_status
-                                        ] ?? 'outline'
-                                    }
-                                >
-                                    {attendee.attendance_status}
-                                </Badge>
 
                                 <Button
                                     variant="ghost"

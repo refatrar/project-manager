@@ -5,6 +5,7 @@ import Heading from '@/components/heading';
 import ActivityFeed from '@/components/projects/activity-feed';
 import AllocationList from '@/components/projects/allocation-list';
 import BurndownChart from '@/components/projects/burndown-chart';
+import EstimatedVsActual from '@/components/projects/estimated-vs-actual';
 import KanbanBoard from '@/components/projects/kanban-board';
 import MemberList from '@/components/projects/member-list';
 import MilestoneList from '@/components/projects/milestone-list';
@@ -24,12 +25,14 @@ import type {
     AllocationStatusOption,
     BurndownPoint,
     CycleTimeReport,
+    EstimatedVsActualRow,
     Milestone,
     MilestoneStatusOption,
     PriorityOption,
     ProjectDetail,
     ProjectHealthOption,
     ProjectMember,
+    ProjectMemberCapacity,
     ProjectMemberRoleOption,
     ProjectModule,
     ProjectModuleStatusOption,
@@ -50,12 +53,14 @@ type Props = {
     project: ProjectDetail;
     modules: ProjectModule[];
     members: ProjectMember[];
+    memberCapacity: ProjectMemberCapacity[];
     availableUsers: TeamMemberOption[];
     tasks: Task[];
     taskTypes: TaskTypeOption[];
     milestones: Milestone[];
     sprints: Sprint[];
     resourceAllocations: ResourceAllocation[];
+    estimatedVsActual: EstimatedVsActualRow[];
     labels: TaskLabel[];
     progress: ProjectProgress;
     burndown: BurndownPoint[];
@@ -102,12 +107,14 @@ export default function ProjectShow({
     project,
     modules,
     members,
+    memberCapacity,
     availableUsers,
     tasks,
     taskTypes,
     milestones,
     sprints,
     resourceAllocations,
+    estimatedVsActual,
     labels,
     progress,
     burndown,
@@ -249,11 +256,17 @@ export default function ProjectShow({
                     <MemberList
                         projectId={project.id}
                         members={members}
+                        capacity={memberCapacity}
                         availableUsers={availableUsers}
                         roleOptions={memberRoleOptions}
                         onChanged={() =>
                             router.reload({
-                                only: ['members', 'availableUsers', 'activities'],
+                                only: [
+                                    'members',
+                                    'memberCapacity',
+                                    'availableUsers',
+                                    'activities',
+                                ],
                             })
                         }
                     />
@@ -264,7 +277,9 @@ export default function ProjectShow({
                         milestones={milestones}
                         statusOptions={milestoneStatusOptions}
                         onChanged={() =>
-                            router.reload({ only: ['milestones', 'activities'] })
+                            router.reload({
+                                only: ['milestones', 'activities'],
+                            })
                         }
                     />
                 ) : null}
@@ -279,15 +294,24 @@ export default function ProjectShow({
                     />
                 ) : null}
                 {tab === 'allocations' ? (
-                    <AllocationList
-                        projectId={project.id}
-                        allocations={resourceAllocations}
-                        members={members}
-                        statusOptions={allocationStatusOptions}
-                        onChanged={() =>
-                            router.reload({ only: ['resourceAllocations', 'activities'] })
-                        }
-                    />
+                    <div className="space-y-6">
+                        <EstimatedVsActual rows={estimatedVsActual} />
+                        <AllocationList
+                            projectId={project.id}
+                            allocations={resourceAllocations}
+                            members={members}
+                            statusOptions={allocationStatusOptions}
+                            onChanged={() =>
+                                router.reload({
+                                    only: [
+                                        'resourceAllocations',
+                                        'estimatedVsActual',
+                                        'activities',
+                                    ],
+                                })
+                            }
+                        />
+                    </div>
                 ) : null}
                 {tab === 'activity' ? (
                     <ActivityFeed activities={activities} members={members} />
@@ -338,7 +362,10 @@ function OverviewTab({
     burndown: BurndownPoint[];
     cycleTime: CycleTimeReport;
 }) {
-    const healthVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {
+    const healthVariant: Record<
+        string,
+        'default' | 'secondary' | 'destructive'
+    > = {
         on_track: 'default',
         at_risk: 'secondary',
         off_track: 'destructive',
@@ -355,7 +382,8 @@ function OverviewTab({
                         <Badge>{project.status.replace('_', ' ')}</Badge>
                         <p className="text-muted-foreground text-sm">
                             {progress.progressPercentage}% complete ·{' '}
-                            {progress.completedTasks}/{progress.totalTasks} tasks
+                            {progress.completedTasks}/{progress.totalTasks}{' '}
+                            tasks
                         </p>
                     </CardContent>
                 </Card>
@@ -365,7 +393,9 @@ function OverviewTab({
                         <CardTitle>Health</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <Badge variant={healthVariant[project.health] ?? 'default'}>
+                        <Badge
+                            variant={healthVariant[project.health] ?? 'default'}
+                        >
                             {project.health.replace('_', ' ')}
                         </Badge>
                         <p className="text-muted-foreground text-sm">
@@ -545,7 +575,9 @@ function CycleTimeCard({ cycleTime }: { cycleTime: CycleTimeReport }) {
                                     data-test="cycle-time-status-row"
                                     className="grid grid-cols-[8rem_1fr_3.5rem] items-center gap-3 text-sm"
                                 >
-                                    <span className="truncate">{row.label}</span>
+                                    <span className="truncate">
+                                        {row.label}
+                                    </span>
                                     <span className="bg-muted h-2 overflow-hidden rounded-full">
                                         <span
                                             className="bg-chart-1 block h-full rounded-full"

@@ -17,7 +17,7 @@ class SaveProjectRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        return $this->user('web') !== null;
     }
 
     /**
@@ -28,7 +28,7 @@ class SaveProjectRequest extends FormRequest
     public function rules(): array
     {
         $project = $this->route('project');
-        $team = $this->user()?->currentTeam;
+        $team = $this->user('web')?->currentTeam;
 
         return [
             'code' => [

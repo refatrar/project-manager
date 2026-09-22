@@ -4,7 +4,9 @@ namespace App\Models\OMS;
 
 use App\Models\Team;
 use App\Models\User;
+use Database\Factories\OMS\AttachmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -33,7 +35,8 @@ use Illuminate\Support\Carbon;
 #[Fillable(['disk', 'path', 'original_name', 'mime_type', 'size_bytes', 'checksum'])]
 class Attachment extends Model
 {
-    use SoftDeletes;
+    /** @use HasFactory<AttachmentFactory> */
+    use HasFactory, SoftDeletes;
 
     /**
      * Get the team that owns the file.

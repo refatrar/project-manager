@@ -30,7 +30,7 @@ class TodoListController extends Controller
     {
         Gate::authorize('viewAny', [TodoList::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $generateDailyTodoList->handle($user, $current_team, Carbon::now());
@@ -78,7 +78,7 @@ class TodoListController extends Controller
     {
         Gate::authorize('create', [TodoList::class, $current_team]);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $list = new TodoList($request->safe()->only(['name', 'description', 'type', 'status', 'scheduled_for']));
@@ -99,7 +99,7 @@ class TodoListController extends Controller
         $this->authorizeListOnTeam($current_team, $todo_list);
         Gate::authorize('update', $todo_list);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $todo_list->fill($request->safe()->only(['name', 'description', 'status', 'scheduled_for']));
@@ -118,7 +118,7 @@ class TodoListController extends Controller
         $this->authorizeListOnTeam($current_team, $todo_list);
         Gate::authorize('delete', $todo_list);
 
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $todo_list->deleted_by = $user->id;

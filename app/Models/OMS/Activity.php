@@ -4,7 +4,9 @@ namespace App\Models\OMS;
 
 use App\Models\Team;
 use App\Models\User;
+use Database\Factories\OMS\ActivityFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -31,6 +33,9 @@ use Illuminate\Support\Carbon;
 #[Fillable(['team_id', 'project_id', 'user_id', 'event', 'description', 'properties'])]
 class Activity extends Model
 {
+    /** @use HasFactory<ActivityFactory> */
+    use HasFactory;
+
     public const UPDATED_AT = null;
 
     /**

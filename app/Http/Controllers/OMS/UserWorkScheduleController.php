@@ -30,7 +30,7 @@ class UserWorkScheduleController extends Controller
      */
     public function index(Request $request, Team $current_team, CalculateUserAvailability $calculateUserAvailability): Response
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $today = Carbon::today();
@@ -56,7 +56,7 @@ class UserWorkScheduleController extends Controller
      */
     public function store(SaveUserWorkScheduleRequest $request, Team $current_team, SetUserWorkSchedule $setUserWorkSchedule): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $setUserWorkSchedule->handle(

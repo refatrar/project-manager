@@ -5,8 +5,10 @@ namespace App\Models\OMS;
 use App\Models\Concerns\HasAuditUsers;
 use App\Models\Team;
 use App\Models\User;
+use Database\Factories\OMS\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,7 +42,8 @@ use Illuminate\Support\Carbon;
 #[Fillable(['body', 'is_internal', 'parent_id'])]
 class Comment extends Model
 {
-    use HasAuditUsers, SoftDeletes;
+    /** @use HasFactory<CommentFactory> */
+    use HasAuditUsers, HasFactory, SoftDeletes;
 
     /**
      * Get the team the comment was written in.

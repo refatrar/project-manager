@@ -15,6 +15,7 @@ use App\Http\Controllers\OMS\SprintController;
 use App\Http\Controllers\OMS\TaskAssignmentController;
 use App\Http\Controllers\OMS\TaskController;
 use App\Http\Controllers\OMS\TaskDependencyController;
+use App\Http\Controllers\OMS\TeamCapacityController;
 use App\Http\Controllers\OMS\TimeLogController;
 use App\Http\Controllers\OMS\TimeOffRequestController;
 use App\Http\Controllers\OMS\TimesheetApprovalController;
@@ -25,11 +26,22 @@ use App\Http\Controllers\OMS\UserWorkScheduleController;
 use App\Http\Controllers\Setup\LabelController;
 use App\Http\Controllers\Setup\ScopeController;
 use App\Http\Controllers\Setup\TaskTypeController;
+use App\Http\Controllers\StartController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+// No public marketing page (RD.md's audience is internal teams only) —
+// the root just sends a guest straight to the login page, which already
+// links to /register for account creation (Fortify's own "Sign up" flow).
+Route::redirect('/', '/login')->name('home');
+
+// Where every post-login/register redirect actually lands (Phase 7): no
+// team prefix, since a fresh registrant may not have one yet. Redirects
+// straight through to the team dashboard for anyone who already does.
+Route::get('start', StartController::class)
+    ->middleware(['auth', 'verified'])
+    ->name('start');
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
@@ -104,6 +116,8 @@ Route::prefix('{current_team}')
 
         Route::get('availability', [FindAvailableUsersController::class, 'index'])->name('availability.index');
 
+        Route::get('team-capacity', [TeamCapacityController::class, 'index'])->name('team-capacity.index');
+
         Route::get('timesheet', [TimesheetController::class, 'index'])->name('timesheet.index');
         Route::post('timesheet/submit', [TimesheetController::class, 'submit'])->name('timesheet.submit');
 
@@ -138,3 +152,4 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
+require __DIR__.'/admin.php';

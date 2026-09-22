@@ -4,8 +4,14 @@ import MemberFormModal from '@/components/projects/member-form-modal';
 import MemberRemoveModal from '@/components/projects/member-remove-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type {
     ProjectMember,
+    ProjectMemberCapacity,
     ProjectMemberRoleOption,
     TeamMemberOption,
 } from '@/types';
@@ -13,14 +19,47 @@ import type {
 type Props = {
     projectId: number;
     members: ProjectMember[];
+    capacity: ProjectMemberCapacity[];
     availableUsers: TeamMemberOption[];
     roleOptions: ProjectMemberRoleOption[];
     onChanged: () => void;
 };
 
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+function ScheduleTooltip({ entry }: { entry: ProjectMemberCapacity }) {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Badge
+                    variant="outline"
+                    className="cursor-default"
+                    data-test="member-capacity"
+                >
+                    {entry.available_hours_14d}h available (14d, this project)
+                </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+                <div className="space-y-1">
+                    <p className="font-medium">Weekly schedule</p>
+                    {entry.schedule.map((day) => (
+                        <p key={day.day_of_week}>
+                            {DAY_NAMES[day.day_of_week - 1]}:{' '}
+                            {day.is_working_day
+                                ? `${day.capacity_hours}h`
+                                : 'off'}
+                        </p>
+                    ))}
+                </div>
+            </TooltipContent>
+        </Tooltip>
+    );
+}
+
 export default function MemberList({
     projectId,
     members,
+    capacity,
     availableUsers,
     roleOptions,
     onChanged,
@@ -69,8 +108,20 @@ export default function MemberList({
                                         {member.role.replace('_', ' ')}
                                     </Badge>
                                     {member.status === 'inactive' ? (
-                                        <Badge variant="outline">Inactive</Badge>
+                                        <Badge variant="outline">
+                                            Inactive
+                                        </Badge>
                                     ) : null}
+                                    {(() => {
+                                        const entry = capacity.find(
+                                            (row) =>
+                                                row.user_id === member.user.id,
+                                        );
+
+                                        return entry ? (
+                                            <ScheduleTooltip entry={entry} />
+                                        ) : null;
+                                    })()}
                                 </div>
                                 <p className="text-muted-foreground mt-1 text-sm">
                                     {member.user.email} ·{' '}

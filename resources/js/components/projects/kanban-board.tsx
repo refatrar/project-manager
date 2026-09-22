@@ -1,5 +1,12 @@
 import { Link, useHttp, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, Users } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronUp,
+    Pencil,
+    Plus,
+    Trash2,
+    Users,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import TaskAssignmentsModal from '@/components/projects/task-assignments-modal';
@@ -23,7 +30,6 @@ import type {
     SprintOption,
     Task,
     TaskAssignmentRoleOption,
-    TaskDetail,
     TaskLabel,
     TaskStatus,
     TaskStatusOption,
@@ -65,7 +71,10 @@ export default function KanbanBoard({
     onChanged,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
-    const moveForm = useHttp<{ status: TaskStatus; position: number }, MovedResponse>({
+    const moveForm = useHttp<
+        { status: TaskStatus; position: number },
+        MovedResponse
+    >({
         status: 'backlog',
         position: 0,
     });
@@ -75,9 +84,7 @@ export default function KanbanBoard({
     );
     const [editingTask, setEditingTask] = useState<Task | null>(null);
     const [deletingTask, setDeletingTask] = useState<Task | null>(null);
-    const [assigningTaskId, setAssigningTaskId] = useState<number | null>(
-        null,
-    );
+    const [assigningTaskId, setAssigningTaskId] = useState<number | null>(null);
     const assigningTask =
         tasks.find((task) => task.id === assigningTaskId) ?? null;
 
@@ -198,9 +205,13 @@ export default function KanbanBoard({
                                                     className="h-6 w-6 p-0"
                                                     disabled={index === 0}
                                                     onClick={() =>
-                                                        moveWithinColumn(task, -1)
+                                                        moveWithinColumn(
+                                                            task,
+                                                            -1,
+                                                        )
                                                     }
                                                     data-test="task-move-up"
+                                                    aria-label="Move task up"
                                                 >
                                                     <ChevronUp className="h-3 w-3" />
                                                 </Button>
@@ -209,12 +220,17 @@ export default function KanbanBoard({
                                                     size="sm"
                                                     className="h-6 w-6 p-0"
                                                     disabled={
-                                                        index === column.length - 1
+                                                        index ===
+                                                        column.length - 1
                                                     }
                                                     onClick={() =>
-                                                        moveWithinColumn(task, 1)
+                                                        moveWithinColumn(
+                                                            task,
+                                                            1,
+                                                        )
                                                     }
                                                     data-test="task-move-down"
+                                                    aria-label="Move task down"
                                                 >
                                                     <ChevronDown className="h-3 w-3" />
                                                 </Button>
@@ -258,7 +274,9 @@ export default function KanbanBoard({
                                                     {statusOptions.map(
                                                         (option) => (
                                                             <SelectItem
-                                                                key={option.value}
+                                                                key={
+                                                                    option.value
+                                                                }
                                                                 value={
                                                                     option.value
                                                                 }
@@ -277,6 +295,7 @@ export default function KanbanBoard({
                                                     setAssigningTaskId(task.id)
                                                 }
                                                 data-test="task-assign"
+                                                aria-label="Assign task"
                                             >
                                                 <Users className="h-3.5 w-3.5" />
                                             </Button>
@@ -288,6 +307,7 @@ export default function KanbanBoard({
                                                     setEditingTask(task)
                                                 }
                                                 data-test="task-edit"
+                                                aria-label="Edit task"
                                             >
                                                 <Pencil className="h-3.5 w-3.5" />
                                             </Button>
@@ -299,6 +319,7 @@ export default function KanbanBoard({
                                                     setDeletingTask(task)
                                                 }
                                                 data-test="task-delete"
+                                                aria-label="Delete task"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </Button>

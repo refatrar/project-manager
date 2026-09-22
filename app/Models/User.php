@@ -19,11 +19,13 @@ use App\Models\OMS\UserWorkSchedule;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -34,6 +36,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
+ * @property string|null $profile_picture
  * @property string|null $two_factor_secret
  * @property string|null $two_factor_recovery_codes
  * @property Carbon|null $two_factor_confirmed_at
@@ -41,6 +44,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property int|null $current_team_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read string|null $avatar
  * @property-read Team|null $currentTeam
  * @property-read Collection<int, Team> $ownedTeams
  * @property-read Collection<int, Membership> $teamMemberships
@@ -65,6 +69,14 @@ class User extends Authenticatable implements PasskeyUser
     use HasFactory, HasProjectWork, HasTeams, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
+     * `profile_picture` is not appended by default; only `avatar` — the
+     * frontend never needs the raw stored path, only a ready-to-use URL.
+     *
+     * @var list<string>
+     */
+    protected $appends = ['avatar'];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -76,5 +88,21 @@ class User extends Authenticatable implements PasskeyUser
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The user's profile picture as a full URL, or null if they haven't
+     * set one (every existing avatar display already falls back to
+     * initials when this is empty).
+     *
+     * @return Attribute<string|null, never>
+     */
+    protected function avatar(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->profile_picture !== null
+                ? Storage::disk('public')->url($this->profile_picture)
+                : null,
+        );
     }
 }

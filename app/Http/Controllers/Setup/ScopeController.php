@@ -36,7 +36,7 @@ class ScopeController extends Controller
      */
     public function store(SaveScopeRequest $request): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $scope = new Scope($request->safe()->only(['name', 'description', 'status']));
@@ -51,7 +51,7 @@ class ScopeController extends Controller
      */
     public function update(SaveScopeRequest $request, string $current_team, Scope $scope): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $scope->fill($request->safe()->only(['name', 'description', 'status']));
@@ -66,7 +66,7 @@ class ScopeController extends Controller
      */
     public function destroy(Request $request, string $current_team, Scope $scope): JsonResponse|RedirectResponse
     {
-        $user = $request->user();
+        $user = $request->user('web');
         abort_unless($user !== null, 403);
 
         $scope->deleted_by = $user->id;

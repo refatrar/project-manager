@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Teams;
 
+use App\Actions\Teams\CreateTeam;
 use App\Enums\TeamRole;
 use App\Models\Team;
 use App\Models\User;
@@ -24,24 +25,6 @@ class TeamTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_teams_can_be_created()
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->post(route('teams.store'), [
-                'name' => 'Test Team',
-            ]);
-
-        $response->assertRedirect();
-
-        $this->assertDatabaseHas('teams', [
-            'name' => 'Test Team',
-            'is_personal' => false,
-        ]);
-    }
-
     public function test_personal_team_returns_the_team_owned_by_the_user()
     {
         $otherUser = User::factory()->create();
@@ -62,22 +45,33 @@ class TeamTest extends TestCase
 
     public function test_team_slug_uses_next_available_suffix()
     {
-        $user = User::factory()->create();
-
         Team::factory()->create(['name' => 'Acme', 'slug' => 'acme']);
         Team::factory()->create(['name' => 'Acme One', 'slug' => 'acme-1']);
         Team::factory()->create(['name' => 'Acme Ten', 'slug' => 'acme-10']);
 
-        $this
-            ->actingAs($user)
-            ->post(route('teams.store'), [
-                'name' => 'Acme',
-            ]);
+        // Self-service creation is gone (Phase 7) — exercised through the
+        // action directly rather than `route('teams.store')`, which no
+        // longer exists. This is really testing `GeneratesUniqueTeamSlugs`,
+        // not who is allowed to create a team.
+        app(CreateTeam::class)->handle(null, 'Acme');
 
         $this->assertDatabaseHas('teams', [
             'name' => 'Acme',
             'slug' => 'acme-11',
         ]);
+    }
+
+    public function test_teams_can_no_longer_be_created_via_settings(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/settings/teams', ['name' => 'Should Not Exist']);
+
+        // The GET route (listing teams) is still registered, so this is a
+        // 405 (method not allowed at this URI), not a 404 — the store
+        // route itself is gone.
+        $response->assertStatus(405);
+        $this->assertDatabaseMissing('teams', ['name' => 'Should Not Exist']);
     }
 
     public function test_the_team_edit_page_can_be_rendered()
