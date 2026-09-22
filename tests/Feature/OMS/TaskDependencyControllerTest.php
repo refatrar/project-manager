@@ -182,6 +182,23 @@ class TaskDependencyControllerTest extends TestCase
         $this->assertDatabaseCount('task_dependencies', 0);
     }
 
+    public function test_a_project_from_another_team_cannot_be_reached_through_the_users_own_team_url(): void
+    {
+        $user = User::factory()->create();
+        $foreignProject = Project::factory()->create();
+        $foreignTask = Task::factory()->for($foreignProject)->create();
+        $blocker = Task::factory()->for($foreignProject)->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson($this->dependencyRoute($user, 'projects.tasks.dependencies.store', $foreignProject, $foreignTask), [
+                'related_task_id' => $blocker->id,
+                'type' => TaskDependencyType::BlockedBy->value,
+            ]);
+
+        $response->assertNotFound();
+    }
+
     private function dependencyRoute(User $user, string $name, Project $project, Task $task, ?TaskDependency $dependency = null, ?Team $team = null): string
     {
         return route($name, array_filter([

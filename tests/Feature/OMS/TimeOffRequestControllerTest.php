@@ -250,6 +250,18 @@ class TimeOffRequestControllerTest extends TestCase
             ->has('pendingApprovals', 1));
     }
 
+    public function test_a_request_from_another_team_cannot_be_reached_through_the_users_own_team_url(): void
+    {
+        $user = User::factory()->create();
+        $foreignRequest = TimeOffRequest::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patchJson($this->route($user, 'time-off-requests.cancel', $foreignRequest));
+
+        $response->assertNotFound();
+    }
+
     private function route(User $user, string $name, ?TimeOffRequest $timeOffRequest = null, ?Team $team = null): string
     {
         return route($name, array_filter([

@@ -9,10 +9,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { index as workScheduleIndex, store } from '@/routes/work-schedule';
-import type { WorkScheduleDay, WorkScheduleVersion } from '@/types';
+import type { AvailabilityDay, WorkScheduleDay, WorkScheduleVersion } from '@/types';
 
 type Props = {
     versions: WorkScheduleVersion[];
+    availability: AvailabilityDay[];
 };
 
 type FormDay = {
@@ -68,7 +69,7 @@ function weeklyHours(days: { is_working_day: boolean; capacity_hours: number }[]
     return days.reduce((total, day) => total + (day.is_working_day ? day.capacity_hours : 0), 0);
 }
 
-export default function WorkScheduleIndex({ versions }: Props) {
+export default function WorkScheduleIndex({ versions, availability }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const current = versions.find((version) => version.is_current) ?? null;
     const history = versions.filter((version) => !version.is_current);
@@ -234,6 +235,30 @@ export default function WorkScheduleIndex({ versions }: Props) {
                         </CardContent>
                     </Card>
                 ) : null}
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Availability (next 14 days)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="grid gap-1 sm:grid-cols-2">
+                            {availability.map((day) => (
+                                <li
+                                    key={day.date}
+                                    data-test="availability-day-row"
+                                    className="text-muted-foreground flex justify-between rounded-lg border px-3 py-2 text-sm"
+                                >
+                                    <span>{day.date}</span>
+                                    <span data-test="availability-day-free">
+                                        {day.available_hours}h free
+                                        {day.occupied_hours > 0 ? ` · ${day.occupied_hours}h booked` : ''}
+                                        {day.unavailable_hours > 0 ? ` · off` : ''}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </CardContent>
+                </Card>
             </div>
         </>
     );

@@ -427,6 +427,66 @@ export type WorkScheduleVersion = {
     days: WorkScheduleDay[];
 };
 
+export type TimeLogActivityType =
+    | 'development'
+    | 'design'
+    | 'code_review'
+    | 'qa'
+    | 'meeting'
+    | 'research'
+    | 'deployment'
+    | 'support'
+    | 'admin';
+export type TimeLogActivityTypeOption = { value: TimeLogActivityType; label: string };
+export type TimeLogSource = 'manual' | 'timer' | 'import' | 'git_activity';
+
+export type TimeLog = {
+    id: number;
+    user: { id: number; name: string };
+    project_id: number | null;
+    project: { id: number; code: string; name: string } | null;
+    task_id: number | null;
+    task: { id: number; reference: string; title: string } | null;
+    meeting_id: number | null;
+    description: string | null;
+    activity_type: TimeLogActivityType;
+    source: TimeLogSource;
+    started_at: string;
+    ended_at: string | null;
+    duration_minutes: number;
+    logged_on: string;
+    is_billable: boolean;
+    approval_status: ApprovalStatus;
+};
+
+export type AvailabilityDay = {
+    date: string;
+    capacity_hours: number;
+    occupied_hours: number;
+    unavailable_hours: number;
+    available_hours: number;
+};
+
+export type TimesheetRow = {
+    project: { id: number; code: string; name: string } | null;
+    activity_type: TimeLogActivityType;
+    days: Record<string, number>;
+    total: number;
+};
+
+export type TimesheetStatusCounts = {
+    pending: number;
+    submitted: number;
+    approved: number;
+    rejected: number;
+};
+
+export type AvailableUser = {
+    id: number;
+    name: string;
+    email: string;
+};
+
 export type AllocationStatus = 'planned' | 'confirmed' | 'completed' | 'cancelled';
 export type AllocationStatusOption = { value: AllocationStatus; label: string };
 
@@ -446,7 +506,7 @@ export type ResourceAllocation = {
 
 export type TimeOffType = 'vacation' | 'sick' | 'public_holiday' | 'training' | 'personal' | 'unpaid';
 export type TimeOffTypeOption = { value: TimeOffType; label: string };
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type ApprovalStatus = 'pending' | 'submitted' | 'approved' | 'rejected' | 'cancelled';
 
 export type TimeOffRequest = {
     id: number;

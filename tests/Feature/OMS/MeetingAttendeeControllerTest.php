@@ -141,6 +141,21 @@ class MeetingAttendeeControllerTest extends TestCase
         $this->assertDatabaseMissing('meeting_attendees', ['id' => $attendee->id]);
     }
 
+    public function test_a_meeting_from_another_team_cannot_be_reached_through_the_users_own_team_url(): void
+    {
+        $user = User::factory()->create();
+        $foreignMeeting = Meeting::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson($this->attendeeRoute($user, 'meetings.attendees.store', $foreignMeeting), [
+                'user_id' => $user->id,
+                'role' => 'participant',
+            ]);
+
+        $response->assertNotFound();
+    }
+
     private function attendeeRoute(User $user, string $name, Meeting $meeting, ?Team $team = null, ?MeetingAttendee $attendee = null): string
     {
         return route($name, array_filter([

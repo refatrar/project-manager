@@ -4,6 +4,8 @@ import {
     CalendarCheck,
     CalendarClock,
     CalendarDays,
+    ClipboardCheck,
+    ClipboardList,
     FolderGit2,
     FolderKanban,
     LayoutGrid,
@@ -11,7 +13,9 @@ import {
     ListTodo,
     ListTree,
     Plane,
+    Search,
     Tag,
+    Timer,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -32,8 +36,12 @@ import { index as meetingsIndex } from '@/routes/meetings';
 import { index as projectsIndex } from '@/routes/projects';
 import { index as labelsIndex } from '@/routes/setup/labels';
 import { index as scopesIndex } from '@/routes/setup/scopes';
+import { index as availabilityIndex } from '@/routes/availability';
 import { index as taskTypesIndex } from '@/routes/setup/task-types';
+import { index as timeLogsIndex } from '@/routes/time-logs';
 import { index as timeOffIndex } from '@/routes/time-off-requests';
+import { index as timesheetIndex } from '@/routes/timesheet';
+import { index as timesheetApprovalsIndex } from '@/routes/timesheet-approvals';
 import { index as todoListsIndex } from '@/routes/todo-lists';
 import { index as workScheduleIndex } from '@/routes/work-schedule';
 import type { NavItem } from '@/types';
@@ -82,6 +90,30 @@ export function AppSidebar() {
                       href: timeOffIndex(page.props.currentTeam.slug),
                       icon: Plane,
                   },
+                  {
+                      title: 'Time Logs',
+                      href: timeLogsIndex(page.props.currentTeam.slug),
+                      icon: Timer,
+                  },
+                  {
+                      title: 'Timesheet',
+                      href: timesheetIndex(page.props.currentTeam.slug),
+                      icon: ClipboardList,
+                  },
+                  {
+                      title: 'Timesheet Approvals',
+                      href: timesheetApprovalsIndex(page.props.currentTeam.slug),
+                      icon: ClipboardCheck,
+                  },
+                  ...(page.props.currentTeam.role === 'owner' || page.props.currentTeam.role === 'admin'
+                      ? [
+                            {
+                                title: 'Find Available People',
+                                href: availabilityIndex(page.props.currentTeam.slug),
+                                icon: Search,
+                            },
+                        ]
+                      : []),
               ]
             : []),
     ];

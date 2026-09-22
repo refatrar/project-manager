@@ -172,4 +172,43 @@ class TimeLog extends Model
             'approved_at' => 'datetime',
         ];
     }
+
+    /**
+     * Get the payload used for the time logs and timesheet approval
+     * pages. Assumes `user`, `task.project` and `project` are loaded.
+     *
+     * @return array<string, mixed>
+     */
+    public function toListArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+            ],
+            'project_id' => $this->project_id,
+            'project' => $this->project ? [
+                'id' => $this->project->id,
+                'code' => $this->project->code,
+                'name' => $this->project->name,
+            ] : null,
+            'task_id' => $this->task_id,
+            'task' => $this->task ? [
+                'id' => $this->task->id,
+                'reference' => $this->task->reference(),
+                'title' => $this->task->title,
+            ] : null,
+            'meeting_id' => $this->meeting_id,
+            'description' => $this->description,
+            'activity_type' => $this->activity_type->value,
+            'source' => $this->source->value,
+            'started_at' => $this->started_at->toIso8601String(),
+            'ended_at' => $this->ended_at?->toIso8601String(),
+            'duration_minutes' => $this->duration_minutes,
+            'logged_on' => $this->logged_on->toDateString(),
+            'is_billable' => $this->is_billable,
+            'approval_status' => $this->approval_status->value,
+        ];
+    }
 }

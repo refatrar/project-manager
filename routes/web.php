@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OMS\FindAvailableUsersController;
 use App\Http\Controllers\OMS\MeetingAgendaItemController;
 use App\Http\Controllers\OMS\MeetingAttendeeController;
 use App\Http\Controllers\OMS\MeetingController;
@@ -14,7 +15,10 @@ use App\Http\Controllers\OMS\SprintController;
 use App\Http\Controllers\OMS\TaskAssignmentController;
 use App\Http\Controllers\OMS\TaskController;
 use App\Http\Controllers\OMS\TaskDependencyController;
+use App\Http\Controllers\OMS\TimeLogController;
 use App\Http\Controllers\OMS\TimeOffRequestController;
+use App\Http\Controllers\OMS\TimesheetApprovalController;
+use App\Http\Controllers\OMS\TimesheetController;
 use App\Http\Controllers\OMS\TodoItemController;
 use App\Http\Controllers\OMS\TodoListController;
 use App\Http\Controllers\OMS\UserWorkScheduleController;
@@ -91,6 +95,20 @@ Route::prefix('{current_team}')
         Route::patch('time-off-requests/{time_off_request}/cancel', [TimeOffRequestController::class, 'cancel'])->name('time-off-requests.cancel');
         Route::patch('time-off-requests/{time_off_request}/decide', [TimeOffRequestController::class, 'decide'])->name('time-off-requests.decide');
         Route::resource('time-off-requests', TimeOffRequestController::class)->except(['create', 'show', 'edit', 'destroy']);
+
+        // Registered before the resource so the literal "start"/"stop"
+        // segments aren't swallowed by the {time_log} binding.
+        Route::post('time-logs/start', [TimeLogController::class, 'start'])->name('time-logs.start');
+        Route::patch('time-logs/{time_log}/stop', [TimeLogController::class, 'stop'])->name('time-logs.stop');
+        Route::resource('time-logs', TimeLogController::class)->except(['create', 'show', 'edit']);
+
+        Route::get('availability', [FindAvailableUsersController::class, 'index'])->name('availability.index');
+
+        Route::get('timesheet', [TimesheetController::class, 'index'])->name('timesheet.index');
+        Route::post('timesheet/submit', [TimesheetController::class, 'submit'])->name('timesheet.submit');
+
+        Route::get('timesheet-approvals', [TimesheetApprovalController::class, 'index'])->name('timesheet-approvals.index');
+        Route::patch('timesheet-approvals/{time_log}/decide', [TimesheetApprovalController::class, 'decide'])->name('timesheet-approvals.decide');
 
         // `show` is kept: the meeting workspace is a deep-linkable page,
         // not a create/edit route (ADR-013).

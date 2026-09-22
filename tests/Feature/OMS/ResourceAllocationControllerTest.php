@@ -117,6 +117,25 @@ class ResourceAllocationControllerTest extends TestCase
         $this->assertDatabaseMissing('resource_allocations', ['id' => $allocation->id]);
     }
 
+    public function test_a_project_from_another_team_cannot_be_reached_through_the_users_own_team_url(): void
+    {
+        $user = User::factory()->create();
+        $foreignProject = Project::factory()->create();
+        ProjectMember::factory()->create(['project_id' => $foreignProject->id, 'user_id' => $user->id, 'role' => 'owner']);
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson($this->route($user, 'projects.resource-allocations.store', $foreignProject), [
+                'user_id' => $user->id,
+                'status' => 'planned',
+                'starts_on' => '2026-05-01',
+                'ends_on' => '2026-05-05',
+                'hours_per_day' => 6,
+            ]);
+
+        $response->assertNotFound();
+    }
+
     /**
      * @param  'projects.resource-allocations.store'|'projects.resource-allocations.update'|'projects.resource-allocations.destroy'  $name
      */

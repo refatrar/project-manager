@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\OMS;
 
+use App\Actions\OMS\CalculateUserAvailability;
 use App\Actions\OMS\SetUserWorkSchedule;
+use App\Data\AvailabilityDayData;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OMS\SaveUserWorkScheduleRequest;
 use App\Models\OMS\UserWorkSchedule;
@@ -19,18 +21,32 @@ class UserWorkScheduleController extends Controller
 {
     /**
      * Display the acting user's own weekly work schedule and its history
-     * (RD.md FR-8.1). Always scoped to the user, never a route-bound
-     * model — a schedule has no independent existence to authorize
-     * against, so there is no dedicated policy here, same reasoning as
-     * `MyDayController`.
+     * (RD.md FR-8.1), plus a 14-day availability preview (FR-8.4) — the
+     * most natural place to surface `CalculateUserAvailability` for now,
+     * since it's the same "my own capacity" page. Always scoped to the
+     * user, never a route-bound model — a schedule has no independent
+     * existence to authorize against, so there is no dedicated policy
+     * here, same reasoning as `MyDayController`.
      */
-    public function index(Request $request, Team $current_team): Response
+    public function index(Request $request, Team $current_team, CalculateUserAvailability $calculateUserAvailability): Response
     {
         $user = $request->user();
         abort_unless($user !== null, 403);
 
+        $today = Carbon::today();
+        $availability = $calculateUserAvailability
+            ->handle($user, $today, $today->copy()->addDays(13))
+            ->map(fn (AvailabilityDayData $day): array => [
+                'date' => $day->date,
+                'capacity_hours' => $day->capacityHours,
+                'occupied_hours' => $day->occupiedHours,
+                'unavailable_hours' => $day->unavailableHours,
+                'available_hours' => $day->availableHours,
+            ]);
+
         return Inertia::render('work-schedule/index', [
             'versions' => $this->versions($user->id),
+            'availability' => $availability,
         ]);
     }
 

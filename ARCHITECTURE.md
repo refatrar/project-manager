@@ -119,15 +119,25 @@ The pre-existing `scopes` and `task_types` tables still use MySQL `ENUM`. They a
 
 ## Asynchronous Work
 
-Three kinds of work belong on the queue, not in a request:
+Two things run outside the request/response cycle: queued jobs (`QUEUE_CONNECTION=database`, needs a running `queue:work` process) and the scheduler (`routes/console.php`, needs one `schedule:run` cron entry). See "Deployment" below for the actual process configuration.
 
-| Job | Trigger | Writes to |
+**Queued** (`ShouldQueue`, dispatched via `->notify()`):
+
+| Notification | Trigger |
+| --- | --- |
+| `TeamInvitation` | A team invitation is created |
+| `MinutesPublished` | A meeting's minutes are published for the first time — every attendee, registered or guest |
+
+**Scheduled** (`routes/console.php`), in run order:
+
+| Command | Schedule | Writes to |
 | --- | --- | --- |
-| Git webhook ingest | Webhook receipt persists a `git_events` row, then dispatches | `git_commits`, `git_branches`, `git_pull_requests`, `git_commit_task` |
-| Repository backfill | Connecting a repository | Same as above, plus `git_repositories.sync_status` |
-| Nightly progress snapshot | Scheduler (`oms:snapshot-project-progress`, daily) | `project_progress_snapshots`, `projects.progress_percentage`, `projects.health`, `project_modules.progress_percentage`, `milestones.progress_percentage` |
+| Expired invitation cleanup (inline closure) | Daily | Deletes expired `team_invitations` rows |
+| `oms:reconcile` | Daily at 00:00 | `tasks.logged_hours`, project/module progress and health — the "one writer" pass ahead of the day's snapshot |
+| `oms:snapshot-project-progress` | Daily at 00:15 | `project_progress_snapshots`, `projects.progress_percentage`, `projects.health`, `project_modules.progress_percentage`, `milestones.progress_percentage` |
+| `oms:generate-daily-todo-lists` | Daily at 00:30 | Each user's `Generated`-type `todo_lists`/`todo_items` for the day |
 
-`git_events` is the durability seam. The webhook endpoint only validates the signature and stores the payload, so ingest failures are replayable from `GitEvent::unprocessed()`.
+Not yet built (Phase 5, Git integration): webhook ingest and repository backfill will follow the same `git_events`-as-durability-seam pattern — the webhook endpoint validates the signature and stores the raw payload, so ingest failures stay replayable from `GitEvent::unprocessed()`, with parsing done on the queue rather than the request.
 
 ## Derived Values
 
@@ -135,7 +145,7 @@ Some columns cache values that could be computed. Each is a deliberate trade, an
 
 | Column | Derived from | Written by |
 | --- | --- | --- |
-| `tasks.logged_hours` | `sum(time_logs.duration_minutes)` | Time log observer or action (Phase 6, not yet built) |
+| `tasks.logged_hours` | `sum(time_logs.duration_minutes)`, excluding rejected/cancelled entries | `ReconcileTaskLoggedHours` (`oms:reconcile`, scheduled daily) — the one writer; nothing recalculates it on every `time_logs` write |
 | `projects.progress_percentage` | Task completion across the project | `SnapshotProjectProgress` (`oms:snapshot-project-progress`, scheduled daily) |
 | `projects.health` | Schedule position and hours variance (`App\Actions\OMS\DetermineProjectHealth`) | `SnapshotProjectProgress`, same run as progress. A project manager can still edit `health` by hand between runs; the next nightly run recomputes and overwrites it — there is no "manual override" flag. |
 | `project_modules.progress_percentage` | Task completion within the module (direct tasks only, not recursive into child modules) | `SnapshotProjectProgress` |
@@ -147,3 +157,16 @@ Some columns cache values that could be computed. Each is a deliberate trade, an
 ## Frontend Contract
 
 Server payloads are shaped by explicit model methods such as `toSetupArray()`, not by serialising the whole model. Every payload shape has a matching type in `resources/js/types`. Enum values cross the wire as their backed string, and their labels come from `options()` so a single change in PHP updates both the cast and the dropdown.
+
+## Deployment
+
+Two long-running processes are needed beyond the web server itself — neither exists in a typical PHP shared-hosting setup, so both must be provisioned explicitly:
+
+- **Queue worker** — `QUEUE_CONNECTION=database` (the `.env` default), backed by the `jobs`/`failed_jobs`/`job_batches` tables from Laravel's own default migration. A `php artisan queue:work` process must run continuously; `deploy/supervisor-queue-worker.conf` is a ready-to-copy Supervisor config (`numprocs=2`, auto-restart, `stopwaitsecs=3600` so an in-flight job finishes before a deploy kills it) — the standard shape Laravel's own docs recommend for a VPS/bare-server deployment. On a platform-as-a-service target (Forge, Cloud, a Heroku-style `Procfile` host) use that platform's own worker-process primitive instead and point it at the same `queue:work --tries=3` command; the Supervisor file is for anywhere that means "point Supervisor or systemd at a command" rather than a managed worker dyno.
+- **Scheduler** — `routes/console.php` defines what runs and when (see "Asynchronous Work" above), but Laravel's scheduler is only a dispatcher: the server crontab needs exactly one entry to actually invoke it, once a minute:
+  ```
+  * * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1
+  ```
+  Without this line, every entry in `routes/console.php` is dead configuration — nothing runs, silently, with no error anywhere to notice.
+
+Queue and scheduler are independent of each other and of the web server process; either can be redeployed or restarted without affecting the other two.
