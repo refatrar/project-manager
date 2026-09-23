@@ -3,7 +3,6 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Admin;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -17,8 +16,6 @@ class ProfileControllerTest extends TestCase
     public function test_an_admin_can_view_their_own_profile(): void
     {
         $admin = Admin::factory()->create();
-        $role = Role::factory()->create(['name' => 'Editor']);
-        $admin->assignRole($role);
 
         $response = $this->actingAs($admin, 'admin')->get(route('admin.profile.edit'));
 
@@ -27,7 +24,6 @@ class ProfileControllerTest extends TestCase
             ->component('admin/profile/edit')
             ->where('profile.name', $admin->name)
             ->where('profile.email', $admin->email)
-            ->where('profile.roles', ['Editor'])
             ->missing('profile.password'));
     }
 
@@ -72,26 +68,6 @@ class ProfileControllerTest extends TestCase
 
         $response->assertSessionHasErrors('email');
         $this->assertSame($admin->email, $admin->refresh()->email);
-    }
-
-    public function test_updating_a_profile_cannot_change_roles(): void
-    {
-        $admin = Admin::factory()->create();
-        $current = Role::factory()->create();
-        $requested = Role::factory()->create();
-        $admin->assignRole($current);
-
-        $response = $this->actingAs($admin, 'admin')->patch(route('admin.profile.update'), [
-            'name' => 'Still The Same Roles',
-            'email' => $admin->email,
-            'roles' => [$requested->id],
-        ]);
-
-        $response->assertSessionHasNoErrors()->assertRedirect(route('admin.profile.edit'));
-
-        $admin->refresh();
-        $this->assertTrue($admin->roles->contains($current));
-        $this->assertFalse($admin->roles->contains($requested));
     }
 
     public function test_updating_a_profile_does_not_change_another_admin(): void

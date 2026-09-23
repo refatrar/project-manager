@@ -1,31 +1,27 @@
 import { Head, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import Heading from '@/components/heading';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { store } from '@/routes/admin/admins';
-import type { AdminAccount, RoleOption } from '@/types';
+import type { AdminAccount } from '@/types';
 
 type Props = {
     admins: AdminAccount[];
-    roles: RoleOption[];
 };
 
 type CreatedResponse = { message: string };
 
-function CreateAdminForm({ roles }: { roles: RoleOption[] }) {
+function CreateAdminForm() {
     const form = useHttp<
-        { name: string; email: string; password: string; roles: number[] },
+        { name: string; email: string; password: string },
         CreatedResponse
     >({
         name: '',
         email: '',
         password: '',
-        roles: [],
     });
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -35,19 +31,9 @@ function CreateAdminForm({ roles }: { roles: RoleOption[] }) {
                 form.setData('name', '');
                 form.setData('email', '');
                 form.setData('password', '');
-                form.setData('roles', []);
                 router.reload({ only: ['admins'] });
             },
         });
-    };
-
-    const toggleRole = (id: number, checked: boolean) => {
-        form.setData(
-            'roles',
-            checked
-                ? [...form.data.roles, id]
-                : form.data.roles.filter((existing) => existing !== id),
-        );
     };
 
     return (
@@ -104,28 +90,6 @@ function CreateAdminForm({ roles }: { roles: RoleOption[] }) {
                     </p>
                 ) : null}
             </div>
-            <div className="grid gap-2">
-                <p className="text-sm font-medium">Roles</p>
-                <div className="flex flex-wrap gap-4">
-                    {roles.map((role) => (
-                        <div key={role.id} className="flex items-center gap-2">
-                            <Checkbox
-                                id={`admin-role-${role.id}`}
-                                checked={form.data.roles.includes(role.id)}
-                                onCheckedChange={(checked) =>
-                                    toggleRole(role.id, checked === true)
-                                }
-                            />
-                            <Label
-                                htmlFor={`admin-role-${role.id}`}
-                                className="text-sm font-normal"
-                            >
-                                {role.name}
-                            </Label>
-                        </div>
-                    ))}
-                </div>
-            </div>
             <Button
                 type="submit"
                 disabled={form.processing}
@@ -137,7 +101,7 @@ function CreateAdminForm({ roles }: { roles: RoleOption[] }) {
     );
 }
 
-export default function AdminAdminsIndex({ admins, roles }: Props) {
+export default function AdminAdminsIndex({ admins }: Props) {
     return (
         <>
             <Head title="Admins" />
@@ -153,7 +117,7 @@ export default function AdminAdminsIndex({ admins, roles }: Props) {
                         <CardTitle>New admin</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <CreateAdminForm roles={roles} />
+                        <CreateAdminForm />
                     </CardContent>
                 </Card>
 
@@ -171,19 +135,6 @@ export default function AdminAdminsIndex({ admins, roles }: Props) {
                                 <span className="text-muted-foreground text-xs">
                                     {admin.email}
                                 </span>
-                            </div>
-                            <div className="mt-1 flex flex-wrap gap-1">
-                                {admin.roles.length > 0 ? (
-                                    admin.roles.map((role) => (
-                                        <Badge key={role} variant="outline">
-                                            {role}
-                                        </Badge>
-                                    ))
-                                ) : (
-                                    <span className="text-muted-foreground text-xs">
-                                        No roles
-                                    </span>
-                                )}
                             </div>
                         </div>
                     ))}

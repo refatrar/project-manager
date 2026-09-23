@@ -42,12 +42,18 @@ Route::get('start', StartController::class)
     ->middleware(['auth', 'verified'])
     ->name('start');
 
+// Registered before the `{current_team}` wildcard so `/admin/*` is the
+// platform-admin panel, not a team whose slug happens to be "admin".
+require __DIR__.'/admin.php';
+
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
-        Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('dashboard', DashboardController::class)
+            ->middleware('team.permission:dashboard.view')
+            ->name('dashboard');
 
-        Route::prefix('setup')->name('setup.')->group(function () {
+        Route::prefix('setup')->middleware('team.permission:setup.manage')->name('setup.')->group(function () {
             Route::resource('scopes', ScopeController::class)->except(['create', 'show', 'edit']);
             Route::resource('task-types', TaskTypeController::class)->except(['create', 'show', 'edit']);
             Route::resource('labels', LabelController::class)->except(['create', 'show', 'edit']);
@@ -94,7 +100,9 @@ Route::prefix('{current_team}')
         Route::post('todo-lists/{todo_list}/items/{item}/promote', [TodoItemController::class, 'promote'])->name('todo-lists.items.promote');
         Route::resource('todo-lists.items', TodoItemController::class)->except(['create', 'index', 'show', 'edit']);
 
-        Route::get('my-day', [MyDayController::class, 'index'])->name('my-day');
+        Route::get('my-day', [MyDayController::class, 'index'])
+            ->middleware('team.permission:my-day.view')
+            ->name('my-day');
 
         // Registered before the resource so the literal "cancel"/"decide"
         // segments aren't swallowed by the {time_off_request} binding.
@@ -108,12 +116,20 @@ Route::prefix('{current_team}')
         Route::patch('time-logs/{time_log}/stop', [TimeLogController::class, 'stop'])->name('time-logs.stop');
         Route::resource('time-logs', TimeLogController::class)->except(['create', 'show', 'edit']);
 
-        Route::get('availability', [FindAvailableUsersController::class, 'index'])->name('availability.index');
+        Route::get('availability', [FindAvailableUsersController::class, 'index'])
+            ->middleware('team.permission:availability.view')
+            ->name('availability.index');
 
-        Route::get('team-capacity', [TeamCapacityController::class, 'index'])->name('team-capacity.index');
+        Route::get('team-capacity', [TeamCapacityController::class, 'index'])
+            ->middleware('team.permission:team-capacity.view')
+            ->name('team-capacity.index');
 
-        Route::get('timesheet', [TimesheetController::class, 'index'])->name('timesheet.index');
-        Route::post('timesheet/submit', [TimesheetController::class, 'submit'])->name('timesheet.submit');
+        Route::get('timesheet', [TimesheetController::class, 'index'])
+            ->middleware('team.permission:timesheet.view')
+            ->name('timesheet.index');
+        Route::post('timesheet/submit', [TimesheetController::class, 'submit'])
+            ->middleware('team.permission:timesheet.submit')
+            ->name('timesheet.submit');
 
         Route::get('timesheet-approvals', [TimesheetApprovalController::class, 'index'])->name('timesheet-approvals.index');
         Route::patch('timesheet-approvals/{time_log}/decide', [TimesheetApprovalController::class, 'decide'])->name('timesheet-approvals.decide');
@@ -146,4 +162,3 @@ Route::middleware(['auth'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
-require __DIR__.'/admin.php';

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\OMS;
 
 use App\Enums\ApprovalStatus;
 use App\Enums\ProjectMemberRole;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OMS\DecideTimeLogRequest;
 use App\Models\OMS\ProjectMember;
@@ -94,8 +94,6 @@ class TimesheetApprovalController extends Controller
 
     private function isTeamAdmin(User $user, Team $team): bool
     {
-        $role = $user->teamRole($team);
-
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user->teamCan($team, TeamModulePermission::DecideTimesheets);
     }
 }

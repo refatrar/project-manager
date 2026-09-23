@@ -4,10 +4,9 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\HolidayController;
-use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\ProfileController;
-use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TeamController;
+use App\Http\Controllers\Admin\TeamRoleController;
 use App\Http\Controllers\Admin\WorkScheduleController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,14 +37,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('holidays', [HolidayController::class, 'store'])->name('holidays.store');
         Route::delete('holidays/{holiday}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
 
-        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
-        Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
-        Route::patch('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
-        Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
-
-        Route::post('permissions', [PermissionController::class, 'store'])->name('permissions.store');
-        Route::patch('permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
-        Route::delete('permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+        Route::get('team-roles', [TeamRoleController::class, 'index'])->name('team-roles.index');
+        Route::post('team-roles', [TeamRoleController::class, 'store'])->name('team-roles.store');
+        Route::patch('team-roles/{role}', [TeamRoleController::class, 'update'])->name('team-roles.update');
+        Route::delete('team-roles/{role}', [TeamRoleController::class, 'destroy'])->name('team-roles.destroy');
 
         Route::get('admins', [AdminController::class, 'index'])->name('admins.index');
         Route::post('admins', [AdminController::class, 'store'])->name('admins.store');

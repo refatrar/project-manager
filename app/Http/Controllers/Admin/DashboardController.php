@@ -20,7 +20,6 @@ class DashboardController extends Controller
             'admin' => [
                 'name' => $admin->name,
                 'email' => $admin->email,
-                'roles' => $admin->roles->pluck('name'),
             ],
             'teamCount' => Team::query()->count(),
             'leaderlessTeamCount' => Team::query()->whereDoesntHave('memberships')->count(),

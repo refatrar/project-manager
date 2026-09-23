@@ -2,11 +2,8 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Enums\AdminPermission;
 use App\Models\Admin;
 use App\Models\OMS\Holiday;
-use App\Models\Permission;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -17,14 +14,7 @@ class HolidayControllerTest extends TestCase
 
     private function adminWithPermission(): Admin
     {
-        $permission = Permission::factory()->create(['name' => AdminPermission::ManageWorkSchedules->value, 'guard_name' => 'admin']);
-        $role = Role::factory()->create();
-        $role->givePermissionTo($permission);
-
-        $admin = Admin::factory()->create();
-        $admin->assignRole($role);
-
-        return $admin;
+        return Admin::factory()->create();
     }
 
     public function test_an_admin_can_create_a_holiday(): void
@@ -90,17 +80,6 @@ class HolidayControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertDatabaseMissing('holidays', ['id' => $holiday->id]);
-    }
-
-    public function test_an_admin_without_permission_cannot_manage_holidays(): void
-    {
-        $admin = Admin::factory()->create();
-
-        $response = $this
-            ->actingAs($admin, 'admin')
-            ->get(route('admin.holidays.index'));
-
-        $response->assertForbidden();
     }
 
     public function test_a_regular_user_cannot_access_the_admin_holidays_panel(): void

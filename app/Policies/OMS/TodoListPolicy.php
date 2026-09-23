@@ -2,7 +2,7 @@
 
 namespace App\Policies\OMS;
 
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Enums\TodoListType;
 use App\Models\OMS\TodoList;
 use App\Models\Team;
@@ -21,7 +21,7 @@ class TodoListPolicy
      */
     public function viewAny(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::ManageTodos);
     }
 
     /**
@@ -91,8 +91,7 @@ class TodoListPolicy
             return false;
         }
 
-        $role = $user->teamRole($list->project->team);
-        if ($role !== null && $role->isAtLeast(TeamRole::Admin)) {
+        if ($user->teamCan($list->project->team, TeamModulePermission::ViewAllProjects)) {
             return true;
         }
 

@@ -5,10 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Teams\AssignTeamLeader;
 use App\Actions\Teams\CreateTeam;
 use App\Actions\Teams\RemoveTeamLeader;
-use App\Enums\AdminPermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\SaveTeamRequest;
-use App\Models\Admin;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -27,10 +25,8 @@ use Inertia\Response;
  */
 class TeamController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(): Response
     {
-        $this->authorizeManageTeams($request);
-
         $teams = Team::query()
             ->withCount('members')
             ->orderBy('name')
@@ -50,8 +46,6 @@ class TeamController extends Controller
 
     public function store(SaveTeamRequest $request, CreateTeam $createTeam): JsonResponse|RedirectResponse
     {
-        $this->authorizeManageTeams($request);
-
         $createTeam->handle(null, $request->validated('name'));
 
         return $this->respond($request, __('Team created. Assign a leader below to make it usable.'));
@@ -59,8 +53,6 @@ class TeamController extends Controller
 
     public function assignLeader(Request $request, Team $team, AssignTeamLeader $assignTeamLeader): JsonResponse|RedirectResponse
     {
-        $this->authorizeManageTeams($request);
-
         $email = $request->validate(['email' => ['required', 'email']])['email'];
 
         $user = User::query()->where('email', $email)->first();
@@ -82,8 +74,6 @@ class TeamController extends Controller
      */
     public function update(SaveTeamRequest $request, Team $team): JsonResponse|RedirectResponse
     {
-        $this->authorizeManageTeams($request);
-
         $team = DB::transaction(function () use ($request, $team) {
             $team = Team::query()->whereKey($team->id)->lockForUpdate()->firstOrFail();
             $team->update(['name' => $request->validated('name')]);
@@ -101,8 +91,6 @@ class TeamController extends Controller
      */
     public function removeLeader(Request $request, Team $team, RemoveTeamLeader $removeTeamLeader): JsonResponse|RedirectResponse
     {
-        $this->authorizeManageTeams($request);
-
         $removeTeamLeader->handle($team);
 
         return $this->respond($request, __('":team" no longer has a leader.', ['team' => $team->name]));
@@ -126,13 +114,5 @@ class TeamController extends Controller
         }
 
         return response()->json(['message' => $message]);
-    }
-
-    private function authorizeManageTeams(Request $request): void
-    {
-        /** @var Admin $admin */
-        $admin = $request->user('admin');
-
-        abort_unless($admin->hasPermission(AdminPermission::ManageTeams->value), 403);
     }
 }

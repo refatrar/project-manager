@@ -12,16 +12,13 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * A signed-in platform admin editing their own account. Roles and
- * permissions are deliberately absent from both write actions: granting
- * them is `AdminController`'s job and requires `admins.manage`.
+ * A signed-in platform admin editing their own account.
  */
 class ProfileController extends Controller
 {
     public function edit(): Response
     {
         $admin = $this->admin();
-        $admin->load('roles:id,name');
 
         return Inertia::render('admin/profile/edit', [
             'profile' => $admin->toProfileArray(),

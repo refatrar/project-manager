@@ -5,7 +5,7 @@ export type Team = {
     name: string;
     slug: string;
     isPersonal: boolean;
-    role?: TeamRole;
+    role?: string;
     roleLabel?: string;
     isCurrent?: boolean;
 };
@@ -15,14 +15,14 @@ export type TeamMember = {
     name: string;
     email: string;
     avatar?: string | null;
-    role: TeamRole;
+    role: string;
     role_label: string;
 };
 
 export type TeamInvitation = {
     code: string;
     email: string;
-    role: TeamRole;
+    role: string;
     role_label: string;
     created_at: string;
 };
@@ -52,6 +52,6 @@ export type TeamPermissions = {
 };
 
 export type RoleOption = {
-    value: TeamRole;
+    value: string;
     label: string;
 };

@@ -4,7 +4,6 @@ import ProfileController from '@/actions/App/Http/Controllers/Admin/ProfileContr
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +12,6 @@ type Props = {
     profile: {
         name: string;
         email: string;
-        roles: string[];
     };
     passwordRules: string;
 };
@@ -29,7 +27,7 @@ export default function EditAdminProfile({ profile, passwordRules }: Props) {
             <div className="mx-auto flex max-w-xl flex-col gap-10">
                 <Heading
                     title="Profile"
-                    description="Update your name, email, and password. Roles stay as they are."
+                    description="Update your name, email, and password."
                 />
 
                 <section className="space-y-4">
@@ -84,28 +82,6 @@ export default function EditAdminProfile({ profile, passwordRules }: Props) {
                             </>
                         )}
                     </Form>
-                </section>
-
-                <section className="space-y-4">
-                    <Heading
-                        variant="small"
-                        title="Roles"
-                        description="Assigned by someone with admin-management access. This page cannot grant or remove them."
-                    />
-
-                    {profile.roles.length > 0 ? (
-                        <ul className="flex flex-wrap gap-2">
-                            {profile.roles.map((role) => (
-                                <li key={role}>
-                                    <Badge variant="secondary">{role}</Badge>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className="text-muted-foreground text-sm">
-                            No roles assigned.
-                        </p>
-                    )}
                 </section>
 
                 <section className="space-y-4">

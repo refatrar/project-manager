@@ -5,6 +5,7 @@ namespace App\Actions\Teams;
 use App\Enums\TeamRole;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Teams\TeamAccessControl;
 use Database\Seeders\LabelSeeder;
 use Illuminate\Support\Facades\DB;
 
@@ -39,6 +40,8 @@ class CreateTeam
             }
 
             (new LabelSeeder)->run($team);
+
+            app(TeamAccessControl::class)->ensureCatalogue();
 
             return $team;
         });

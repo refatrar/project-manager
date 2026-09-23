@@ -2,7 +2,7 @@
 
 namespace App\Policies\OMS;
 
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Models\OMS\Project;
 use App\Models\Team;
 use App\Models\User;
@@ -14,7 +14,7 @@ class ProjectPolicy
      */
     public function viewAny(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::ViewProjects);
     }
 
     /**
@@ -31,7 +31,7 @@ class ProjectPolicy
      */
     public function create(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::CreateProjects);
     }
 
     /**
@@ -83,9 +83,7 @@ class ProjectPolicy
      */
     protected function hasWideVisibility(User $user, Project $project): bool
     {
-        $role = $user->teamRole($project->team);
-
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user->teamCan($project->team, TeamModulePermission::ViewAllProjects);
     }
 
     /**

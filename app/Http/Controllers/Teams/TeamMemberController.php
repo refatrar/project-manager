@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Teams;
 
-use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\UpdateTeamMemberRequest;
 use App\Models\Team;
@@ -20,12 +19,10 @@ class TeamMemberController extends Controller
     {
         Gate::authorize('updateMember', $team);
 
-        $newRole = TeamRole::from($request->validated('role'));
-
         $team->memberships()
             ->where('user_id', $user->id)
             ->firstOrFail()
-            ->update(['role' => $newRole]);
+            ->update(['role' => $request->validated('role')]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Member role updated.')]);
 

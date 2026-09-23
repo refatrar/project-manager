@@ -6,7 +6,6 @@ type Props = {
     admin: {
         name: string;
         email: string;
-        roles: string[];
     };
     teamCount: number;
     leaderlessTeamCount: number;
@@ -24,7 +23,7 @@ export default function AdminDashboard({
             <div className="flex flex-col gap-6">
                 <Heading
                     title="Admin Dashboard"
-                    description={`Signed in as ${admin.name} (${admin.roles.join(', ') || 'no roles'})`}
+                    description={`Signed in as ${admin.name}`}
                 />
 
                 <div className="grid gap-4 sm:grid-cols-2">

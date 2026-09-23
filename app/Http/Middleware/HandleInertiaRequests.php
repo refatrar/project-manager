@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Services\Teams\TeamAccessControl;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -54,6 +55,9 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'currentTeam' => fn () => $teamUser?->currentTeam ? $teamUser->toUserTeam($teamUser->currentTeam) : null,
             'teams' => fn () => $teamUser?->toUserTeams(includeCurrent: true) ?? [],
+            'teamAccess' => fn (): array => $teamUser?->currentTeam
+                ? app(TeamAccessControl::class)->grantedNames($teamUser, $teamUser->currentTeam)
+                : [],
         ];
     }
 }

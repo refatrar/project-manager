@@ -315,4 +315,25 @@ TASKS.md 7.8 asked for "module-wise custom permissions" in the admin panel — a
 `permissions.name` is spatie's raw dot-notation key (`teams.manage`); `label`/`module` are this app's own additions for display/grouping, nullable so spatie's internal permission-creation helpers that don't know about them don't break. Permission checks are now cached (spatie auto-invalidates on any `assignRole`/`syncPermissions`/etc. call) rather than always freshly queried — a behavior improvement, contingent on every mutation going through spatie's own methods rather than a raw `DB::table()` write (true everywhere in this codebase as of this ADR). `Role`/`Permission` model instances are now `Spatie\Permission\Models\*` subclasses; anything that previously constructed the old hand-rolled shape (e.g. test fixtures using `key`/`group` column names) needed rewriting to spatie's `name`/`guard_name` shape, done across all affected Feature tests in the same change.
 
 ### Status
+Accepted for the admin guard. The decision that the `web` guard gets nothing from this package is superseded by ADR-017.
+
+---
+
+## ADR-017: Team-module permissions are assigned in the admin panel
+
+### Context
+The team panel authorized every module with two closed enums: `TeamRole` (owner / admin / member) and `TeamPermission` (team settings only). Project, meeting, time, and capacity screens then repeated `isAtLeast(TeamRole::Admin)`. The platform admin needs to decide what those roles can do. Team accounts then run under that decision; a team owner does not edit the permission matrix.
+
+### Decision
+Keep `spatie/laravel-permission` and add a `web`-guard catalogue, `App\Enums\TeamModulePermission`, covering every team module. Roles are global (`guard_name=web`, `team_id` null): one Owner, one Admin, one Member, plus any custom role the admin creates. `App\Services\Teams\TeamAccessControl` seeds that catalogue and answers permission checks. The admin panel's Team roles screen assigns permissions to those roles. A membership still stores the role slug, and team owners still choose which role a person has, but they cannot change what the role allows. Until the catalogue exists, checks fall back to the previous Owner / Admin / Member matrix. `ProjectMemberRole` is unchanged. Platform-admin roles stay on the `admin` guard.
+
+### Alternatives
+- Turn on spatie's teams feature: rejected. That feature makes `team_id` part of every role assignment, including the admin guard's `model_has_roles` primary key, which is not nullable.
+- Let each team edit its own copy of Admin: rejected. The admin panel is the place that assigns role permissions, and every team account with a role follows that assignment.
+- A roles screen inside the team panel: rejected for the same reason.
+
+### Consequences
+`TeamPolicy` and the OMS policies call `User::teamCan()`. The team sidebar reads the shared `teamAccess` list and has no roles screen. Changing Admin in the admin panel changes every team that uses Admin.
+
+### Status
 Accepted.

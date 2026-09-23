@@ -5,28 +5,27 @@ namespace App\Models;
 use Database\Factories\RoleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Models\Role as SpatieRole;
 
 /**
- * A configurable, admin-panel-manageable role (Phase 7's RBAC — governs the
- * admin panel and team-provisioning process only, not `TeamRole`), now
- * backed by `spatie/laravel-permission` (TASKS.md 7.8, ADR-016). Extends
- * spatie's own model rather than replacing it, so `HasRoles`/`config/
- * permission.php` keep working — this class only adds the columns this
- * app's admin panel needs on top: `is_system` (protects the seeded "Super
- * Admin" role from edits/deletion, the same invariant Phase 7 always had),
- * `slug` and `description` (both already part of the panel's UI/API
- * contract before this migration).
+ * A team-module role backed by `spatie/laravel-permission`. Roles use the
+ * `web` guard and are global (`team_id` null). The admin panel assigns
+ * their permissions (ADR-017). Extends spatie's own model rather than
+ * replacing it, so `config/permission.php` keeps working. `is_system`
+ * protects Owner, Admin, and Member from deletion. `slug` is what a team
+ * membership stores.
  *
  * @property int $id
+ * @property int|null $team_id
  * @property string $name
  * @property string $guard_name
  * @property string|null $slug
  * @property string|null $description
  * @property bool $is_system
  */
-#[Fillable(['name', 'guard_name', 'slug', 'description', 'is_system'])]
+#[Fillable(['name', 'guard_name', 'slug', 'description', 'is_system', 'team_id'])]
 class Role extends SpatieRole
 {
     /** @use HasFactory<RoleFactory> */
@@ -49,5 +48,15 @@ class Role extends SpatieRole
     public function admins(): BelongsToMany
     {
         return $this->users();
+    }
+
+    /**
+     * Unused. Team-module roles are global, so `team_id` stays null.
+     *
+     * @return BelongsTo<Team, $this>
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
     }
 }

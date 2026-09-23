@@ -4,7 +4,7 @@ namespace App\Http\Controllers\OMS;
 
 use App\Actions\OMS\CalculateUserAvailability;
 use App\Data\AvailabilityDayData;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\User;
@@ -28,8 +28,7 @@ class TeamCapacityController extends Controller
         $user = $request->user('web');
         abort_unless($user !== null, 403);
 
-        $role = $user->teamRole($current_team);
-        abort_unless($role !== null && $role->isAtLeast(TeamRole::Admin), 403);
+        abort_unless($user->teamCan($current_team, TeamModulePermission::ViewTeamCapacity), 403);
 
         $from = $this->rangeStart($request);
         $to = $from->copy()->addDays(13);

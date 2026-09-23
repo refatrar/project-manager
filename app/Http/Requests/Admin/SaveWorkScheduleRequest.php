@@ -2,22 +2,15 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\AdminPermission;
 use App\Models\Admin;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SaveWorkScheduleRequest extends FormRequest
 {
-    /**
-     * Determine if the admin is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        $admin = $this->user('admin');
-
-        return $admin instanceof Admin
-            && $admin->hasPermission(AdminPermission::ManageWorkSchedules->value);
+        return $this->user('admin') instanceof Admin;
     }
 
     /**

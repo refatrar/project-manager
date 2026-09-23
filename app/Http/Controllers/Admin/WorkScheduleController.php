@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\OMS\SetWorkSchedule;
-use App\Enums\AdminPermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveWorkScheduleRequest;
-use App\Models\Admin;
 use App\Models\OMS\WorkSchedule;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,10 +24,8 @@ class WorkScheduleController extends Controller
     /**
      * Show the current version's editor and a history of past versions.
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
-        $this->authorizeManageWorkSchedules($request);
-
         return Inertia::render('admin/work-schedules/index', [
             'versions' => $this->versions(),
         ]);
@@ -89,13 +84,5 @@ class WorkScheduleController extends Controller
             ->sortByDesc('effective_from')
             ->values()
             ->all();
-    }
-
-    private function authorizeManageWorkSchedules(Request $request): void
-    {
-        /** @var Admin $admin */
-        $admin = $request->user('admin');
-
-        abort_unless($admin->hasPermission(AdminPermission::ManageWorkSchedules->value), 403);
     }
 }

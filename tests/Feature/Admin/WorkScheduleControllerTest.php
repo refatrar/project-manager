@@ -2,11 +2,8 @@
 
 namespace Tests\Feature\Admin;
 
-use App\Enums\AdminPermission;
 use App\Models\Admin;
 use App\Models\OMS\WorkSchedule;
-use App\Models\Permission;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -18,14 +15,7 @@ class WorkScheduleControllerTest extends TestCase
 
     private function adminWithPermission(): Admin
     {
-        $permission = Permission::factory()->create(['name' => AdminPermission::ManageWorkSchedules->value, 'guard_name' => 'admin']);
-        $role = Role::factory()->create();
-        $role->givePermissionTo($permission);
-
-        $admin = Admin::factory()->create();
-        $admin->assignRole($role);
-
-        return $admin;
+        return Admin::factory()->create();
     }
 
     public function test_the_index_page_groups_the_schedules_rows_into_versions(): void
@@ -95,17 +85,6 @@ class WorkScheduleControllerTest extends TestCase
 
         $response->assertUnprocessable();
         $response->assertJsonValidationErrors(['effective_from']);
-    }
-
-    public function test_an_admin_without_permission_cannot_open_work_schedules(): void
-    {
-        $admin = Admin::factory()->create();
-
-        $response = $this
-            ->actingAs($admin, 'admin')
-            ->get(route('admin.work-schedules.index'));
-
-        $response->assertForbidden();
     }
 
     public function test_a_regular_user_cannot_open_the_admin_work_schedules_page(): void

@@ -323,3 +323,9 @@ Planning notes:
 - Decision taken: profile photos are out of this pass. `admins` has no picture column; the user-avatar disk from 7.7 is not reused until a photo is actually requested.
 - No schema change. `admins` already had `name`, `email`, and `password`.
 - Dependency: none. Independent of 7.8 and 7.10.
+
+### 7.12 Team-panel roles and permissions
+
+Added 2026-09-23. `spatie/laravel-permission` was already installed for the admin guard (7.8, ADR-016). This extends it to the team panel.
+
+- [x] Global `web`-guard roles (Owner, Admin, Member, plus custom roles) with a permission catalogue for every team module. The admin panel's Team roles screen assigns those permissions. Team accounts keep a role slug, and each team module's policy checks `User::teamCan()` against the admin's assignment. See ADR-017.

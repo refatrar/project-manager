@@ -2,7 +2,7 @@
 
 namespace App\Policies\OMS;
 
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Models\OMS\Project;
 use App\Models\OMS\Task;
 use App\Models\User;
@@ -79,9 +79,7 @@ class TaskPolicy
 
     private function hasWideVisibility(User $user, Project $project): bool
     {
-        $role = $user->teamRole($project->team);
-
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user->teamCan($project->team, TeamModulePermission::ViewAllProjects);
     }
 
     private function isActiveMember(User $user, Project $project): bool

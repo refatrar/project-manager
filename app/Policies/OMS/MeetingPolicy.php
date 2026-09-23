@@ -3,7 +3,7 @@
 namespace App\Policies\OMS;
 
 use App\Enums\MeetingAttendeeRole;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Models\OMS\Meeting;
 use App\Models\Team;
 use App\Models\User;
@@ -15,7 +15,7 @@ class MeetingPolicy
      */
     public function viewAny(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::ViewMeetings);
     }
 
     /**
@@ -26,7 +26,7 @@ class MeetingPolicy
     public function view(User $user, Meeting $meeting): bool
     {
         if ($meeting->project_id === null) {
-            return $user->belongsToTeam($meeting->team);
+            return $user->teamCan($meeting->team, TeamModulePermission::ViewMeetings);
         }
 
         return $this->hasWideVisibility($user, $meeting) || $this->isActiveProjectMember($user, $meeting);
@@ -37,7 +37,7 @@ class MeetingPolicy
      */
     public function create(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::CreateMeetings);
     }
 
     /**
@@ -107,9 +107,7 @@ class MeetingPolicy
 
     private function hasWideVisibility(User $user, Meeting $meeting): bool
     {
-        $role = $user->teamRole($meeting->team);
-
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user->teamCan($meeting->team, TeamModulePermission::ViewAllMeetings);
     }
 
     private function isActiveProjectMember(User $user, Meeting $meeting): bool

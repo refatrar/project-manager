@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Teams\FindPendingInvitations;
 use App\Enums\ProjectHealth;
 use App\Enums\TaskStatus;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Models\OMS\Project;
 use App\Models\OMS\Task;
 use App\Models\Team;
@@ -35,8 +35,7 @@ class DashboardController extends Controller
     private function portfolio(Request $request, Team $current_team): array
     {
         $user = $request->user('web');
-        $role = $user?->teamRole($current_team);
-        $hasWideVisibility = $role !== null && $role->isAtLeast(TeamRole::Admin);
+        $hasWideVisibility = $user !== null && $user->teamCan($current_team, TeamModulePermission::ViewAllProjects);
 
         $projects = Project::query()
             ->where('team_id', $current_team->id)

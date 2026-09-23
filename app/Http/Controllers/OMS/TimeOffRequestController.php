@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\OMS;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Enums\TimeOffType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OMS\DecideTimeOffRequestRequest;
@@ -152,9 +152,7 @@ class TimeOffRequestController extends Controller
      */
     private function isApprover(User $user, Team $team): bool
     {
-        $role = $user->teamRole($team);
-
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user->teamCan($team, TeamModulePermission::DecideTimeOff);
     }
 
     /**

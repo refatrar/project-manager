@@ -3,7 +3,7 @@
 namespace App\Policies\OMS;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Models\OMS\TimeOffRequest;
 use App\Models\Team;
 use App\Models\User;
@@ -15,7 +15,7 @@ class TimeOffRequestPolicy
      */
     public function viewAny(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::ViewTimeOff);
     }
 
     /**
@@ -32,7 +32,7 @@ class TimeOffRequestPolicy
      */
     public function create(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::ManageTimeOff);
     }
 
     /**
@@ -75,8 +75,7 @@ class TimeOffRequestPolicy
         }
 
         $request->loadMissing('team');
-        $role = $user->teamRole($request->team);
 
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user->teamCan($request->team, TeamModulePermission::DecideTimeOff);
     }
 }

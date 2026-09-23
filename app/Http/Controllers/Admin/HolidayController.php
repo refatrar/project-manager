@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\AdminPermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveHolidayRequest;
-use App\Models\Admin;
 use App\Models\OMS\Holiday;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -25,8 +23,6 @@ class HolidayController extends Controller
 {
     public function index(Request $request): Response
     {
-        $this->authorizeManageWorkSchedules($request);
-
         $year = $request->filled('year') ? $request->integer('year') : (int) Carbon::today()->format('Y');
 
         return Inertia::render('admin/holidays/index', [
@@ -52,8 +48,6 @@ class HolidayController extends Controller
 
     public function destroy(Request $request, Holiday $holiday): JsonResponse|RedirectResponse
     {
-        $this->authorizeManageWorkSchedules($request);
-
         $holiday->delete();
 
         return $this->respond($request, __('Holiday removed.'));
@@ -68,13 +62,5 @@ class HolidayController extends Controller
         }
 
         return response()->json(['message' => $message], $status);
-    }
-
-    private function authorizeManageWorkSchedules(Request $request): void
-    {
-        /** @var Admin $admin */
-        $admin = $request->user('admin');
-
-        abort_unless($admin->hasPermission(AdminPermission::ManageWorkSchedules->value), 403);
     }
 }

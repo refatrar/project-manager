@@ -9,7 +9,7 @@ use App\Enums\MeetingAttendeeRole;
 use App\Enums\MeetingStatus;
 use App\Enums\MeetingType;
 use App\Enums\TaskTypeStatus;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OMS\SaveMeetingMinutesRequest;
 use App\Http\Requests\OMS\SaveMeetingRequest;
@@ -348,9 +348,9 @@ class MeetingController extends Controller
      */
     private function hasWideVisibility(Request $request, Team $team): bool
     {
-        $role = $request->user('web')?->teamRole($team);
+        $user = $request->user('web');
 
-        return $role !== null && $role->isAtLeast(TeamRole::Admin);
+        return $user !== null && $user->teamCan($team, TeamModulePermission::ViewAllMeetings);
     }
 
     /**

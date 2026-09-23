@@ -3,11 +3,8 @@
 namespace Tests\Feature\Admin;
 
 use App\Actions\Teams\AssignTeamLeader;
-use App\Enums\AdminPermission;
 use App\Enums\TeamRole;
 use App\Models\Admin;
-use App\Models\Permission;
-use App\Models\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,21 +14,14 @@ class TeamControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminWithManageTeams(): Admin
+    private function admin(): Admin
     {
-        $permission = Permission::factory()->create(['name' => AdminPermission::ManageTeams->value, 'guard_name' => 'admin']);
-        $role = Role::factory()->create();
-        $role->givePermissionTo($permission);
-
-        $admin = Admin::factory()->create();
-        $admin->assignRole($role);
-
-        return $admin;
+        return Admin::factory()->create();
     }
 
     public function test_an_admin_with_permission_can_create_a_team_with_no_members(): void
     {
-        $admin = $this->adminWithManageTeams();
+        $admin = $this->admin();
 
         $response = $this->actingAs($admin, 'admin')
             ->post(route('admin.teams.store'), ['name' => 'Newly Provisioned Team']);
@@ -41,20 +31,9 @@ class TeamControllerTest extends TestCase
         $this->assertSame(0, $team->members()->count());
     }
 
-    public function test_an_admin_without_permission_cannot_create_a_team(): void
-    {
-        $admin = Admin::factory()->create();
-
-        $response = $this->actingAs($admin, 'admin')
-            ->post(route('admin.teams.store'), ['name' => 'Should Not Exist']);
-
-        $response->assertForbidden();
-        $this->assertDatabaseMissing('teams', ['name' => 'Should Not Exist']);
-    }
-
     public function test_an_admin_can_assign_an_existing_user_as_team_leader(): void
     {
-        $admin = $this->adminWithManageTeams();
+        $admin = $this->admin();
         $team = Team::factory()->create();
         $user = User::factory()->create();
 
@@ -67,7 +46,7 @@ class TeamControllerTest extends TestCase
 
     public function test_assigning_a_leader_by_an_unknown_email_fails_validation(): void
     {
-        $admin = $this->adminWithManageTeams();
+        $admin = $this->admin();
         $team = Team::factory()->create();
 
         $response = $this->actingAs($admin, 'admin')
@@ -79,7 +58,7 @@ class TeamControllerTest extends TestCase
 
     public function test_an_admin_can_rename_a_team(): void
     {
-        $admin = $this->adminWithManageTeams();
+        $admin = $this->admin();
         $team = Team::factory()->create(['name' => 'Original Name']);
 
         $response = $this->actingAs($admin, 'admin')
@@ -91,21 +70,9 @@ class TeamControllerTest extends TestCase
         $this->assertSame('renamed-team', $team->slug);
     }
 
-    public function test_an_admin_without_permission_cannot_rename_a_team(): void
-    {
-        $admin = Admin::factory()->create();
-        $team = Team::factory()->create(['name' => 'Stays Put']);
-
-        $response = $this->actingAs($admin, 'admin')
-            ->patch(route('admin.teams.update', ['team' => $team->slug]), ['name' => 'Should Not Stick']);
-
-        $response->assertForbidden();
-        $this->assertSame('Stays Put', $team->fresh()->name);
-    }
-
     public function test_an_admin_can_remove_a_team_leader_and_leave_the_team_leaderless(): void
     {
-        $admin = $this->adminWithManageTeams();
+        $admin = $this->admin();
         $team = Team::factory()->create();
         $user = User::factory()->create();
         app(AssignTeamLeader::class)->handle($team, $user);

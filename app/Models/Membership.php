@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Casts\AsTeamMembershipRole;
+use App\Concerns\ResolvesTeamRoleSlug;
 use App\Enums\TeamRole;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $team_id
  * @property int $user_id
- * @property TeamRole $role
+ * @property TeamRole|string|null $role
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Team $team
@@ -21,6 +23,8 @@ use Illuminate\Support\Carbon;
 #[Fillable(['team_id', 'user_id', 'role'])]
 class Membership extends Pivot
 {
+    use ResolvesTeamRoleSlug;
+
     /**
      * The table associated with the model.
      *
@@ -63,7 +67,7 @@ class Membership extends Pivot
     protected function casts(): array
     {
         return [
-            'role' => TeamRole::class,
+            'role' => AsTeamMembershipRole::class,
         ];
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\OMS;
 
 use App\Actions\OMS\FindAvailableUsers;
-use App\Enums\TeamRole;
+use App\Enums\TeamModulePermission;
 use App\Http\Controllers\Controller;
 use App\Models\Team;
 use App\Models\User;
@@ -29,8 +29,7 @@ class FindAvailableUsersController extends Controller
         $user = $request->user('web');
         abort_unless($user !== null, 403);
 
-        $role = $user->teamRole($current_team);
-        abort_unless($role !== null && $role->isAtLeast(TeamRole::Admin), 403);
+        abort_unless($user->teamCan($current_team, TeamModulePermission::ViewAvailability), 403);
 
         $filters = $request->only(['from', 'to', 'hours_per_day']);
         $results = null;

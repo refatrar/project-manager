@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             TaskTypeSeeder::class,
             AdminAccessControlSeeder::class,
             DemoSeeder::class,
+            TeamAccessControlSeeder::class,
         ]);
     }
 }

@@ -8,7 +8,7 @@ import { dashboard, logout } from '@/routes/admin';
 import { index as adminsIndex } from '@/routes/admin/admins';
 import { index as holidaysIndex } from '@/routes/admin/holidays';
 import { edit as editProfile } from '@/routes/admin/profile';
-import { index as rolesIndex } from '@/routes/admin/roles';
+import { index as teamRolesIndex } from '@/routes/admin/team-roles';
 import { index as teamsIndex } from '@/routes/admin/teams';
 import { index as workSchedulesIndex } from '@/routes/admin/work-schedules';
 import type { NavItem } from '@/types';
@@ -18,7 +18,7 @@ const navItems: NavItem[] = [
     { title: 'Teams', href: teamsIndex() },
     { title: 'Work schedules', href: workSchedulesIndex() },
     { title: 'Holidays', href: holidaysIndex() },
-    { title: 'Roles', href: rolesIndex() },
+    { title: 'Team roles', href: teamRolesIndex() },
     { title: 'Admins', href: adminsIndex() },
 ];
 
