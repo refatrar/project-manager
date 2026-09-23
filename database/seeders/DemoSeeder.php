@@ -15,6 +15,7 @@ use App\Enums\TaskStatus;
 use App\Enums\TeamRole;
 use App\Enums\TimeLogActivityType;
 use App\Enums\TimeLogSource;
+use App\Models\OMS\Holiday;
 use App\Models\OMS\Meeting;
 use App\Models\OMS\Project;
 use App\Models\OMS\ProjectMember;
@@ -24,7 +25,7 @@ use App\Models\OMS\Sprint;
 use App\Models\OMS\Task;
 use App\Models\OMS\TaskAssignment;
 use App\Models\OMS\TimeLog;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\Setup\TaskType;
 use App\Models\Team;
 use App\Models\User;
@@ -54,7 +55,7 @@ class DemoSeeder extends Seeder
 
         $team = $this->team($owner);
         $members = $this->members($team);
-        $this->workSchedules($members->concat([$owner]));
+        $this->workSchedule();
 
         $taskTypes = TaskType::query()->orderBy('name')->limit(6)->get();
 
@@ -110,7 +111,7 @@ class DemoSeeder extends Seeder
         // `ProfilingSeeder` learned the hard way — see MEMORY.md).
         // `Team::factory()` sets `slug` itself, so it doesn't depend on
         // that event either way.
-        $team = Team::factory()->create(['name' => 'Kazsoft Demo']);
+        $team = Team::factory()->create(['name' => 'PHP 360']);
         $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::Owner]);
         $owner->forceFill(['current_team_id' => $team->id])->save();
         (new LabelSeeder)->run($team);
@@ -151,28 +152,34 @@ class DemoSeeder extends Seeder
      *
      * @param  Collection<int, User>  $people
      */
-    private function workSchedules(Collection $people): void
+    /**
+     * The platform's single global schedule (TASKS.md 7.10 — replaces the
+     * former per-user template) plus a couple of demo holidays, so the
+     * holiday calendar and the availability-zeroing behavior have
+     * something to show on a fresh `db:seed`.
+     */
+    private function workSchedule(): void
     {
-        if (UserWorkSchedule::query()->whereIn('user_id', $people->pluck('id'))->exists()) {
+        if (WorkSchedule::query()->exists()) {
             return;
         }
 
-        foreach ($people as $person) {
-            foreach (range(1, 7) as $dayOfWeek) {
-                $isWorkingDay = $dayOfWeek <= 5;
+        foreach (range(1, 7) as $dayOfWeek) {
+            $isWorkingDay = $dayOfWeek <= 5;
 
-                UserWorkSchedule::factory()->create([
-                    'user_id' => $person->id,
-                    'day_of_week' => $dayOfWeek,
-                    'is_working_day' => $isWorkingDay,
-                    'start_time' => $isWorkingDay ? '09:00:00' : null,
-                    'end_time' => $isWorkingDay ? '18:00:00' : null,
-                    'break_minutes' => $isWorkingDay ? 60 : 0,
-                    'capacity_hours' => $isWorkingDay ? 8 : 0,
-                    'effective_from' => '2026-01-01',
-                ]);
-            }
+            WorkSchedule::factory()->create([
+                'day_of_week' => $dayOfWeek,
+                'is_working_day' => $isWorkingDay,
+                'start_time' => $isWorkingDay ? '09:00:00' : null,
+                'end_time' => $isWorkingDay ? '18:00:00' : null,
+                'break_minutes' => $isWorkingDay ? 60 : 0,
+                'capacity_hours' => $isWorkingDay ? 8 : 0,
+                'effective_from' => '2026-01-01',
+            ]);
         }
+
+        Holiday::query()->firstOrCreate(['date' => '2026-01-01'], ['name' => "New Year's Day"]);
+        Holiday::query()->firstOrCreate(['date' => '2026-12-25'], ['name' => 'Christmas Day']);
     }
 
     /**

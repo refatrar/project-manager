@@ -2,25 +2,22 @@
 
 namespace Tests\Feature\OMS;
 
-use App\Actions\OMS\SetUserWorkSchedule;
-use App\Models\User;
+use App\Actions\OMS\SetWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
-class SetUserWorkScheduleTest extends TestCase
+class SetWorkScheduleTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_it_writes_one_row_per_day(): void
     {
-        $user = User::factory()->create();
+        app(SetWorkSchedule::class)->handle(Carbon::parse('2026-01-01'), $this->weekOf());
 
-        app(SetUserWorkSchedule::class)->handle($user, $user->currentTeam, Carbon::parse('2026-01-01'), $this->weekOf());
-
-        $this->assertSame(7, $user->workSchedules()->count());
-        $this->assertDatabaseHas('user_work_schedules', [
-            'user_id' => $user->id,
+        $this->assertSame(7, WorkSchedule::query()->count());
+        $this->assertDatabaseHas('work_schedules', [
             'day_of_week' => 6,
             'is_working_day' => false,
             'capacity_hours' => 0,
@@ -30,17 +27,15 @@ class SetUserWorkScheduleTest extends TestCase
 
     public function test_a_non_working_day_is_normalized_regardless_of_submitted_values(): void
     {
-        $user = User::factory()->create();
         $days = $this->weekOf();
         // A client that submits stray times/capacity for a day it also
         // marked as non-working must not have those values persisted.
         $days[5]['start_time'] = '09:00';
         $days[5]['capacity_hours'] = 8;
 
-        app(SetUserWorkSchedule::class)->handle($user, $user->currentTeam, Carbon::parse('2026-01-01'), $days);
+        app(SetWorkSchedule::class)->handle(Carbon::parse('2026-01-01'), $days);
 
-        $this->assertDatabaseHas('user_work_schedules', [
-            'user_id' => $user->id,
+        $this->assertDatabaseHas('work_schedules', [
             'day_of_week' => 6,
             'start_time' => null,
             'capacity_hours' => 0,
@@ -49,19 +44,16 @@ class SetUserWorkScheduleTest extends TestCase
 
     public function test_starting_a_new_version_closes_the_previously_open_one(): void
     {
-        $user = User::factory()->create();
-        app(SetUserWorkSchedule::class)->handle($user, $user->currentTeam, Carbon::parse('2026-01-01'), $this->weekOf());
+        app(SetWorkSchedule::class)->handle(Carbon::parse('2026-01-01'), $this->weekOf());
 
-        app(SetUserWorkSchedule::class)->handle($user, $user->currentTeam, Carbon::parse('2026-06-01'), $this->weekOf());
+        app(SetWorkSchedule::class)->handle(Carbon::parse('2026-06-01'), $this->weekOf());
 
-        $this->assertSame(14, $user->workSchedules()->count());
-        $this->assertDatabaseHas('user_work_schedules', [
-            'user_id' => $user->id,
+        $this->assertSame(14, WorkSchedule::query()->count());
+        $this->assertDatabaseHas('work_schedules', [
             'effective_from' => '2026-01-01',
             'effective_until' => '2026-05-31',
         ]);
-        $this->assertDatabaseHas('user_work_schedules', [
-            'user_id' => $user->id,
+        $this->assertDatabaseHas('work_schedules', [
             'effective_from' => '2026-06-01',
             'effective_until' => null,
         ]);
@@ -69,16 +61,14 @@ class SetUserWorkScheduleTest extends TestCase
 
     public function test_resubmitting_the_same_effective_date_replaces_it_in_place(): void
     {
-        $user = User::factory()->create();
-        app(SetUserWorkSchedule::class)->handle($user, $user->currentTeam, Carbon::parse('2026-01-01'), $this->weekOf());
+        app(SetWorkSchedule::class)->handle(Carbon::parse('2026-01-01'), $this->weekOf());
 
         $days = $this->weekOf();
         $days[0]['capacity_hours'] = 6;
-        app(SetUserWorkSchedule::class)->handle($user, $user->currentTeam, Carbon::parse('2026-01-01'), $days);
+        app(SetWorkSchedule::class)->handle(Carbon::parse('2026-01-01'), $days);
 
-        $this->assertSame(7, $user->workSchedules()->count());
-        $this->assertDatabaseHas('user_work_schedules', [
-            'user_id' => $user->id,
+        $this->assertSame(7, WorkSchedule::query()->count());
+        $this->assertDatabaseHas('work_schedules', [
             'day_of_week' => 1,
             'capacity_hours' => 6,
             'effective_until' => null,

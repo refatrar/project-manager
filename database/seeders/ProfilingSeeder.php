@@ -85,7 +85,7 @@ class ProfilingSeeder extends Seeder
             DB::table('team_members')->insert($chunk);
         }
 
-        $this->seedWorkSchedules($allUsers, $team->id);
+        $this->seedWorkSchedule();
         $this->seedTimeOffRequests($allUsers, $team->id);
 
         $taskTypeIds = TaskType::query()->pluck('id');
@@ -116,40 +116,32 @@ class ProfilingSeeder extends Seeder
     }
 
     /**
-     * Every user works Monday–Friday, one open-ended schedule version each
-     * — enough for `CalculateUserAvailability` to have real capacity to
-     * read on every weekday in any profiled range.
-     *
-     * @param  Collection<int, User>  $users
+     * The schedule is global now (TASKS.md 7.10), not per-user — one
+     * Monday–Friday open-ended version covers every profiled user, which
+     * also shrinks this seeder's own volume/time versus the old per-user
+     * pass.
      */
-    private function seedWorkSchedules($users, int $teamId): void
+    private function seedWorkSchedule(): void
     {
-        $rows = [];
         $now = Carbon::now();
+        $rows = [];
 
-        foreach ($users as $user) {
-            foreach (range(1, 5) as $dayOfWeek) {
-                $rows[] = [
-                    'user_id' => $user->id,
-                    'team_id' => $teamId,
-                    'day_of_week' => $dayOfWeek,
-                    'is_working_day' => true,
-                    'start_time' => '09:00:00',
-                    'end_time' => '18:00:00',
-                    'break_minutes' => 60,
-                    'capacity_hours' => 8,
-                    'timezone' => null,
-                    'effective_from' => '2026-01-01',
-                    'effective_until' => null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
+        foreach (range(1, 5) as $dayOfWeek) {
+            $rows[] = [
+                'day_of_week' => $dayOfWeek,
+                'is_working_day' => true,
+                'start_time' => '09:00:00',
+                'end_time' => '18:00:00',
+                'break_minutes' => 60,
+                'capacity_hours' => 8,
+                'effective_from' => '2026-01-01',
+                'effective_until' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        foreach (array_chunk($rows, 1000) as $chunk) {
-            DB::table('user_work_schedules')->insert($chunk);
-        }
+        DB::table('work_schedules')->insert($rows);
     }
 
     /**

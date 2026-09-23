@@ -2,71 +2,45 @@
 
 namespace App\Models\OMS;
 
-use App\Models\Team;
-use App\Models\User;
-use Database\Factories\OMS\UserWorkScheduleFactory;
+use Database\Factories\OMS\WorkScheduleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * The recurring weekly capacity of a user, used as the baseline for availability.
+ * The platform's single recurring weekly capacity template, used as the
+ * baseline for every user's availability (replaces the former per-user
+ * `UserWorkSchedule`).
  *
  * @property int $id
- * @property int $user_id
- * @property int|null $team_id
  * @property int $day_of_week
  * @property bool $is_working_day
  * @property string|null $start_time
  * @property string|null $end_time
  * @property int $break_minutes
  * @property string $capacity_hours
- * @property string|null $timezone
  * @property Carbon $effective_from
  * @property Carbon|null $effective_until
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $user
- * @property-read Team|null $team
  */
 #[Fillable([
-    'team_id', 'day_of_week', 'is_working_day', 'start_time', 'end_time', 'break_minutes',
-    'capacity_hours', 'timezone', 'effective_from', 'effective_until',
+    'day_of_week', 'is_working_day', 'start_time', 'end_time', 'break_minutes',
+    'capacity_hours', 'effective_from', 'effective_until',
 ])]
-class UserWorkSchedule extends Model
+class WorkSchedule extends Model
 {
-    /** @use HasFactory<UserWorkScheduleFactory> */
+    /** @use HasFactory<WorkScheduleFactory> */
     use HasFactory;
-
-    /**
-     * Get the user the schedule belongs to.
-     *
-     * @return BelongsTo<User, $this>
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the team the schedule applies to.
-     *
-     * @return BelongsTo<Team, $this>
-     */
-    public function team(): BelongsTo
-    {
-        return $this->belongsTo(Team::class);
-    }
 
     /**
      * Scope the query to the schedule rows in force on the given date.
      *
-     * @param  Builder<UserWorkSchedule>  $query
-     * @return Builder<UserWorkSchedule>
+     * @param  Builder<WorkSchedule>  $query
+     * @return Builder<WorkSchedule>
      */
     #[Scope]
     protected function effectiveOn(Builder $query, Carbon $date): Builder

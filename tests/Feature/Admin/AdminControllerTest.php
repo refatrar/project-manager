@@ -17,12 +17,12 @@ class AdminControllerTest extends TestCase
 
     private function adminWithManageAdmins(): Admin
     {
-        $permission = Permission::factory()->create(['key' => AdminPermission::ManageAdmins->value]);
+        $permission = Permission::factory()->create(['name' => AdminPermission::ManageAdmins->value, 'guard_name' => 'admin']);
         $role = Role::factory()->create();
-        $role->permissions()->attach($permission);
+        $role->givePermissionTo($permission);
 
         $admin = Admin::factory()->create();
-        $admin->roles()->attach($role);
+        $admin->assignRole($role);
 
         return $admin;
     }

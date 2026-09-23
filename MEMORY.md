@@ -248,6 +248,20 @@ Confirmed with the user before building anything: Phase 7's "role permission mod
 
 ---
 
+## 2026-09-23 — Phase 7.11 Admin self-profile
+
+### What changed
+
+A signed-in platform admin can edit their own name, email, and password at `/admin/profile`. Roles are displayed and cannot be changed from that page. Profile photos were left out: the `admins` table has no picture column, and adding one was not required to satisfy the privilege boundary.
+
+### Privilege boundary
+
+`UpdateAdminProfileRequest` validates only `name` and `email`. `ProfileController::update()` then fills `safe()->only(['name', 'email'])`, so a request that also posts `roles` cannot sync them. Granting roles stays on `AdminController::store()`, behind `AdminPermission::ManageAdmins`. The profile routes sit behind `auth:admin` and do not check `admins.manage` — every admin may edit themselves, including one with no roles.
+
+### Trap: `current_password` without a guard checks the web user
+
+`current_password` validates against the default guard. On an admin request the default guard is often `admin` because `Authenticate` calls `Auth::shouldUse()`, but that is incidental. The password form uses `current_password:admin` so the check stays on the admin guard even if the default guard is `web`. A rule of plain `current_password` would compare the typed password with the regular user session, or fail closed when that session is empty.
+
 ## Conventions Worth Remembering
 
 - Controllers respond twice: Inertia redirect with a flashed toast for page visits, JSON for modal forms. `Setup\TaskTypeController` is the reference.

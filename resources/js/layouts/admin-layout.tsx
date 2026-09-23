@@ -6,6 +6,8 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
 import { dashboard, logout } from '@/routes/admin';
 import { index as adminsIndex } from '@/routes/admin/admins';
+import { index as holidaysIndex } from '@/routes/admin/holidays';
+import { edit as editProfile } from '@/routes/admin/profile';
 import { index as rolesIndex } from '@/routes/admin/roles';
 import { index as teamsIndex } from '@/routes/admin/teams';
 import { index as workSchedulesIndex } from '@/routes/admin/work-schedules';
@@ -15,13 +17,14 @@ const navItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard() },
     { title: 'Teams', href: teamsIndex() },
     { title: 'Work schedules', href: workSchedulesIndex() },
+    { title: 'Holidays', href: holidaysIndex() },
     { title: 'Roles', href: rolesIndex() },
     { title: 'Admins', href: adminsIndex() },
 ];
 
 export default function AdminLayout({ children }: PropsWithChildren) {
     const { isCurrentUrl } = useCurrentUrl();
-    const admin = usePage<{ admin?: { name: string } }>().props.admin;
+    const { auth } = usePage().props;
 
     return (
         <div className="bg-background min-h-svh">
@@ -53,10 +56,14 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {admin ? (
-                        <span className="text-muted-foreground text-sm">
-                            {admin.name}
-                        </span>
+                    {auth.user ? (
+                        <Link
+                            href={editProfile()}
+                            className="text-muted-foreground hover:text-foreground text-sm"
+                            data-test="admin-profile-link"
+                        >
+                            {auth.user.name}
+                        </Link>
                     ) : null}
                     <Button
                         variant="outline"

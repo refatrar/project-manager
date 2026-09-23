@@ -9,22 +9,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { destroy, store, update } from '@/routes/admin/roles';
-
-type PermissionOption = {
-    id: number;
-    key: string;
-    label: string;
-    group: string;
-};
-type AdminRole = {
-    id: number;
-    name: string;
-    slug: string;
-    description: string | null;
-    is_system: boolean;
-    admins_count: number;
-    permission_ids: number[];
-};
+import {
+    destroy as destroyPermission,
+    store as storePermission,
+    update as updatePermission,
+} from '@/routes/admin/permissions';
+import type { AdminRole, PermissionOption } from '@/types';
 
 type Props = {
     roles: AdminRole[];
@@ -38,9 +28,10 @@ function groupPermissions(
 ): Map<string, PermissionOption[]> {
     const groups = new Map<string, PermissionOption[]>();
     for (const permission of permissions) {
-        const list = groups.get(permission.group) ?? [];
+        const module = permission.module ?? 'Other';
+        const list = groups.get(module) ?? [];
         list.push(permission);
-        groups.set(permission.group, list);
+        groups.set(module, list);
     }
     return groups;
 }
@@ -88,12 +79,196 @@ function PermissionChecklist({
                                 htmlFor={`permission-${permission.id}`}
                                 className="text-sm font-normal"
                             >
-                                {permission.label}
+                                {permission.label ?? permission.name}
                             </Label>
                         </div>
                     ))}
                 </div>
             ))}
+        </div>
+    );
+}
+
+function CreatePermissionForm() {
+    const form = useHttp<
+        { name: string; module: string; label: string },
+        SavedResponse
+    >({ name: '', module: '', label: '' });
+
+    const submit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        void form.post(storePermission.url(), {
+            onSuccess: () => {
+                form.setData('name', '');
+                form.setData('module', '');
+                form.setData('label', '');
+                router.reload({ only: ['permissions'] });
+            },
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="grid gap-4 sm:grid-cols-4">
+            <div className="grid gap-2">
+                <Label htmlFor="permission-name">Key</Label>
+                <Input
+                    id="permission-name"
+                    placeholder="reports.export"
+                    value={form.data.name}
+                    onChange={(event) =>
+                        form.setData('name', event.target.value)
+                    }
+                    data-test="admin-permission-name"
+                />
+                {form.errors.name ? (
+                    <p className="text-destructive text-sm">
+                        {form.errors.name}
+                    </p>
+                ) : null}
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="permission-module">Module</Label>
+                <Input
+                    id="permission-module"
+                    value={form.data.module}
+                    onChange={(event) =>
+                        form.setData('module', event.target.value)
+                    }
+                    data-test="admin-permission-module"
+                />
+                {form.errors.module ? (
+                    <p className="text-destructive text-sm">
+                        {form.errors.module}
+                    </p>
+                ) : null}
+            </div>
+            <div className="grid gap-2">
+                <Label htmlFor="permission-label">Label</Label>
+                <Input
+                    id="permission-label"
+                    value={form.data.label}
+                    onChange={(event) =>
+                        form.setData('label', event.target.value)
+                    }
+                    data-test="admin-permission-label"
+                />
+                {form.errors.label ? (
+                    <p className="text-destructive text-sm">
+                        {form.errors.label}
+                    </p>
+                ) : null}
+            </div>
+            <div className="flex items-end">
+                <Button
+                    type="submit"
+                    disabled={form.processing}
+                    data-test="admin-permission-create"
+                >
+                    Add permission
+                </Button>
+            </div>
+        </form>
+    );
+}
+
+function PermissionRow({ permission }: { permission: PermissionOption }) {
+    const [editing, setEditing] = useState(false);
+    const form = useHttp<{ module: string; label: string }, SavedResponse>({
+        module: permission.module ?? '',
+        label: permission.label ?? '',
+    });
+
+    const submit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        void form.patch(updatePermission.url(permission.id), {
+            onSuccess: () => {
+                setEditing(false);
+                router.reload({ only: ['permissions'] });
+            },
+        });
+    };
+
+    const remove = () => {
+        router.delete(destroyPermission.url(permission.id), {
+            preserveScroll: true,
+        });
+    };
+
+    return (
+        <div data-test="admin-permission-row" className="rounded-lg border p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <span className="font-medium">
+                        {permission.label ?? permission.name}
+                    </span>
+                    <span className="text-muted-foreground ml-2 text-xs">
+                        {permission.name} · {permission.module ?? 'Other'}
+                    </span>
+                </div>
+                {permission.is_built_in ? (
+                    <Badge variant="secondary">Built in</Badge>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditing((value) => !value)}
+                        >
+                            {editing ? 'Cancel' : 'Edit'}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={remove}
+                            data-test="admin-permission-delete"
+                        >
+                            Delete
+                        </Button>
+                    </div>
+                )}
+            </div>
+
+            {editing ? (
+                <form
+                    onSubmit={submit}
+                    className="mt-3 grid gap-3 border-t pt-3 sm:grid-cols-3"
+                >
+                    <div className="grid gap-2">
+                        <Label htmlFor={`permission-${permission.id}-module`}>
+                            Module
+                        </Label>
+                        <Input
+                            id={`permission-${permission.id}-module`}
+                            value={form.data.module}
+                            onChange={(event) =>
+                                form.setData('module', event.target.value)
+                            }
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor={`permission-${permission.id}-label`}>
+                            Label
+                        </Label>
+                        <Input
+                            id={`permission-${permission.id}-label`}
+                            value={form.data.label}
+                            onChange={(event) =>
+                                form.setData('label', event.target.value)
+                            }
+                        />
+                    </div>
+                    <div className="flex items-end">
+                        <Button
+                            type="submit"
+                            size="sm"
+                            disabled={form.processing}
+                            data-test="admin-permission-save"
+                        >
+                            Save
+                        </Button>
+                    </div>
+                </form>
+            ) : null}
         </div>
     );
 }
@@ -296,6 +471,23 @@ export default function AdminRolesIndex({ roles, permissions }: Props) {
                     title="Roles"
                     description="Manage admin-panel roles and their permissions."
                 />
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Permissions</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <CreatePermissionForm />
+                        <div className="space-y-2">
+                            {permissions.map((permission) => (
+                                <PermissionRow
+                                    key={permission.id}
+                                    permission={permission}
+                                />
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <Card>
                     <CardHeader>

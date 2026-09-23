@@ -12,7 +12,6 @@ use App\Models\OMS\TaskAssignment;
 use App\Models\OMS\TimeLog;
 use App\Models\OMS\TimeOffRequest;
 use App\Models\OMS\TodoList;
-use App\Models\OMS\UserWorkSchedule;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -83,16 +82,6 @@ trait HasProjectWork
     public function timeLogs(): HasMany
     {
         return $this->hasMany(TimeLog::class);
-    }
-
-    /**
-     * Get the user's recurring weekly capacity rows.
-     *
-     * @return HasMany<UserWorkSchedule, $this>
-     */
-    public function workSchedules(): HasMany
-    {
-        return $this->hasMany(UserWorkSchedule::class);
     }
 
     /**

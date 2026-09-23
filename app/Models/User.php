@@ -15,7 +15,6 @@ use App\Models\OMS\TaskAssignment;
 use App\Models\OMS\TimeLog;
 use App\Models\OMS\TimeOffRequest;
 use App\Models\OMS\TodoList;
-use App\Models\OMS\UserWorkSchedule;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -55,7 +54,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Task> $assignedTasks
  * @property-read Collection<int, TodoList> $todoLists
  * @property-read Collection<int, TimeLog> $timeLogs
- * @property-read Collection<int, UserWorkSchedule> $workSchedules
  * @property-read Collection<int, TimeOffRequest> $timeOffRequests
  * @property-read Collection<int, ResourceAllocation> $resourceAllocations
  * @property-read Collection<int, GitIdentity> $gitIdentities

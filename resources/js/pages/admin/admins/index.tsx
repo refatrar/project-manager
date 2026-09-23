@@ -8,14 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { store } from '@/routes/admin/admins';
-
-type RoleOption = { id: number; name: string };
-type AdminAccount = {
-    id: number;
-    name: string;
-    email: string;
-    roles: string[];
-};
+import type { AdminAccount, RoleOption } from '@/types';
 
 type Props = {
     admins: AdminAccount[];

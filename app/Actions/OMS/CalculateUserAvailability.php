@@ -3,11 +3,13 @@
 namespace App\Actions\OMS;
 
 use App\Data\AvailabilityDayData;
+use App\Models\OMS\Holiday;
 use App\Models\OMS\Project;
 use App\Models\OMS\ResourceAllocation;
 use App\Models\OMS\TimeOffRequest;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -18,14 +20,18 @@ class CalculateUserAvailability
      * occupied hours and remaining free hours per day (RD.md FR-8.4),
      * following the three-table formula in DESIGN.md 3.6:
      *
-     *   capacity(day)    = the work schedule version in force that day
+     *   capacity(day)    = the global work schedule version in force that
+     *                      day — zero outright if the date is a public
+     *                      holiday, regardless of what the weekly template says
      *   occupied(day)    = sum of planned/confirmed resource_allocations covering that day
      *   unavailable(day) = approved time off covering that day — the whole day's
      *                      capacity if full-day, otherwise its own recorded hours
      *   available(day)   = capacity − occupied − unavailable, floored at zero
      *
      * No column stores "available hours" anywhere — it's derived fresh
-     * from the three source tables every time, never cached on the user.
+     * from the source tables every time, never cached on the user. The
+     * schedule and holiday calendar are platform-wide, so this is the same
+     * for every user; only `occupied`/`unavailable` vary per user.
      *
      * `$scopeToProject`, when given, counts only *that* project's own
      * bookings toward "occupied" (RD.md FR-8.8: a project manager may see
@@ -39,13 +45,18 @@ class CalculateUserAvailability
      */
     public function handle(User $user, Carbon $from, Carbon $to, ?Project $scopeToProject = null): Collection
     {
-        $schedules = UserWorkSchedule::query()
-            ->where('user_id', $user->id)
+        $schedules = WorkSchedule::query()
             ->where('effective_from', '<=', $to->toDateString())
             ->where(fn ($query) => $query
                 ->whereNull('effective_until')
                 ->orWhere('effective_until', '>=', $from->toDateString()))
             ->get();
+
+        $holidays = Holiday::query()
+            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            ->pluck('date')
+            ->map(fn (CarbonInterface $date): string => $date->toDateString())
+            ->all();
 
         $allocations = ResourceAllocation::query()
             ->where('user_id', $user->id)
@@ -61,11 +72,13 @@ class CalculateUserAvailability
         $days = collect();
 
         for ($date = $from->copy(); $date->lte($to); $date = $date->copy()->addDay()) {
-            $schedule = $schedules->first(fn (UserWorkSchedule $row): bool => $row->day_of_week === $date->dayOfWeekIso
+            $schedule = $schedules->first(fn (WorkSchedule $row): bool => $row->day_of_week === $date->dayOfWeekIso
                 && $row->effective_from->lte($date)
                 && ($row->effective_until === null || $row->effective_until->gte($date)));
 
-            $capacity = $schedule !== null && $schedule->is_working_day ? (float) $schedule->capacity_hours : 0.0;
+            $isHoliday = in_array($date->toDateString(), $holidays, true);
+
+            $capacity = ! $isHoliday && $schedule !== null && $schedule->is_working_day ? (float) $schedule->capacity_hours : 0.0;
 
             $occupied = (float) $allocations
                 ->filter(fn (ResourceAllocation $allocation): bool => $allocation->starts_on->lte($date) && $allocation->ends_on->gte($date))

@@ -3,10 +3,11 @@
 namespace Tests\Feature\OMS;
 
 use App\Actions\OMS\CalculateUserAvailability;
+use App\Models\OMS\Holiday;
 use App\Models\OMS\Project;
 use App\Models\OMS\ResourceAllocation;
 use App\Models\OMS\TimeOffRequest;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -30,8 +31,7 @@ class CalculateUserAvailabilityTest extends TestCase
     {
         $user = User::factory()->create();
         // Monday, 2026-03-09
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'is_working_day' => true,
             'capacity_hours' => 8,
@@ -49,8 +49,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_occupied_hours_are_subtracted_from_capacity(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'is_working_day' => true,
             'capacity_hours' => 8,
@@ -77,8 +76,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_cancelled_allocations_do_not_occupy_capacity(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -103,8 +101,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_an_approved_full_day_time_off_zeroes_out_availability(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -127,8 +124,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_pending_time_off_does_not_reduce_availability(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -151,8 +147,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_a_partial_day_time_off_subtracts_only_its_own_hours(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -178,8 +173,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_availability_never_goes_negative(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 4,
             'effective_from' => '2026-01-01',
@@ -215,8 +209,7 @@ class CalculateUserAvailabilityTest extends TestCase
     public function test_a_non_working_day_has_zero_capacity_even_with_a_schedule_row(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->nonWorkingDay()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->nonWorkingDay()->create([
             'day_of_week' => 1,
             'effective_from' => '2026-01-01',
         ]);
@@ -226,5 +219,24 @@ class CalculateUserAvailabilityTest extends TestCase
             ->first();
 
         $this->assertSame(0.0, $day->capacityHours);
+    }
+
+    public function test_a_holiday_zeroes_capacity_even_on_an_otherwise_working_day(): void
+    {
+        $user = User::factory()->create();
+        WorkSchedule::factory()->create([
+            'day_of_week' => 1,
+            'is_working_day' => true,
+            'capacity_hours' => 8,
+            'effective_from' => '2026-01-01',
+        ]);
+        Holiday::factory()->create(['date' => '2026-03-09']);
+
+        $day = app(CalculateUserAvailability::class)
+            ->handle($user, Carbon::parse('2026-03-09'), Carbon::parse('2026-03-09'))
+            ->first();
+
+        $this->assertSame(0.0, $day->capacityHours);
+        $this->assertSame(0.0, $day->availableHours);
     }
 }

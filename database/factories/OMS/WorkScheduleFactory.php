@@ -2,14 +2,13 @@
 
 namespace Database\Factories\OMS;
 
-use App\Models\OMS\UserWorkSchedule;
-use App\Models\User;
+use App\Models\OMS\WorkSchedule;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<UserWorkSchedule>
+ * @extends Factory<WorkSchedule>
  */
-class UserWorkScheduleFactory extends Factory
+class WorkScheduleFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -19,7 +18,6 @@ class UserWorkScheduleFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
             'day_of_week' => fake()->numberBetween(1, 5),
             'is_working_day' => true,
             'start_time' => '09:00:00',

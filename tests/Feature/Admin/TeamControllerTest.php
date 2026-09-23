@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Actions\Teams\AssignTeamLeader;
 use App\Enums\AdminPermission;
 use App\Enums\TeamRole;
 use App\Models\Admin;
@@ -18,12 +19,12 @@ class TeamControllerTest extends TestCase
 
     private function adminWithManageTeams(): Admin
     {
-        $permission = Permission::factory()->create(['key' => AdminPermission::ManageTeams->value]);
+        $permission = Permission::factory()->create(['name' => AdminPermission::ManageTeams->value, 'guard_name' => 'admin']);
         $role = Role::factory()->create();
-        $role->permissions()->attach($permission);
+        $role->givePermissionTo($permission);
 
         $admin = Admin::factory()->create();
-        $admin->roles()->attach($role);
+        $admin->assignRole($role);
 
         return $admin;
     }
@@ -74,6 +75,51 @@ class TeamControllerTest extends TestCase
 
         $response->assertSessionHasErrors('email');
         $this->assertSame(0, $team->members()->count());
+    }
+
+    public function test_an_admin_can_rename_a_team(): void
+    {
+        $admin = $this->adminWithManageTeams();
+        $team = Team::factory()->create(['name' => 'Original Name']);
+
+        $response = $this->actingAs($admin, 'admin')
+            ->patch(route('admin.teams.update', ['team' => $team->slug]), ['name' => 'Renamed Team']);
+
+        $response->assertOk();
+        $team->refresh();
+        $this->assertSame('Renamed Team', $team->name);
+        $this->assertSame('renamed-team', $team->slug);
+    }
+
+    public function test_an_admin_without_permission_cannot_rename_a_team(): void
+    {
+        $admin = Admin::factory()->create();
+        $team = Team::factory()->create(['name' => 'Stays Put']);
+
+        $response = $this->actingAs($admin, 'admin')
+            ->patch(route('admin.teams.update', ['team' => $team->slug]), ['name' => 'Should Not Stick']);
+
+        $response->assertForbidden();
+        $this->assertSame('Stays Put', $team->fresh()->name);
+    }
+
+    public function test_an_admin_can_remove_a_team_leader_and_leave_the_team_leaderless(): void
+    {
+        $admin = $this->adminWithManageTeams();
+        $team = Team::factory()->create();
+        $user = User::factory()->create();
+        app(AssignTeamLeader::class)->handle($team, $user);
+        $user->refresh();
+
+        $response = $this->actingAs($admin, 'admin')
+            ->delete(route('admin.teams.remove-leader', ['team' => $team->slug]));
+
+        $response->assertOk();
+        $membership = $team->fresh()->memberships()->where('user_id', $user->id)->first();
+        $this->assertNotNull($membership);
+        $this->assertSame(TeamRole::Member, $membership->role);
+        $this->assertNull($team->fresh()->owner());
+        $this->assertSame($user->current_team_id, $user->fresh()->current_team_id);
     }
 
     public function test_a_regular_user_cannot_access_the_admin_teams_panel(): void

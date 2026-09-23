@@ -22,6 +22,7 @@ class RoleFactory extends Factory
 
         return [
             'name' => $name,
+            'guard_name' => 'admin',
             'slug' => Str::slug($name),
             'description' => fake()->optional()->sentence(),
             'is_system' => false,

@@ -117,7 +117,8 @@ The `ProjectModuleTask` model was an empty stub with no controllers, tests or fr
 ### Time and availability
 | Table | Purpose |
 | --- | --- |
-| `user_work_schedules` | **New.** Recurring weekly capacity, versioned by effective date. |
+| `work_schedules` | **Replaces `user_work_schedules` (TASKS.md 7.10).** A single, platform-wide recurring weekly capacity, versioned by effective date — not per-user. |
+| `holidays` | **New (TASKS.md 7.10).** Platform-wide, specific dated public holidays (not a recurring rule); zeroes capacity for every user on that date. |
 | `time_off_requests` | **New.** Leave that reduces capacity once approved. |
 | `resource_allocations` | **New.** Forward bookings of hours — the source of "occupied". |
 | `time_logs` | **New.** Actual effort, with timer support and approval. |
@@ -166,12 +167,13 @@ The cost is four nullable foreign keys whose valid combinations are governed by 
 | `daily` | `owner_id` and `scheduled_for` set |
 | `custom` / `generated` | `owner_id` or `project_id` set |
 
-### 3.6 Availability is computed from three tables
+### 3.6 Availability is computed from three tables (plus a global holiday calendar)
 
 No column stores "available hours", because availability is a question about a date range, not a property of a user.
 
 ```
-capacity(user, day)   = user_work_schedules.capacity_hours
+capacity(day)         = 0, if the date is in `holidays`
+                        otherwise work_schedules.capacity_hours
                         for that weekday, where the row is effective on that day
 
 occupied(user, day)   = sum(resource_allocations.hours_per_day)
@@ -183,9 +185,9 @@ unavailable(user, day)= approved time_off_requests covering that day
 available(user, day)  = capacity − occupied − unavailable
 ```
 
-`user_work_schedules` is versioned by `effective_from` / `effective_until` so a contract change does not rewrite history. `resource_allocations` holds the *plan*; `time_logs` holds the *actuals*. Keeping them apart is what allows estimated-versus-actual reporting.
+`work_schedules` (TASKS.md 7.10 — replaces the original per-user `user_work_schedules`) is a single, platform-wide template with no `user_id`, versioned by `effective_from` / `effective_until` so a schedule change does not rewrite history; `holidays` overrides it outright for specific dates. `resource_allocations` holds the *plan*; `time_logs` holds the *actuals*. Keeping them apart is what allows estimated-versus-actual reporting.
 
-Supporting indexes: `user_work_schedules(user_id, effective_from, effective_until)`, `resource_allocations(user_id, starts_on, ends_on)`, `time_off_requests(user_id, starts_on, ends_on)`, `time_logs(user_id, logged_on)`.
+Supporting indexes: `work_schedules(effective_from, effective_until)`, `holidays(date)` (unique), `resource_allocations(user_id, starts_on, ends_on)`, `time_off_requests(user_id, starts_on, ends_on)`, `time_logs(user_id, logged_on)`.
 
 ### 3.7 Git ingest is durable before it is correct
 

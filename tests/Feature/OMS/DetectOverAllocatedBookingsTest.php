@@ -7,7 +7,7 @@ use App\Actions\OMS\DetectOverAllocatedBookings;
 use App\Models\OMS\Project;
 use App\Models\OMS\ProjectMember;
 use App\Models\OMS\ResourceAllocation;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,8 +20,7 @@ class DetectOverAllocatedBookingsTest extends TestCase
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $member->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -58,8 +57,7 @@ class DetectOverAllocatedBookingsTest extends TestCase
     {
         $owner = User::factory()->create();
         $member = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $member->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -85,8 +83,7 @@ class DetectOverAllocatedBookingsTest extends TestCase
     public function test_the_project_workspace_surfaces_the_flag_on_each_booking(): void
     {
         $owner = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $owner->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',

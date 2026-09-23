@@ -13,7 +13,10 @@ use Illuminate\Database\Seeder;
  * role holding all of it, and one default admin account so a fresh
  * `migrate --seed` has a working way into `/admin` (same reasoning as
  * `DatabaseSeeder`'s `test@example.com`: a documented, predictable account,
- * not a random one nobody can log into).
+ * not a random one nobody can log into). Backed by `spatie/laravel-
+ * permission` (TASKS.md 7.8, ADR-016) — role/permission assignment goes
+ * through spatie's own methods (`syncPermissions()`/`assignRole()`), not
+ * raw pivot writes, so its permission cache stays correctly invalidated.
  */
 class AdminAccessControlSeeder extends Seeder
 {
@@ -21,21 +24,25 @@ class AdminAccessControlSeeder extends Seeder
     {
         $permissions = collect(AdminPermission::cases())->map(
             fn (AdminPermission $permission): Permission => Permission::query()->firstOrCreate(
-                ['key' => $permission->value],
-                ['label' => $permission->label(), 'group' => $permission->group()],
+                ['name' => $permission->value, 'guard_name' => 'admin'],
+                ['label' => $permission->label(), 'module' => $permission->group()],
             ),
         );
 
         $superAdmin = Role::query()->firstOrCreate(
             ['slug' => 'super-admin'],
-            ['name' => 'Super Admin', 'description' => 'Full access to every admin-panel capability.', 'is_system' => true],
+            ['name' => 'Super Admin', 'guard_name' => 'admin', 'description' => 'Full access to every admin-panel capability.', 'is_system' => true],
         );
 
-        $superAdmin->permissions()->sync($permissions->pluck('id'));
+        $superAdmin->syncPermissions($permissions);
 
-        Admin::query()->firstOrCreate(
+        $admin = Admin::query()->firstOrCreate(
             ['email' => 'admin@example.com'],
             ['name' => 'Platform Admin', 'password' => 'password'],
-        )->roles()->syncWithoutDetaching([$superAdmin->id]);
+        );
+
+        if (! $admin->hasRole($superAdmin)) {
+            $admin->assignRole($superAdmin);
+        }
     }
 }

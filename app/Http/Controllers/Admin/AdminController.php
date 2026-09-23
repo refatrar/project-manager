@@ -56,7 +56,7 @@ class AdminController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
-        $admin->roles()->sync($validated['roles'] ?? []);
+        $admin->syncRoles($validated['roles'] ?? []);
 
         $message = __('Admin account created.');
 

@@ -1,3 +1,4 @@
+export type * from './admin-rbac';
 export type * from './auth';
 export type * from './navigation';
 export type * from './oms';

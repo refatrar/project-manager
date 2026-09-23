@@ -28,7 +28,7 @@ class RoleController extends Controller
 
         return Inertia::render('admin/roles/index', [
             'roles' => Role::query()
-                ->with('permissions:id,key,label,group')
+                ->with('permissions:id,name,label,module')
                 ->withCount('admins')
                 ->orderBy('name')
                 ->get()
@@ -42,9 +42,16 @@ class RoleController extends Controller
                     'permission_ids' => $role->permissions->pluck('id'),
                 ]),
             'permissions' => Permission::query()
-                ->orderBy('group')
+                ->orderBy('module')
                 ->orderBy('label')
-                ->get(['id', 'key', 'label', 'group']),
+                ->get(['id', 'name', 'label', 'module'])
+                ->map(fn (Permission $permission): array => [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                    'label' => $permission->label,
+                    'module' => $permission->module,
+                    'is_built_in' => AdminPermission::tryFrom($permission->name) !== null,
+                ]),
         ]);
     }
 
@@ -56,10 +63,11 @@ class RoleController extends Controller
 
         $role = Role::query()->create([
             'name' => $validated['name'],
+            'guard_name' => 'admin',
             'slug' => Str::slug($validated['name']),
             'description' => $validated['description'],
         ]);
-        $role->permissions()->sync($validated['permissions']);
+        $role->syncPermissions($validated['permissions']);
 
         return $this->respond($request, __('Role created.'));
     }
@@ -80,7 +88,7 @@ class RoleController extends Controller
         // its name/description can still be edited, just not stripped of
         // access.
         if (! $role->is_system) {
-            $role->permissions()->sync($validated['permissions']);
+            $role->syncPermissions($validated['permissions']);
         }
 
         return $this->respond($request, __('Role updated.'));

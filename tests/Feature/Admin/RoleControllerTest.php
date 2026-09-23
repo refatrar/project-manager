@@ -16,12 +16,12 @@ class RoleControllerTest extends TestCase
 
     private function adminWithManageRoles(): Admin
     {
-        $permission = Permission::factory()->create(['key' => AdminPermission::ManageRoles->value]);
+        $permission = Permission::factory()->create(['name' => AdminPermission::ManageRoles->value, 'guard_name' => 'admin']);
         $role = Role::factory()->create();
-        $role->permissions()->attach($permission);
+        $role->givePermissionTo($permission);
 
         $admin = Admin::factory()->create();
-        $admin->roles()->attach($role);
+        $admin->assignRole($role);
 
         return $admin;
     }
@@ -29,7 +29,7 @@ class RoleControllerTest extends TestCase
     public function test_an_admin_with_permission_can_create_a_role_with_permissions(): void
     {
         $admin = $this->adminWithManageRoles();
-        $permission = Permission::factory()->create(['key' => 'widgets.manage']);
+        $permission = Permission::factory()->create(['name' => 'widgets.manage', 'guard_name' => 'admin']);
 
         $response = $this->actingAs($admin, 'admin')->post(route('admin.roles.store'), [
             'name' => 'Widget Manager',
@@ -61,9 +61,9 @@ class RoleControllerTest extends TestCase
     {
         $admin = $this->adminWithManageRoles();
         $role = Role::factory()->create(['name' => 'Old Name']);
-        $oldPermission = Permission::factory()->create(['key' => 'old.manage']);
-        $newPermission = Permission::factory()->create(['key' => 'new.manage']);
-        $role->permissions()->attach($oldPermission);
+        $oldPermission = Permission::factory()->create(['name' => 'old.manage', 'guard_name' => 'admin']);
+        $newPermission = Permission::factory()->create(['name' => 'new.manage', 'guard_name' => 'admin']);
+        $role->givePermissionTo($oldPermission);
 
         $response = $this->actingAs($admin, 'admin')->patch(route('admin.roles.update', $role), [
             'name' => 'New Name',
@@ -82,10 +82,10 @@ class RoleControllerTest extends TestCase
     public function test_updating_a_system_roles_permissions_is_ignored_but_name_still_updates(): void
     {
         $admin = $this->adminWithManageRoles();
-        $systemPermission = Permission::factory()->create(['key' => 'system.manage']);
-        $otherPermission = Permission::factory()->create(['key' => 'other.manage']);
+        $systemPermission = Permission::factory()->create(['name' => 'system.manage', 'guard_name' => 'admin']);
+        $otherPermission = Permission::factory()->create(['name' => 'other.manage', 'guard_name' => 'admin']);
         $role = Role::factory()->create(['name' => 'Super Admin', 'is_system' => true]);
-        $role->permissions()->attach($systemPermission);
+        $role->givePermissionTo($systemPermission);
 
         $response = $this->actingAs($admin, 'admin')->patch(route('admin.roles.update', $role), [
             'name' => 'Super Admin Renamed',

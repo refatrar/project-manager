@@ -7,7 +7,7 @@ use App\Enums\TeamRole;
 use App\Models\OMS\Project;
 use App\Models\OMS\ProjectMember;
 use App\Models\OMS\ResourceAllocation;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,8 +22,7 @@ class CalculateProjectMemberCapacityTest extends TestCase
         $member = User::factory()->create();
         $owner->currentTeam->members()->attach($member, ['role' => TeamRole::Member->value]);
 
-        UserWorkSchedule::factory()->create([
-            'user_id' => $member->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2020-01-01',

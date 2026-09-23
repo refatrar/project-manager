@@ -20,9 +20,10 @@ class PermissionFactory extends Factory
         $key = fake()->unique()->word().'.'.fake()->word();
 
         return [
-            'key' => $key,
+            'name' => $key,
+            'guard_name' => 'admin',
             'label' => ucfirst(str_replace('.', ' ', $key)),
-            'group' => 'general',
+            'module' => 'general',
         ];
     }
 }

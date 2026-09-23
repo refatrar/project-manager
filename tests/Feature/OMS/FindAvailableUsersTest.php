@@ -5,7 +5,7 @@ namespace Tests\Feature\OMS;
 use App\Actions\OMS\FindAvailableUsers;
 use App\Models\OMS\Project;
 use App\Models\OMS\ResourceAllocation;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -19,8 +19,7 @@ class FindAvailableUsersTest extends TestCase
     public function test_a_user_with_enough_free_hours_every_working_day_is_included(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -40,8 +39,7 @@ class FindAvailableUsersTest extends TestCase
     public function test_a_user_without_enough_free_hours_on_any_working_day_is_excluded(): void
     {
         $user = User::factory()->create();
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -69,8 +67,7 @@ class FindAvailableUsersTest extends TestCase
     {
         $user = User::factory()->create();
         // Only works Monday.
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',

@@ -4,34 +4,26 @@ namespace App\Models;
 
 use Database\Factories\PermissionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Carbon;
+use Spatie\Permission\Models\Permission as SpatiePermission;
 
 /**
- * One capability in Phase 7's admin-panel RBAC (e.g. `teams.create`).
+ * One capability in Phase 7's admin-panel RBAC (e.g. `teams.manage`), now
+ * backed by `spatie/laravel-permission` (TASKS.md 7.8, ADR-016). Extends
+ * spatie's own model so `HasPermissions`/`config/permission.php` keep
+ * working — this class adds `module`/`label`, the actual point of "module-
+ * wise custom permissions": spatie's own `name` column is the raw
+ * dot-notation key, not a human-readable, groupable label.
  *
  * @property int $id
- * @property string $key
- * @property string $label
- * @property string $group
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @property-read Collection<int, Role> $roles
+ * @property string $name
+ * @property string $guard_name
+ * @property string|null $module
+ * @property string|null $label
  */
-#[Fillable(['key', 'label', 'group'])]
-class Permission extends Model
+#[Fillable(['name', 'guard_name', 'module', 'label'])]
+class Permission extends SpatiePermission
 {
     /** @use HasFactory<PermissionFactory> */
     use HasFactory;
-
-    /**
-     * @return BelongsToMany<Role, $this>
-     */
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class);
-    }
 }

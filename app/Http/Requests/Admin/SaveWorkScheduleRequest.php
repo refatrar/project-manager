@@ -34,7 +34,6 @@ class SaveWorkScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', 'exists:users,id'],
             'effective_from' => ['required', 'date', 'after_or_equal:today'],
             'days' => ['required', 'array', 'size:7'],
             'days.*.day_of_week' => ['required', 'integer', 'between:1,7', 'distinct'],

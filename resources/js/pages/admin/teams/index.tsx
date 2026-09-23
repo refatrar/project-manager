@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { assignLeader, store } from '@/routes/admin/teams';
+import { assignLeader, removeLeader, store, update } from '@/routes/admin/teams';
 import type { Paginated } from '@/types';
 
 type AdminTeam = {
@@ -63,6 +63,72 @@ function CreateTeamForm() {
     );
 }
 
+function RenameTeamForm({ team }: { team: AdminTeam }) {
+    const form = useHttp<{ name: string }, CreatedResponse>({
+        name: team.name,
+    });
+
+    const submit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        void form.patch(update.url(team.slug), {
+            onSuccess: () => router.reload({ only: ['teams'] }),
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="flex flex-wrap items-end gap-2">
+            <div className="grid gap-1">
+                <Label htmlFor={`team-name-${team.id}`} className="sr-only">
+                    Team name
+                </Label>
+                <Input
+                    id={`team-name-${team.id}`}
+                    value={form.data.name}
+                    onChange={(event) =>
+                        form.setData('name', event.target.value)
+                    }
+                    className="h-8 w-56 text-sm"
+                    data-test="admin-team-rename"
+                />
+                <InputError message={form.errors.name} />
+            </div>
+            <Button
+                type="submit"
+                size="sm"
+                variant="outline"
+                disabled={form.processing || form.data.name === team.name}
+                data-test="admin-team-rename-submit"
+            >
+                Save name
+            </Button>
+        </form>
+    );
+}
+
+function RemoveLeaderButton({ team }: { team: AdminTeam }) {
+    const form = useHttp<Record<string, never>, CreatedResponse>({});
+
+    const submit = () => {
+        void form.delete(removeLeader.url(team.slug), {
+            onSuccess: () => router.reload({ only: ['teams'] }),
+        });
+    };
+
+    return (
+        <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={form.processing}
+            onClick={submit}
+            data-test="admin-remove-leader"
+        >
+            Remove lead
+        </Button>
+    );
+}
+
 function AssignLeaderForm({ team }: { team: AdminTeam }) {
     const form = useHttp<{ email: string }, CreatedResponse>({ email: '' });
 
@@ -112,7 +178,7 @@ export default function AdminTeamsIndex({ teams }: Props) {
             <div className="flex flex-col gap-6">
                 <Heading
                     title="Teams"
-                    description="Create teams and assign their leader."
+                    description="Create teams, rename them, and assign or remove their leader."
                 />
 
                 <Card>
@@ -156,7 +222,15 @@ export default function AdminTeamsIndex({ teams }: Props) {
                                 </p>
                             </div>
 
-                            <AssignLeaderForm team={team} />
+                            <div className="flex flex-col items-end gap-2">
+                                <RenameTeamForm team={team} />
+                                <div className="flex flex-wrap items-end gap-2">
+                                    <AssignLeaderForm team={team} />
+                                    {team.leader ? (
+                                        <RemoveLeaderButton team={team} />
+                                    ) : null}
+                                </div>
+                            </div>
                         </div>
                     ))}
 

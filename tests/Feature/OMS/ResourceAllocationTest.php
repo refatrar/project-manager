@@ -4,7 +4,7 @@ namespace Tests\Feature\OMS;
 
 use App\Models\OMS\ResourceAllocation;
 use App\Models\OMS\TimeOffRequest;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -79,23 +79,19 @@ class ResourceAllocationTest extends TestCase
 
     public function test_the_effective_on_scope_ignores_schedules_that_have_expired(): void
     {
-        $user = User::factory()->create();
-
-        $current = UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        $current = WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'effective_from' => '2026-01-01',
             'effective_until' => null,
         ]);
 
-        UserWorkSchedule::factory()->create([
-            'user_id' => $user->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 2,
             'effective_from' => '2025-01-01',
             'effective_until' => '2025-12-31',
         ]);
 
-        $found = UserWorkSchedule::effectiveOn(Carbon::parse('2026-03-10'))->pluck('id')->all();
+        $found = WorkSchedule::effectiveOn(Carbon::parse('2026-03-10'))->pluck('id')->all();
 
         $this->assertSame([$current->id], $found);
     }

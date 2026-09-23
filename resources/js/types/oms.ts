@@ -462,6 +462,12 @@ export type WorkScheduleVersion = {
     days: WorkScheduleDay[];
 };
 
+export type Holiday = {
+    id: number;
+    name: string;
+    date: string;
+};
+
 export type TimeLogActivityType =
     | 'development'
     | 'design'

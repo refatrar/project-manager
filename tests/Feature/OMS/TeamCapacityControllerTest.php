@@ -3,7 +3,7 @@
 namespace Tests\Feature\OMS;
 
 use App\Enums\TeamRole;
-use App\Models\OMS\UserWorkSchedule;
+use App\Models\OMS\WorkSchedule;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -18,8 +18,7 @@ class TeamCapacityControllerTest extends TestCase
         $owner = User::factory()->create();
         $member = User::factory()->create(['name' => 'Jordan Lee']);
         $owner->currentTeam->members()->attach($member, ['role' => TeamRole::Member->value]);
-        UserWorkSchedule::factory()->create([
-            'user_id' => $member->id,
+        WorkSchedule::factory()->create([
             'day_of_week' => 1,
             'capacity_hours' => 8,
             'effective_from' => '2026-01-01',
@@ -78,8 +77,7 @@ class TeamCapacityControllerTest extends TestCase
         $owner = User::factory()->create();
         $member = User::factory()->create();
         $owner->currentTeam->members()->attach($member, ['role' => TeamRole::Member->value]);
-        UserWorkSchedule::factory()->nonWorkingDay()->create([
-            'user_id' => $member->id,
+        WorkSchedule::factory()->nonWorkingDay()->create([
             'day_of_week' => 6,
             'effective_from' => '2026-01-01',
         ]);
