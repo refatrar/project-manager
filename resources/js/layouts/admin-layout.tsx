@@ -10,11 +10,13 @@ import { index as holidaysIndex } from '@/routes/admin/holidays';
 import { edit as editProfile } from '@/routes/admin/profile';
 import { index as teamRolesIndex } from '@/routes/admin/team-roles';
 import { index as teamsIndex } from '@/routes/admin/teams';
+import { index as usersIndex } from '@/routes/admin/users';
 import { index as workSchedulesIndex } from '@/routes/admin/work-schedules';
 import type { NavItem } from '@/types';
 
 const navItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard() },
+    { title: 'Users', href: usersIndex() },
     { title: 'Teams', href: teamsIndex() },
     { title: 'Work schedules', href: workSchedulesIndex() },
     { title: 'Holidays', href: holidaysIndex() },

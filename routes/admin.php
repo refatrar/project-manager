@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\TeamController;
 use App\Http\Controllers\Admin\TeamRoleController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WorkScheduleController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,6 +24,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('users/{user}/teams', [UserController::class, 'assign'])->name('users.teams.store');
+        Route::delete('users/{user}/teams/{team}', [UserController::class, 'remove'])->name('users.teams.destroy');
 
         Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
         Route::post('teams', [TeamController::class, 'store'])->name('teams.store');

@@ -329,3 +329,29 @@ Planning notes:
 Added 2026-09-23. `spatie/laravel-permission` was already installed for the admin guard (7.8, ADR-016). This extends it to the team panel.
 
 - [x] Global `web`-guard roles (Owner, Admin, Member, plus custom roles) with a permission catalogue for every team module. The admin panel's Team roles screen assigns those permissions. Team accounts keep a role slug, and each team module's policy checks `User::teamCan()` against the admin's assignment. See ADR-017.
+
+### 7.13 Team Users
+
+Added 2026-09-23, as a correction of an Admin Panel planning request. This is not a generic user-account module, and it is not the platform `admins` screen. No RD.md FR covers it. Not started.
+
+The people who register at `/register` are `App\Models\User` rows. `CreateNewUser` stores name, email, and password only. It does not create a team, a `team_members` row, or a `current_team_id`. Until one of those exists, `RedirectsToCurrentTeam` sends them to `/start` (`resources/js/pages/no-team.tsx`). `UserFactory` still attaches a personal team after create; that hook is test setup, not what registration does.
+
+Today an admin can only put a registrant on a team by making them a team lead. `Admin\TeamController::assignLeader` looks the person up by email and calls `AssignTeamLeader`, which writes `TeamRole::Owner`, demotes any previous owner to `Member`, and sets `current_team_id` only when it is still null. `RemoveTeamLeader` demotes the owner to `Member` and leaves the membership and `current_team_id` in place. That is lead management on the Teams screen, not removing someone from a team. The other way onto a team is a team leader's invitation: `TeamInvitationController::accept` inserts a `team_members` row with the invited role and switches `current_team_id`. A user may belong to more than one team. `current_team_id` is which of those the team panel opens. Platform `Admin` accounts are a separate table and guard and never appear in `team_members`.
+
+- [ ] Team Users is its own admin section, labeled **Team Users**. It lists registered `User` accounts and the team each one is on. It does not create accounts, edit name/email/password, or delete the `users` row. Registration stays the only way a team account is created. The `admins` screen stays the account screen for platform admins.
+- [ ] An admin can assign a registered user to a specific team. The membership stores a role slug from the global team-role catalogue (`/admin/team-roles`). `TeamRole::Owner` goes through `AssignTeamLeader` so a team still has one lead. Any other slug is a normal `team_members` row. If `current_team_id` is null, switch the user onto that team so the next login leaves `/start`.
+- [ ] An admin can change that assignment: move the membership to a different team, or change its role. Moving is an update of the existing membership, not a second membership stacked beside the first with no way to leave the old team. If the membership being moved is the user's current team, `current_team_id` follows it. Promoting someone to Owner still goes through `AssignTeamLeader` (the previous lead becomes `Member` and stays on the team).
+- [ ] An admin can remove a user from an assigned team by deleting that `team_members` row. This is not `RemoveTeamLeader`. If the removed team was `current_team_id`, switch to another team they still belong to, or set `current_team_id` null so they return to `/start`. Deleting an Owner's membership leaves that team leaderless, which `CreateTeam` already allows. Other memberships, pending invitations, and the `users` row stay.
+- [ ] Any signed-in admin can use the section. There is no admin-guard permission check. No schema change: `users`, `teams`, `team_members`, and `current_team_id` already hold this.
+
+Traceability — Requirement → Module → Task → Relevant existing files → Planned changes:
+- Requirement: registered users appear in the admin panel and can be assigned, reassigned, and removed from a team. Not a generic Users CRUD.
+- Module: Admin Panel / Team Users (Phase 7). Sits beside Teams (7.3, 7.9), not inside it. Teams remains create/rename/lead. Team Users is the registrant and their membership.
+- Relevant existing files: `app/Actions/Fortify/CreateNewUser.php`, `app/Actions/Teams/AssignTeamLeader.php`, `app/Actions/Teams/RemoveTeamLeader.php`, `app/Http/Controllers/Admin/TeamController.php`, `app/Http/Controllers/Teams/TeamInvitationController.php`, `app/Models/User.php`, `app/Models/Membership.php`, `app/Models/Team.php`, `app/Concerns/HasTeams.php`, `resources/js/layouts/admin-layout.tsx`, `resources/js/pages/admin/teams/index.tsx`.
+- Planned changes: a Team Users controller and page, routes under the `auth:admin` group, and a **Team Users** nav item. Follow the admin `useHttp` convention (JSON when `X-Inertia` is absent, redirect plus toast when it is present). Feature tests against the test database. Do not mutate the dev database while planning.
+
+Planning notes:
+- Decision: account create, profile edit, and account delete are out of this module. The CRUD is the team assignment: assign, list, reassign, remove.
+- Decision: one membership is moved or removed. Extra memberships that already exist (an accepted invitation, or a second assignment) stay until an admin removes that specific one. The screen lists every membership the user has.
+- A generic `/admin/users` draft (account create/edit/delete plus a free-form assign form) was started from the wrong reading of this request. It is not this task. Implementation replaces that draft with Team Users rather than extending it.
+- `RemoveTeamLeader` must not be reused for "remove from team". It keeps the person on the team.
