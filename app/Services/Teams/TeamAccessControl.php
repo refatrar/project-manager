@@ -27,12 +27,12 @@ class TeamAccessControl
      */
     private const SYSTEM_ROLES = [
         'owner' => [
-            'name' => 'Owner',
-            'description' => 'Team leader. Starts with every team-module permission; the platform admin can change that.',
+            'name' => 'Project Lead',
+            'description' => 'Project lead. Starts with every team-module permission; the platform admin can change that.',
         ],
         'admin' => [
-            'name' => 'Admin',
-            'description' => 'Manages projects, meetings, approvals, and team invitations.',
+            'name' => 'Team Lead',
+            'description' => 'Team lead. Manages projects, meetings, approvals, and team invitations.',
         ],
         'member' => [
             'name' => 'Member',
@@ -82,6 +82,11 @@ class TeamAccessControl
 
             if ($role->wasRecentlyCreated) {
                 $role->syncPermissions($this->defaultNames($slug));
+            } elseif (in_array($role->name, ['Owner', 'Admin'], true)) {
+                $role->update([
+                    'name' => $definition['name'],
+                    'description' => $definition['description'],
+                ]);
             }
         }
     }

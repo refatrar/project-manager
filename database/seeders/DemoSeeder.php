@@ -49,54 +49,13 @@ class DemoSeeder extends Seeder
     public function run(): void
     {
         $owner = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            ['name' => 'Test User', 'password' => bcrypt('password')],
+            ['email' => 'rafiq@kaz-software.com'],
+            ['name' => 'Rafiqul Islam', 'password' => bcrypt('password')],
         );
 
         $team = $this->team($owner);
         $members = $this->members($team);
         $this->workSchedule();
-
-        $taskTypes = TaskType::query()->orderBy('name')->limit(6)->get();
-
-        $crm = $this->project($team, $owner, [
-            'name' => 'Aurora CRM',
-            'code' => 'AUR',
-            'description' => 'Customer relationship management platform for the sales team.',
-        ]);
-        $mobile = $this->project($team, $owner, [
-            'name' => 'Beacon Mobile App',
-            'code' => 'BEA',
-            'description' => 'Companion mobile app for field technicians.',
-            // Deliberately not on_track like Aurora CRM - a portfolio of
-            // one health status everywhere doesn't show the dashboard's
-            // health breakdown doing anything.
-            'health' => 'at_risk',
-        ]);
-
-        $this->addProjectMembers($crm, $members, ['manager', 'developer', 'designer']);
-        $this->addProjectMembers($mobile, $members, ['developer', 'developer', 'qa_engineer']);
-
-        $this->modules($crm, ['Lead Management', 'Reporting Dashboard']);
-        $this->modules($mobile, ['Offline Sync', 'Push Notifications']);
-
-        $this->resourceAllocations($crm, $mobile, $members);
-
-        $sprint = Sprint::query()->where('project_id', $crm->id)->where('name', 'Sprint 1')->first()
-            ?? Sprint::factory()->active()->create([
-                'project_id' => $crm->id,
-                'name' => 'Sprint 1',
-                'starts_on' => Carbon::today()->subDays(3),
-                'ends_on' => Carbon::today()->addDays(10),
-            ]);
-
-        $crmTasks = $this->tasks($crm, $taskTypes, $owner, $sprint);
-        $mobileTasks = $this->tasks($mobile, $taskTypes, $owner, null);
-
-        $this->assignments($crmTasks, $mobileTasks, $members, $owner);
-
-        $this->timeLogs($team, $crmTasks->concat($mobileTasks), $members->push($owner));
-        $this->meeting($team, $crm, $owner, $members);
     }
 
     private function team(User $owner): Team
@@ -125,10 +84,12 @@ class DemoSeeder extends Seeder
     private function members(Team $team): Collection
     {
         $people = [
-            ['name' => 'Alex Rivera', 'email' => 'alex@example.com', 'role' => 'admin'],
-            ['name' => 'Jordan Lee', 'email' => 'jordan@example.com', 'role' => 'member'],
-            ['name' => 'Sam Patel', 'email' => 'sam@example.com', 'role' => 'member'],
-            ['name' => 'Taylor Kim', 'email' => 'taylor@example.com', 'role' => 'member'],
+            ['name' => 'Hasib Bin Siddique', 'email' => 'hasib@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Mohammad Rana', 'email' => 'rana@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Fardin Ahsan', 'email' => 'fardin@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Md Al-amin', 'email' => 'alamin@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Muhammad Mahedi Hasan', 'email' => 'mahedi@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Fazle Rabbi', 'email' => 'rabbi@kaz-software.com', 'role' => TeamRole::Member],
         ];
 
         return collect($people)->map(function (array $person) use ($team): User {
@@ -180,250 +141,5 @@ class DemoSeeder extends Seeder
 
         Holiday::query()->firstOrCreate(['date' => '2026-01-01'], ['name' => "New Year's Day"]);
         Holiday::query()->firstOrCreate(['date' => '2026-12-25'], ['name' => 'Christmas Day']);
-    }
-
-    /**
-     * A few forward bookings spanning today, so the team capacity heatmap
-     * and availability search show a realistic mix on their default
-     * (current) date range instead of an all-zero grid.
-     *
-     * @param  Collection<int, User>  $members
-     */
-    private function resourceAllocations(Project $crm, Project $mobile, Collection $members): void
-    {
-        if (ResourceAllocation::query()->whereIn('project_id', [$crm->id, $mobile->id])->exists()) {
-            return;
-        }
-
-        $today = Carbon::today();
-
-        ResourceAllocation::factory()->create([
-            'user_id' => $members[0]->id,
-            'project_id' => $crm->id,
-            'starts_on' => $today,
-            'ends_on' => $today->copy()->addDays(9),
-            'hours_per_day' => 6,
-            'allocation_percentage' => 75,
-        ]);
-
-        ResourceAllocation::factory()->create([
-            'user_id' => $members[1]->id,
-            'project_id' => $mobile->id,
-            'starts_on' => $today,
-            'ends_on' => $today->copy()->addDays(4),
-            'hours_per_day' => 8,
-            'allocation_percentage' => 100,
-        ]);
-
-        ResourceAllocation::factory()->create([
-            'user_id' => $members[2]->id,
-            'project_id' => $crm->id,
-            'starts_on' => $today,
-            'ends_on' => $today->copy()->addDays(13),
-            'hours_per_day' => 2,
-            'allocation_percentage' => 25,
-        ]);
-    }
-
-    /**
-     * @param  array<string, mixed>  $attributes
-     */
-    private function project(Team $team, User $owner, array $attributes): Project
-    {
-        $existing = Project::query()->where('team_id', $team->id)->where('code', $attributes['code'])->first();
-        if ($existing !== null) {
-            return $existing;
-        }
-
-        return app(CreateProject::class)->handle($team, $owner, [
-            ...$attributes,
-            'status' => 'active',
-            'priority' => Priority::Medium,
-            'start_date' => Carbon::today()->subWeeks(2),
-            'end_date' => Carbon::today()->addMonths(3),
-        ]);
-    }
-
-    /**
-     * @param  Collection<int, User>  $members
-     * @param  array<int, string>  $roles
-     */
-    private function addProjectMembers(Project $project, Collection $members, array $roles): void
-    {
-        foreach ($members as $index => $user) {
-            if (ProjectMember::query()->where('project_id', $project->id)->where('user_id', $user->id)->exists()) {
-                continue;
-            }
-
-            ProjectMember::factory()->create([
-                'project_id' => $project->id,
-                'user_id' => $user->id,
-                'role' => ProjectMemberRole::from($roles[$index % count($roles)]),
-            ]);
-        }
-    }
-
-    /**
-     * @param  array<int, string>  $names
-     */
-    private function modules(Project $project, array $names): void
-    {
-        if ($project->modules()->exists()) {
-            return;
-        }
-
-        foreach ($names as $index => $name) {
-            ProjectModule::factory()->create([
-                'project_id' => $project->id,
-                'name' => $name,
-                'position' => $index,
-            ]);
-        }
-    }
-
-    /**
-     * @param  Collection<int, TaskType>  $taskTypes
-     * @return Collection<int, Task>
-     */
-    private function tasks(Project $project, Collection $taskTypes, User $owner, ?Sprint $sprint): Collection
-    {
-        if ($project->tasks()->exists()) {
-            return $project->tasks()->get();
-        }
-
-        $statuses = [TaskStatus::Backlog, TaskStatus::Backlog, TaskStatus::InProgress, TaskStatus::InProgress, TaskStatus::Done, TaskStatus::Todo];
-        $createTask = app(CreateTask::class);
-        $changeTaskStatus = app(ChangeTaskStatus::class);
-
-        return collect($statuses)->map(function (TaskStatus $status) use ($project, $taskTypes, $owner, $sprint, $createTask, $changeTaskStatus): Task {
-            // Created via the real action (not the factory) so
-            // `projects.next_task_number` stays correct for whatever task
-            // someone creates next through the actual UI on this project.
-            $task = $createTask->handle($project, $owner, [
-                'task_type_id' => $taskTypes->random()->id,
-                'sprint_id' => $sprint?->id,
-                'title' => fake()->sentence(4),
-                'priority' => fake()->randomElement([Priority::Low, Priority::Medium, Priority::High]),
-            ]);
-            // `status` has a DB-level default only — `$task` has no
-            // in-memory value for it until read back, and `ChangeTaskStatus`
-            // needs a real `TaskStatus` instance to diff against.
-            $task = $task->fresh();
-
-            if ($status !== TaskStatus::Backlog) {
-                $changeTaskStatus->handle($task, $status, 0, $owner);
-                $task = $task->fresh();
-            }
-
-            return $task;
-        });
-    }
-
-    /**
-     * @param  Collection<int, Task>  $crmTasks
-     * @param  Collection<int, Task>  $mobileTasks
-     * @param  Collection<int, User>  $members
-     */
-    private function assignments(Collection $crmTasks, Collection $mobileTasks, Collection $members, User $owner): void
-    {
-        if (TaskAssignment::query()->whereIn('task_id', $crmTasks->concat($mobileTasks)->pluck('id'))->exists()) {
-            return;
-        }
-
-        $assignTask = app(AssignTask::class);
-        foreach ($crmTasks->take(4)->values() as $index => $task) {
-            $assignTask->assign($task, $members[$index % $members->count()]->id, TaskAssignmentRole::Assignee, null, $owner);
-        }
-        foreach ($mobileTasks->take(4)->values() as $index => $task) {
-            $assignTask->assign($task, $members[($index + 1) % $members->count()]->id, TaskAssignmentRole::Assignee, null, $owner);
-        }
-    }
-
-    /**
-     * @param  Collection<int, Task>  $tasks
-     * @param  Collection<int, User>  $users
-     */
-    private function timeLogs(Team $team, Collection $tasks, Collection $users): void
-    {
-        if (TimeLog::query()->where('team_id', $team->id)->exists()) {
-            return;
-        }
-
-        foreach ($tasks->take(6) as $index => $task) {
-            $user = $users[$index % $users->count()];
-            $startedAt = Carbon::today()->subDays($index)->setTime(9, 0);
-
-            TimeLog::factory()->create([
-                'team_id' => $team->id,
-                'user_id' => $user->id,
-                'project_id' => $task->project_id,
-                'task_id' => $task->id,
-                'activity_type' => TimeLogActivityType::Development,
-                'source' => TimeLogSource::Manual,
-                'started_at' => $startedAt,
-                'ended_at' => $startedAt->copy()->addHours(2),
-                'duration_minutes' => 120,
-                'logged_on' => $startedAt->toDateString(),
-            ]);
-        }
-    }
-
-    /**
-     * @param  Collection<int, User>  $members
-     */
-    private function meeting(Team $team, Project $project, User $organizer, Collection $members): void
-    {
-        if (Meeting::query()->where('team_id', $team->id)->exists()) {
-            return;
-        }
-
-        $scheduledStart = Carbon::today()->subDays(2)->setTime(10, 0);
-
-        $meeting = new Meeting([
-            'project_id' => $project->id,
-            'title' => 'Aurora CRM Sprint Kickoff',
-            'type' => 'planning',
-            'agenda' => 'Review sprint goals and confirm task assignments.',
-            'scheduled_start' => $scheduledStart,
-            'scheduled_end' => $scheduledStart->copy()->addHour(),
-        ]);
-        $meeting->team_id = $team->id;
-        $meeting->status = MeetingStatus::Completed;
-        $meeting->organized_by = $organizer->id;
-        $meeting->minutes = 'Walked through the sprint board. Everyone confirmed their assigned tasks and flagged no blockers.';
-        $meeting->decisions = 'Sprint 1 goal confirmed: ship the lead management module.';
-        $meeting->recorded_by = $organizer->id;
-        $meeting->minutes_published_at = $scheduledStart->copy()->addHours(2);
-        $meeting->created_by = $organizer->id;
-        $meeting->save();
-
-        $meeting->attendees()->create([
-            'user_id' => $organizer->id,
-            'role' => MeetingAttendeeRole::Organizer,
-            'attendance_status' => 'attended',
-            'responded_at' => $scheduledStart,
-            'joined_at' => $scheduledStart,
-        ]);
-
-        foreach ($members->take(3) as $index => $member) {
-            $meeting->attendees()->create([
-                'user_id' => $member->id,
-                'role' => $index === 0 ? MeetingAttendeeRole::NoteTaker : MeetingAttendeeRole::Participant,
-                'attendance_status' => 'attended',
-                'responded_at' => $scheduledStart,
-                'joined_at' => $scheduledStart,
-            ]);
-        }
-
-        $meeting->agendaItems()->create([
-            'title' => 'Review sprint goals',
-            'position' => 1,
-            'is_discussed' => true,
-        ]);
-        $meeting->agendaItems()->create([
-            'title' => 'Confirm task assignments',
-            'position' => 2,
-            'is_discussed' => true,
-        ]);
     }
 }

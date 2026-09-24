@@ -33,6 +33,12 @@ class TeamRoleControllerTest extends TestCase
 
         $owner = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'owner')->first();
         $this->assertNotNull($owner);
+        $this->assertSame('Project Lead', $owner->name);
+        $this->assertSame('Project Lead', TeamRole::Owner->label());
+        $adminRole = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'admin')->first();
+        $this->assertNotNull($adminRole);
+        $this->assertSame('Team Lead', $adminRole->name);
+        $this->assertSame('Team Lead', TeamRole::Admin->label());
         $this->assertSame(count(TeamModulePermission::cases()), $owner->permissions()->count());
         $this->assertSame(1, Role::query()->where('guard_name', 'web')->where('slug', 'owner')->count());
     }
