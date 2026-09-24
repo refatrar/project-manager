@@ -17,10 +17,12 @@ enum TeamModulePermission: string
     case ViewProjects = 'projects.view';
     case CreateProjects = 'projects.create';
     case ViewAllProjects = 'projects.view-all';
+    case ManageAllProjects = 'projects.manage-all';
 
     case ViewMeetings = 'meetings.view';
     case CreateMeetings = 'meetings.create';
     case ViewAllMeetings = 'meetings.view-all';
+    case ManageAllMeetings = 'meetings.manage-all';
 
     case ManageTodos = 'todos.manage';
 
@@ -55,9 +57,11 @@ enum TeamModulePermission: string
             self::ViewProjects => 'View projects',
             self::CreateProjects => 'Create projects',
             self::ViewAllProjects => 'View every project on the team',
+            self::ManageAllProjects => 'Manage every project on the team (as its Project Lead would)',
             self::ViewMeetings => 'View meetings',
             self::CreateMeetings => 'Schedule meetings',
             self::ViewAllMeetings => 'View every meeting on the team',
+            self::ManageAllMeetings => 'Manage every meeting on the team (as its Project Lead would)',
             self::ManageTodos => 'Manage personal to-do lists',
             self::ViewTimeOff => 'View time off',
             self::ManageTimeOff => 'Request time off',
@@ -84,8 +88,8 @@ enum TeamModulePermission: string
         return match ($this) {
             self::ViewDashboard => 'Dashboard',
             self::ViewMyDay => 'My Day',
-            self::ViewProjects, self::CreateProjects, self::ViewAllProjects => 'Projects',
-            self::ViewMeetings, self::CreateMeetings, self::ViewAllMeetings => 'Meetings',
+            self::ViewProjects, self::CreateProjects, self::ViewAllProjects, self::ManageAllProjects => 'Projects',
+            self::ViewMeetings, self::CreateMeetings, self::ViewAllMeetings, self::ManageAllMeetings => 'Meetings',
             self::ManageTodos => 'To-dos',
             self::ViewTimeOff, self::ManageTimeOff, self::DecideTimeOff => 'Time off',
             self::ManageTimeLogs => 'Time logs',

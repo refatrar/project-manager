@@ -21,7 +21,7 @@ class TeamRoleControllerTest extends TestCase
         return Admin::factory()->create();
     }
 
-    public function test_the_catalogue_is_global_and_owner_starts_with_every_team_permission(): void
+    public function test_the_catalogue_is_global_and_only_team_lead_and_member_are_built_in(): void
     {
         app(TeamAccessControl::class)->ensureCatalogue();
 
@@ -31,24 +31,23 @@ class TeamRoleControllerTest extends TestCase
             'module' => 'Projects',
         ]);
 
-        $owner = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'owner')->first();
-        $this->assertNotNull($owner);
-        $this->assertSame('Project Lead', $owner->name);
-        $this->assertSame('Project Lead', TeamRole::Owner->label());
-        $adminRole = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'admin')->first();
-        $this->assertNotNull($adminRole);
-        $this->assertSame('Team Lead', $adminRole->name);
-        $this->assertSame('Team Lead', TeamRole::Admin->label());
-        $this->assertSame(count(TeamModulePermission::cases()), $owner->permissions()->count());
-        $this->assertSame(1, Role::query()->where('guard_name', 'web')->where('slug', 'owner')->count());
+        $teamLead = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'team_lead')->first();
+        $this->assertNotNull($teamLead);
+        $this->assertSame('Team Lead', $teamLead->name);
+        $this->assertSame('Team Lead', TeamRole::TeamLead->label());
+        $this->assertSame(count(TeamModulePermission::cases()), $teamLead->permissions()->count());
+        $this->assertSame(1, Role::query()->where('guard_name', 'web')->where('slug', 'team_lead')->count());
+
+        $this->assertDatabaseMissing('roles', ['guard_name' => 'web', 'team_id' => null, 'slug' => 'owner']);
+        $this->assertDatabaseMissing('roles', ['guard_name' => 'web', 'team_id' => null, 'slug' => 'admin']);
     }
 
     public function test_an_admin_can_create_a_role_and_a_team_account_uses_it(): void
     {
         $admin = $this->admin();
-        $owner = User::factory()->create();
+        $teamLead = User::factory()->create();
         $member = User::factory()->create();
-        $team = $owner->currentTeam;
+        $team = $teamLead->currentTeam;
         $team->members()->attach($member, ['role' => TeamRole::Member->value]);
 
         app(TeamAccessControl::class)->ensureCatalogue();
@@ -64,7 +63,7 @@ class TeamRoleControllerTest extends TestCase
             'permissions' => [$permission->id],
         ])->assertOk();
 
-        $this->actingAs($owner, 'web')->patch(route('teams.members.update', [$team, $member]), [
+        $this->actingAs($teamLead, 'web')->patch(route('teams.members.update', [$team, $member]), [
             'role' => 'reviewer',
         ])->assertRedirect();
 
@@ -72,35 +71,40 @@ class TeamRoleControllerTest extends TestCase
         $this->assertFalse($member->fresh()->teamCan($team, TeamModulePermission::CreateProjects));
     }
 
-    public function test_changing_a_role_in_the_admin_panel_changes_every_team_that_uses_it(): void
+    public function test_changing_a_custom_role_in_the_admin_panel_changes_every_team_that_uses_it(): void
     {
         $admin = $this->admin();
-        $firstOwner = User::factory()->create();
-        $secondOwner = User::factory()->create();
-        $firstAdmin = User::factory()->create();
-        $secondAdmin = User::factory()->create();
-        $firstTeam = $firstOwner->currentTeam;
-        $secondTeam = $secondOwner->currentTeam;
-        $firstTeam->members()->attach($firstAdmin, ['role' => TeamRole::Admin->value]);
-        $secondTeam->members()->attach($secondAdmin, ['role' => TeamRole::Admin->value]);
+        $firstTeamLead = User::factory()->create();
+        $secondTeamLead = User::factory()->create();
+        $firstReviewer = User::factory()->create();
+        $secondReviewer = User::factory()->create();
+        $firstTeam = $firstTeamLead->currentTeam;
+        $secondTeam = $secondTeamLead->currentTeam;
 
         app(TeamAccessControl::class)->ensureCatalogue();
 
-        $adminRole = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'admin')->firstOrFail();
-        $kept = Permission::query()
-            ->where('guard_name', 'web')
-            ->where('name', '!=', TeamModulePermission::ViewAvailability->value)
-            ->pluck('id')
-            ->all();
+        $viewProjects = Permission::query()->where('guard_name', 'web')->where('name', TeamModulePermission::ViewProjects->value)->firstOrFail();
+        $viewAvailability = Permission::query()->where('guard_name', 'web')->where('name', TeamModulePermission::ViewAvailability->value)->firstOrFail();
 
-        $this->actingAs($admin, 'admin')->patch(route('admin.team-roles.update', $adminRole), [
-            'name' => 'Admin',
-            'permissions' => $kept,
+        $this->actingAs($admin, 'admin')->post(route('admin.team-roles.store'), [
+            'name' => 'Reviewer',
+            'description' => 'Can look at projects.',
+            'permissions' => [$viewProjects->id, $viewAvailability->id],
         ])->assertOk();
 
-        $this->assertFalse($firstAdmin->fresh()->teamCan($firstTeam, TeamModulePermission::ViewAvailability));
-        $this->assertFalse($secondAdmin->fresh()->teamCan($secondTeam, TeamModulePermission::ViewAvailability));
-        $this->assertTrue($firstAdmin->fresh()->teamCan($firstTeam, TeamModulePermission::ViewProjects));
+        $reviewerRole = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'reviewer')->firstOrFail();
+
+        $firstTeam->members()->attach($firstReviewer, ['role' => 'reviewer']);
+        $secondTeam->members()->attach($secondReviewer, ['role' => 'reviewer']);
+
+        $this->actingAs($admin, 'admin')->patch(route('admin.team-roles.update', $reviewerRole), [
+            'name' => 'Reviewer',
+            'permissions' => [$viewProjects->id],
+        ])->assertOk();
+
+        $this->assertFalse($firstReviewer->fresh()->teamCan($firstTeam, TeamModulePermission::ViewAvailability));
+        $this->assertFalse($secondReviewer->fresh()->teamCan($secondTeam, TeamModulePermission::ViewAvailability));
+        $this->assertTrue($firstReviewer->fresh()->teamCan($firstTeam, TeamModulePermission::ViewProjects));
     }
 
     public function test_any_signed_in_admin_can_open_team_roles(): void
@@ -116,9 +120,9 @@ class TeamRoleControllerTest extends TestCase
         $admin = $this->admin();
         app(TeamAccessControl::class)->ensureCatalogue();
 
-        $ownerRole = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'owner')->firstOrFail();
+        $teamLeadRole = Role::query()->whereNull('team_id')->where('guard_name', 'web')->where('slug', 'team_lead')->firstOrFail();
 
-        $this->actingAs($admin, 'admin')->delete(route('admin.team-roles.destroy', $ownerRole))
+        $this->actingAs($admin, 'admin')->delete(route('admin.team-roles.destroy', $teamLeadRole))
             ->assertForbidden();
 
         $platformRole = Role::factory()->create(['guard_name' => 'admin', 'slug' => 'platform-only']);

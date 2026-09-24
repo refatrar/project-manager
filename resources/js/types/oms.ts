@@ -49,6 +49,7 @@ export type ProjectDetail = Project & {
     budget: string | null;
     currency: string | null;
     owner: ProjectOwner | null;
+    project_lead: ProjectOwner | null;
 };
 
 export type ProjectModuleStatus =

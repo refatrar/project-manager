@@ -2,35 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Actions\OMS\AssignTask;
-use App\Actions\OMS\ChangeTaskStatus;
-use App\Actions\OMS\CreateProject;
-use App\Actions\OMS\CreateTask;
-use App\Enums\MeetingAttendeeRole;
-use App\Enums\MeetingStatus;
-use App\Enums\Priority;
-use App\Enums\ProjectMemberRole;
-use App\Enums\TaskAssignmentRole;
-use App\Enums\TaskStatus;
 use App\Enums\TeamRole;
-use App\Enums\TimeLogActivityType;
-use App\Enums\TimeLogSource;
 use App\Models\OMS\Holiday;
 use App\Models\OMS\Meeting;
-use App\Models\OMS\Project;
-use App\Models\OMS\ProjectMember;
-use App\Models\OMS\ProjectModule;
-use App\Models\OMS\ResourceAllocation;
 use App\Models\OMS\Sprint;
-use App\Models\OMS\Task;
-use App\Models\OMS\TaskAssignment;
-use App\Models\OMS\TimeLog;
 use App\Models\OMS\WorkSchedule;
-use App\Models\Setup\TaskType;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -71,7 +50,7 @@ class DemoSeeder extends Seeder
         // `Team::factory()` sets `slug` itself, so it doesn't depend on
         // that event either way.
         $team = Team::factory()->create(['name' => 'PHP 360']);
-        $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::Owner]);
+        $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::TeamLead]);
         $owner->forceFill(['current_team_id' => $team->id])->save();
         (new LabelSeeder)->run($team);
 

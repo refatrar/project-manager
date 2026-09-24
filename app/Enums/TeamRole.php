@@ -4,8 +4,7 @@ namespace App\Enums;
 
 enum TeamRole: string
 {
-    case Owner = 'owner';
-    case Admin = 'admin';
+    case TeamLead = 'team_lead';
     case Member = 'member';
 
     /**
@@ -14,36 +13,9 @@ enum TeamRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Owner => 'Team Lead',
-            self::Admin => 'Project Lead',
+            self::TeamLead => 'Team Lead',
             self::Member => 'Member',
         };
-    }
-
-    /**
-     * Get all the permissions for this role.
-     *
-     * @return array<TeamPermission>
-     */
-    public function permissions(): array
-    {
-        return match ($this) {
-            self::Owner => TeamPermission::cases(),
-            self::Admin => [
-                TeamPermission::UpdateTeam,
-                TeamPermission::CreateInvitation,
-                TeamPermission::CancelInvitation,
-            ],
-            self::Member => [],
-        };
-    }
-
-    /**
-     * Determine if the role has the given permission.
-     */
-    public function hasPermission(TeamPermission $permission): bool
-    {
-        return in_array($permission, $this->permissions());
     }
 
     /**
@@ -53,8 +25,7 @@ enum TeamRole: string
     public function level(): int
     {
         return match ($this) {
-            self::Owner => 3,
-            self::Admin => 2,
+            self::TeamLead => 2,
             self::Member => 1,
         };
     }
@@ -68,14 +39,16 @@ enum TeamRole: string
     }
 
     /**
-     * Get the roles that can be assigned to team members (excludes Owner).
+     * Get the roles that can be assigned to team members (excludes TeamLead
+     * — the team lead is assigned via `AssignTeamLeader`, not the normal
+     * member-role-update flow).
      *
      * @return array<array{value: string, label: string}>
      */
     public static function assignable(): array
     {
         return collect(self::cases())
-            ->filter(fn (self $role) => $role !== self::Owner)
+            ->filter(fn (self $role) => $role !== self::TeamLead)
             ->map(fn (self $role) => ['value' => $role->value, 'label' => $role->label()])
             ->values()
             ->toArray();

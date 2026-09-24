@@ -7,9 +7,12 @@ use App\Enums\TeamModulePermission;
 use App\Models\OMS\Meeting;
 use App\Models\Team;
 use App\Models\User;
+use App\Policies\OMS\Concerns\AuthorizesProjectManagement;
 
 class MeetingPolicy
 {
+    use AuthorizesProjectManagement;
+
     /**
      * Determine whether the user can view the team's meeting list.
      */
@@ -29,7 +32,9 @@ class MeetingPolicy
             return $user->teamCan($meeting->team, TeamModulePermission::ViewMeetings);
         }
 
-        return $this->hasWideVisibility($user, $meeting) || $this->isActiveProjectMember($user, $meeting);
+        return $this->hasWideVisibility($user, $meeting)
+            || $this->isActiveProjectMember($user, $meeting)
+            || $this->managesProject($user, $meeting->project);
     }
 
     /**
@@ -84,7 +89,9 @@ class MeetingPolicy
 
     /**
      * Determine whether the user organized the meeting, manages its
-     * project, or has team-admin-level wide visibility into it.
+     * project (as its Project Lead, its team's Team Lead, or through a
+     * managing project role), or has team-admin-level wide visibility
+     * into it.
      */
     private function canManage(User $user, Meeting $meeting): bool
     {
@@ -96,13 +103,15 @@ class MeetingPolicy
             return true;
         }
 
+        if ($user->teamCan($meeting->team, TeamModulePermission::ManageAllMeetings)) {
+            return true;
+        }
+
         if ($meeting->project_id === null) {
             return false;
         }
 
-        $membership = $meeting->project->members()->active()->where('user_id', $user->id)->first();
-
-        return $membership !== null && $membership->role->canManageProject();
+        return $this->isProjectLead($user, $meeting->project) || $this->hasManagingMembership($user, $meeting->project);
     }
 
     private function hasWideVisibility(User $user, Meeting $meeting): bool

@@ -16,6 +16,7 @@ import type {
     ProjectDetail,
     ProjectHealthOption,
     ProjectStatusOption,
+    TeamMemberOption,
 } from '@/types';
 
 type Props = PropsWithChildren<{
@@ -25,6 +26,7 @@ type Props = PropsWithChildren<{
     statusOptions: ProjectStatusOption[];
     priorityOptions: PriorityOption[];
     healthOptions: ProjectHealthOption[];
+    teamMembers: TeamMemberOption[];
     onSaved?: (project: ProjectDetail) => void;
 }>;
 
@@ -36,6 +38,7 @@ export default function ProjectFormModal({
     statusOptions,
     priorityOptions,
     healthOptions,
+    teamMembers,
     onSaved,
 }: Props) {
     const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
@@ -75,6 +78,7 @@ export default function ProjectFormModal({
                     statusOptions={statusOptions}
                     priorityOptions={priorityOptions}
                     healthOptions={healthOptions}
+                    teamMembers={teamMembers}
                     onCancel={() => setDialogOpen(false)}
                     onSaved={(savedProject, message) => {
                         toast.success(message);

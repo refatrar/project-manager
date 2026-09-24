@@ -64,7 +64,7 @@ class EnsureTeamMembershipTest extends TestCase
     {
         $user = User::factory()->create();
         $secondTeam = Team::factory()->create();
-        $secondTeam->memberships()->create(['user_id' => $user->id, 'role' => TeamRole::Owner]);
+        $secondTeam->memberships()->create(['user_id' => $user->id, 'role' => TeamRole::TeamLead]);
 
         $this->assertFalse($user->isCurrentTeam($secondTeam));
 

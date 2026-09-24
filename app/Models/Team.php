@@ -58,7 +58,7 @@ class Team extends Model
     public function owner(): ?Model
     {
         return $this->members()
-            ->wherePivot('role', TeamRole::Owner->value)
+            ->wherePivot('role', TeamRole::TeamLead->value)
             ->first();
     }
 

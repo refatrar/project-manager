@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Grants `TeamRole::Owner` on a team to an existing user (Phase 7: a super
+ * Grants `TeamRole::TeamLead` on a team to an existing user (Phase 7: a super
  * admin assigns a "team leader" — the same role self-service team creation
  * already grants its creator, just admin-assigned instead of automatic).
  */
@@ -24,13 +24,13 @@ class AssignTeamLeader
     {
         DB::transaction(function () use ($team, $user) {
             $team->memberships()
-                ->where('role', TeamRole::Owner->value)
+                ->where('role', TeamRole::TeamLead->value)
                 ->where('user_id', '!=', $user->id)
                 ->update(['role' => TeamRole::Member->value]);
 
             $team->memberships()->updateOrCreate(
                 ['user_id' => $user->id],
-                ['role' => TeamRole::Owner->value],
+                ['role' => TeamRole::TeamLead->value],
             );
 
             // A freshly-registered user has no current team (Phase 7: no

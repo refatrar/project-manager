@@ -25,7 +25,7 @@ class RegistrationTest extends TestCase
     {
         $owner = User::factory()->create();
         $team = Team::factory()->create(['name' => 'Laravel Team']);
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,

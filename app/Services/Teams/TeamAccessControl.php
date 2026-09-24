@@ -18,7 +18,7 @@ use Spatie\Permission\PermissionRegistrar;
  * gets the same grants, and team-module policies read them from here.
  *
  * Until the catalogue has been seeded, checks fall back to the built-in
- * Owner / Admin / Member matrix so factory-built teams keep working.
+ * Team Lead / Member matrix so factory-built teams keep working.
  */
 class TeamAccessControl
 {
@@ -26,13 +26,9 @@ class TeamAccessControl
      * @var array<string, array{name: string, description: string}>
      */
     private const SYSTEM_ROLES = [
-        'owner' => [
-            'name' => 'Project Lead',
-            'description' => 'Project lead. Starts with every team-module permission; the platform admin can change that.',
-        ],
-        'admin' => [
+        'team_lead' => [
             'name' => 'Team Lead',
-            'description' => 'Team lead. Manages projects, meetings, approvals, and team invitations.',
+            'description' => 'Team lead. Starts with every team-module permission, including managing every project and meeting on the team; the platform admin can change that.',
         ],
         'member' => [
             'name' => 'Member',
@@ -82,11 +78,6 @@ class TeamAccessControl
 
             if ($role->wasRecentlyCreated) {
                 $role->syncPermissions($this->defaultNames($slug));
-            } elseif (in_array($role->name, ['Owner', 'Admin'], true)) {
-                $role->update([
-                    'name' => $definition['name'],
-                    'description' => $definition['description'],
-                ]);
             }
         }
     }
@@ -132,7 +123,7 @@ class TeamAccessControl
         $roles = Role::query()
             ->where('guard_name', 'web')
             ->whereNull('team_id')
-            ->where('slug', '!=', TeamRole::Owner->value)
+            ->where('slug', '!=', TeamRole::TeamLead->value)
             ->orderBy('name')
             ->get();
 
@@ -213,55 +204,32 @@ class TeamAccessControl
     {
         $role = TeamRole::tryFrom($slug);
 
-        if ($role === TeamRole::Owner) {
+        if ($role === TeamRole::TeamLead) {
             return TeamModulePermission::cases();
         }
 
-        $shared = [
-            TeamModulePermission::ViewDashboard,
-            TeamModulePermission::ViewMyDay,
-            TeamModulePermission::ViewProjects,
-            TeamModulePermission::CreateProjects,
-            TeamModulePermission::ViewMeetings,
-            TeamModulePermission::CreateMeetings,
-            TeamModulePermission::ManageTodos,
-            TeamModulePermission::ViewTimeOff,
-            TeamModulePermission::ManageTimeOff,
-            TeamModulePermission::ManageTimeLogs,
-            TeamModulePermission::ViewTimesheet,
-            TeamModulePermission::SubmitTimesheet,
-            TeamModulePermission::ManageSetup,
-        ];
-
         if ($role === TeamRole::Member) {
-            return $shared;
+            return [
+                TeamModulePermission::ViewDashboard,
+                TeamModulePermission::ViewMyDay,
+                TeamModulePermission::ViewProjects,
+                TeamModulePermission::CreateProjects,
+                TeamModulePermission::ViewMeetings,
+                TeamModulePermission::CreateMeetings,
+                TeamModulePermission::ManageTodos,
+                TeamModulePermission::ViewTimeOff,
+                TeamModulePermission::ManageTimeOff,
+                TeamModulePermission::ManageTimeLogs,
+                TeamModulePermission::ViewTimesheet,
+                TeamModulePermission::SubmitTimesheet,
+                TeamModulePermission::ManageSetup,
+            ];
         }
 
-        if ($role !== TeamRole::Admin) {
-            return [];
-        }
-
-        $granted = [
-            ...$shared,
-            TeamModulePermission::ViewAllProjects,
-            TeamModulePermission::ViewAllMeetings,
-            TeamModulePermission::DecideTimeOff,
-            TeamModulePermission::DecideTimesheets,
-            TeamModulePermission::ViewAvailability,
-            TeamModulePermission::ViewTeamCapacity,
-        ];
-
-        foreach ($role->permissions() as $permission) {
-            $mapped = TeamModulePermission::from($permission->value);
-            $granted[$mapped->value] = $mapped;
-        }
-
-        $byValue = [];
-        foreach ($granted as $permission) {
-            $byValue[$permission->value] = $permission;
-        }
-
-        return array_values($byValue);
+        // A brand-new custom role (not one of the 2 built-ins) starts with
+        // no permissions — the admin panel form that creates it always
+        // submits the permissions to grant in the same request.
+        return [];
     }
 
     /**

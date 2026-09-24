@@ -41,7 +41,7 @@ class TeamControllerTest extends TestCase
             ->post(route('admin.teams.assign-leader', ['team' => $team->slug]), ['email' => $user->email]);
 
         $response->assertOk();
-        $this->assertSame(TeamRole::Owner, $team->fresh()->memberships()->where('user_id', $user->id)->first()->role);
+        $this->assertSame(TeamRole::TeamLead, $team->fresh()->memberships()->where('user_id', $user->id)->first()->role);
     }
 
     public function test_assigning_a_leader_by_an_unknown_email_fails_validation(): void

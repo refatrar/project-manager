@@ -22,6 +22,7 @@ import type {
     ProjectHealthOption,
     ProjectStatus,
     ProjectStatusOption,
+    TeamMemberOption,
 } from '@/types';
 
 export type ProjectFormData = {
@@ -37,7 +38,10 @@ export type ProjectFormData = {
     estimated_hours: string;
     budget: string;
     currency: string;
+    project_lead_id: string;
 };
+
+const NO_PROJECT_LEAD = 'none';
 
 export type ProjectSavedResponse = {
     project: ProjectDetail;
@@ -49,6 +53,7 @@ type Props = {
     statusOptions: ProjectStatusOption[];
     priorityOptions: PriorityOption[];
     healthOptions: ProjectHealthOption[];
+    teamMembers: TeamMemberOption[];
     onSaved?: (project: ProjectDetail, message: string) => void;
     onCancel?: () => void;
 };
@@ -56,7 +61,9 @@ type Props = {
 function isDetail(
     project: Project | ProjectDetail | null | undefined,
 ): project is ProjectDetail {
-    return project !== null && project !== undefined && 'description' in project;
+    return (
+        project !== null && project !== undefined && 'description' in project
+    );
 }
 
 export default function ProjectForm({
@@ -64,6 +71,7 @@ export default function ProjectForm({
     statusOptions,
     priorityOptions,
     healthOptions,
+    teamMembers,
     onSaved,
     onCancel,
 }: Props) {
@@ -88,6 +96,9 @@ export default function ProjectForm({
             estimated_hours: detail?.estimated_hours ?? '',
             budget: detail?.budget ?? '',
             currency: detail?.currency ?? '',
+            project_lead_id: detail?.project_lead
+                ? String(detail.project_lead.id)
+                : '',
         },
     );
 
@@ -111,7 +122,10 @@ export default function ProjectForm({
                         name="code"
                         value={form.data.code}
                         onChange={(event) =>
-                            form.setData('code', event.target.value.toUpperCase())
+                            form.setData(
+                                'code',
+                                event.target.value.toUpperCase(),
+                            )
                         }
                         placeholder="ALPHA"
                         required
@@ -163,12 +177,18 @@ export default function ProjectForm({
                             form.setData('status', value as ProjectStatus)
                         }
                     >
-                        <SelectTrigger id="project-status" data-test="project-status">
+                        <SelectTrigger
+                            id="project-status"
+                            data-test="project-status"
+                        >
                             <SelectValue placeholder="Select a status" />
                         </SelectTrigger>
                         <SelectContent>
                             {statusOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -186,12 +206,18 @@ export default function ProjectForm({
                             form.setData('priority', value as Priority)
                         }
                     >
-                        <SelectTrigger id="project-priority" data-test="project-priority">
+                        <SelectTrigger
+                            id="project-priority"
+                            data-test="project-priority"
+                        >
                             <SelectValue placeholder="Select a priority" />
                         </SelectTrigger>
                         <SelectContent>
                             {priorityOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -209,12 +235,18 @@ export default function ProjectForm({
                             form.setData('health', value as ProjectHealth)
                         }
                     >
-                        <SelectTrigger id="project-health" data-test="project-health">
+                        <SelectTrigger
+                            id="project-health"
+                            data-test="project-health"
+                        >
                             <SelectValue placeholder="Select a health" />
                         </SelectTrigger>
                         <SelectContent>
                             {healthOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -258,7 +290,9 @@ export default function ProjectForm({
 
             <div className="grid gap-4 sm:grid-cols-3">
                 <div className="grid gap-2">
-                    <Label htmlFor="project-estimated-hours">Estimated hours</Label>
+                    <Label htmlFor="project-estimated-hours">
+                        Estimated hours
+                    </Label>
                     <Input
                         id="project-estimated-hours"
                         name="estimated_hours"
@@ -311,24 +345,69 @@ export default function ProjectForm({
                 </div>
             </div>
 
-            <div className="grid gap-2">
-                <Label htmlFor="project-client-name">Client name</Label>
-                <Input
-                    id="project-client-name"
-                    name="client_name"
-                    value={form.data.client_name}
-                    onChange={(event) =>
-                        form.setData('client_name', event.target.value)
-                    }
-                    placeholder="Optional external client"
-                    data-test="project-client-name"
-                />
-                <InputError message={form.errors.client_name} />
+            <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                    <Label htmlFor="project-client-name">Client name</Label>
+                    <Input
+                        id="project-client-name"
+                        name="client_name"
+                        value={form.data.client_name}
+                        onChange={(event) =>
+                            form.setData('client_name', event.target.value)
+                        }
+                        placeholder="Optional external client"
+                        data-test="project-client-name"
+                    />
+                    <InputError message={form.errors.client_name} />
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="project-lead">Project Lead</Label>
+                    <Select
+                        name="project_lead_id"
+                        value={form.data.project_lead_id || NO_PROJECT_LEAD}
+                        onValueChange={(value) =>
+                            form.setData(
+                                'project_lead_id',
+                                value === NO_PROJECT_LEAD ? '' : value,
+                            )
+                        }
+                    >
+                        <SelectTrigger
+                            id="project-lead"
+                            data-test="project-lead"
+                        >
+                            <SelectValue placeholder="No Project Lead" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={NO_PROJECT_LEAD}>
+                                No Project Lead
+                            </SelectItem>
+                            {teamMembers.map((member) => (
+                                <SelectItem
+                                    key={member.id}
+                                    value={String(member.id)}
+                                >
+                                    {member.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <p className="text-muted-foreground text-sm">
+                        Has administrative authority over this project only —
+                        creating/assigning tasks, managing meetings.
+                    </p>
+                    <InputError message={form.errors.project_lead_id} />
+                </div>
             </div>
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 {onCancel ? (
-                    <Button type="button" variant="secondary" onClick={onCancel}>
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={onCancel}
+                    >
                         Cancel
                     </Button>
                 ) : null}

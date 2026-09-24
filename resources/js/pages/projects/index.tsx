@@ -22,6 +22,7 @@ import type {
     ProjectHealthOption,
     ProjectStatus,
     ProjectStatusOption,
+    TeamMemberOption,
 } from '@/types';
 
 type Props = {
@@ -34,9 +35,13 @@ type Props = {
     statusOptions: ProjectStatusOption[];
     priorityOptions: PriorityOption[];
     healthOptions: ProjectHealthOption[];
+    teamMembers: TeamMemberOption[];
 };
 
-const healthVariant: Record<ProjectHealth, 'default' | 'secondary' | 'destructive'> = {
+const healthVariant: Record<
+    ProjectHealth,
+    'default' | 'secondary' | 'destructive'
+> = {
     on_track: 'default',
     at_risk: 'secondary',
     off_track: 'destructive',
@@ -48,11 +53,15 @@ export default function ProjectsIndex({
     statusOptions,
     priorityOptions,
     healthOptions,
+    teamMembers,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const [createOpen, setCreateOpen] = useState(false);
 
-    const applyFilter = (key: 'status' | 'priority' | 'health', value: string) => {
+    const applyFilter = (
+        key: 'status' | 'priority' | 'health',
+        value: string,
+    ) => {
         if (!teamSlug) {
             return;
         }
@@ -60,7 +69,11 @@ export default function ProjectsIndex({
         router.get(
             index(teamSlug),
             { ...filters, [key]: value === 'all' ? undefined : value },
-            { preserveState: true, preserveScroll: true, only: ['projects', 'filters'] },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['projects', 'filters'],
+            },
         );
     };
 
@@ -79,6 +92,7 @@ export default function ProjectsIndex({
                         statusOptions={statusOptions}
                         priorityOptions={priorityOptions}
                         healthOptions={healthOptions}
+                        teamMembers={teamMembers}
                         open={createOpen}
                         onOpenChange={setCreateOpen}
                         onSaved={(project) => {
@@ -87,7 +101,10 @@ export default function ProjectsIndex({
                             }
                         }}
                     >
-                        <Button type="button" data-test="projects-create-button">
+                        <Button
+                            type="button"
+                            data-test="projects-create-button"
+                        >
                             <Plus /> New project
                         </Button>
                     </ProjectFormModal>
@@ -98,13 +115,19 @@ export default function ProjectsIndex({
                         value={filters.status ?? 'all'}
                         onValueChange={(value) => applyFilter('status', value)}
                     >
-                        <SelectTrigger className="w-40" data-test="filter-status">
+                        <SelectTrigger
+                            className="w-40"
+                            data-test="filter-status"
+                        >
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All statuses</SelectItem>
                             {statusOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -113,15 +136,23 @@ export default function ProjectsIndex({
 
                     <Select
                         value={filters.priority ?? 'all'}
-                        onValueChange={(value) => applyFilter('priority', value)}
+                        onValueChange={(value) =>
+                            applyFilter('priority', value)
+                        }
                     >
-                        <SelectTrigger className="w-40" data-test="filter-priority">
+                        <SelectTrigger
+                            className="w-40"
+                            data-test="filter-priority"
+                        >
                             <SelectValue placeholder="Priority" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All priorities</SelectItem>
                             {priorityOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -132,13 +163,19 @@ export default function ProjectsIndex({
                         value={filters.health ?? 'all'}
                         onValueChange={(value) => applyFilter('health', value)}
                     >
-                        <SelectTrigger className="w-40" data-test="filter-health">
+                        <SelectTrigger
+                            className="w-40"
+                            data-test="filter-health"
+                        >
                             <SelectValue placeholder="Health" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All health</SelectItem>
                             {healthOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -150,7 +187,11 @@ export default function ProjectsIndex({
                     {projects.data.map((project) => (
                         <Link
                             key={project.id}
-                            href={teamSlug ? show.url([teamSlug, project.id]) : '#'}
+                            href={
+                                teamSlug
+                                    ? show.url([teamSlug, project.id])
+                                    : '#'
+                            }
                             data-test="project-row"
                             className="hover:bg-accent flex items-center justify-between gap-4 rounded-lg border p-4"
                         >
@@ -162,11 +203,15 @@ export default function ProjectsIndex({
                                     <span className="font-medium">
                                         {project.name}
                                     </span>
-                                    <Badge variant={healthVariant[project.health]}>
+                                    <Badge
+                                        variant={healthVariant[project.health]}
+                                    >
                                         {project.health.replace('_', ' ')}
                                     </Badge>
                                     {project.archived_at ? (
-                                        <Badge variant="outline">Archived</Badge>
+                                        <Badge variant="outline">
+                                            Archived
+                                        </Badge>
                                     ) : null}
                                 </div>
                                 <p className="text-muted-foreground mt-1 text-sm">
@@ -191,7 +236,9 @@ export default function ProjectsIndex({
                             link.url ? (
                                 <Button
                                     key={`${link.label}-${linkIndex}`}
-                                    variant={link.active ? 'default' : 'outline'}
+                                    variant={
+                                        link.active ? 'default' : 'outline'
+                                    }
                                     size="sm"
                                     asChild
                                 >

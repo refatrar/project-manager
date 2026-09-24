@@ -68,23 +68,23 @@ class MeetingActionItemsControllerTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_a_team_admin_can_manage_any_meetings_action_list_without_being_an_attendee(): void
+    public function test_a_team_lead_can_manage_any_meetings_action_list_without_being_an_attendee(): void
     {
-        $owner = User::factory()->create();
-        $admin = User::factory()->create();
-        $owner->currentTeam->members()->attach($admin, ['role' => TeamRole::Admin->value]);
-        $project = Project::factory()->create(['team_id' => $owner->currentTeam->id]);
+        $member = User::factory()->create();
+        $teamLead = User::factory()->create();
+        $member->currentTeam->members()->attach($teamLead, ['role' => TeamRole::TeamLead->value]);
+        $project = Project::factory()->create(['team_id' => $member->currentTeam->id]);
         $meeting = Meeting::factory()->create([
-            'team_id' => $owner->currentTeam->id,
+            'team_id' => $member->currentTeam->id,
             'project_id' => $project->id,
-            'organized_by' => $owner->id,
+            'organized_by' => $member->id,
         ]);
         $list = app(GetOrCreateMeetingActionList::class)->handle($meeting);
 
         $response = $this
-            ->actingAs($admin)
-            ->postJson($this->itemRoute($admin, 'todo-lists.items.store', $list, null, $owner->currentTeam), [
-                'title' => 'Admin-added item',
+            ->actingAs($teamLead)
+            ->postJson($this->itemRoute($teamLead, 'todo-lists.items.store', $list, null, $member->currentTeam), [
+                'title' => 'Team-lead-added item',
                 'priority' => 'medium',
             ]);
 

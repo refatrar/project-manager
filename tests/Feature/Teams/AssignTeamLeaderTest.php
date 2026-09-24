@@ -25,7 +25,7 @@ class AssignTeamLeaderTest extends TestCase
 
         app(AssignTeamLeader::class)->handle($team, $user);
 
-        $this->assertSame(TeamRole::Owner, $team->memberships()->where('user_id', $user->id)->first()->role);
+        $this->assertSame(TeamRole::TeamLead, $team->memberships()->where('user_id', $user->id)->first()->role);
         $this->assertSame($team->id, $user->fresh()->current_team_id);
     }
 
@@ -50,6 +50,6 @@ class AssignTeamLeaderTest extends TestCase
         app(AssignTeamLeader::class)->handle($team, $secondLeader);
 
         $this->assertSame(TeamRole::Member, $team->memberships()->where('user_id', $firstLeader->id)->first()->role);
-        $this->assertSame(TeamRole::Owner, $team->memberships()->where('user_id', $secondLeader->id)->first()->role);
+        $this->assertSame(TeamRole::TeamLead, $team->memberships()->where('user_id', $secondLeader->id)->first()->role);
     }
 }

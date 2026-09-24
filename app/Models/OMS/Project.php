@@ -44,6 +44,7 @@ use Illuminate\Support\Carbon;
  * @property int $progress_percentage
  * @property int $next_task_number
  * @property int|null $owner_id
+ * @property int|null $project_lead_id
  * @property Carbon|null $archived_at
  * @property int|null $created_by
  * @property Carbon|null $created_at
@@ -53,6 +54,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $deleted_at
  * @property-read Team $team
  * @property-read User|null $owner
+ * @property-read User|null $projectLead
  * @property-read Collection<int, ProjectModule> $modules
  * @property-read Collection<int, ProjectMember> $members
  * @property-read Collection<int, User> $users
@@ -69,7 +71,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'code', 'slug', 'name', 'description', 'status', 'priority', 'health', 'color',
     'client_name', 'start_date', 'end_date', 'actual_start_date', 'actual_end_date',
-    'estimated_hours', 'budget', 'currency', 'owner_id',
+    'estimated_hours', 'budget', 'currency', 'owner_id', 'project_lead_id',
 ])]
 class Project extends Model
 {
@@ -102,6 +104,18 @@ class Project extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    /**
+     * Get the user with administrative authority over this project only
+     * (task creation/assignment, meeting/attendee management), distinct
+     * from team-wide authority and from `ProjectMemberRole`.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function projectLead(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'project_lead_id');
     }
 
     /**
@@ -327,6 +341,10 @@ class Project extends Model
             'owner' => $this->owner ? [
                 'id' => $this->owner->id,
                 'name' => $this->owner->name,
+            ] : null,
+            'project_lead' => $this->projectLead ? [
+                'id' => $this->projectLead->id,
+                'name' => $this->projectLead->name,
             ] : null,
         ];
     }

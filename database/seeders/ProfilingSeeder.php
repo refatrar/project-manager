@@ -64,7 +64,7 @@ class ProfilingSeeder extends Seeder
         // whole seeder) suppresses. `Team::factory()` sets `slug` itself
         // in its own definition, so it doesn't depend on that event.
         $team = Team::factory()->create(['name' => 'Profiling Team']);
-        $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::Owner]);
+        $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::TeamLead]);
         $owner->forceFill(['current_team_id' => $team->id])->save();
 
         $members = User::factory(self::USER_COUNT)->create();

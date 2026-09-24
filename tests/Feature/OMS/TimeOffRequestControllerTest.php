@@ -230,19 +230,19 @@ class TimeOffRequestControllerTest extends TestCase
             ->has('pendingApprovals', 0));
     }
 
-    public function test_the_index_page_shows_the_approval_queue_to_an_admin(): void
+    public function test_the_index_page_shows_the_approval_queue_to_a_team_lead(): void
     {
-        $owner = User::factory()->create();
-        $admin = User::factory()->create();
-        $owner->currentTeam->members()->attach($admin, ['role' => TeamRole::Admin->value]);
+        $member = User::factory()->create();
+        $teamLead = User::factory()->create();
+        $member->currentTeam->members()->attach($teamLead, ['role' => TeamRole::TeamLead->value]);
         TimeOffRequest::factory()->create([
-            'user_id' => $owner->id,
-            'team_id' => $owner->currentTeam->id,
+            'user_id' => $member->id,
+            'team_id' => $member->currentTeam->id,
         ]);
 
         $response = $this
-            ->actingAs($admin)
-            ->get(route('time-off-requests.index', ['current_team' => $owner->currentTeam->slug]));
+            ->actingAs($teamLead)
+            ->get(route('time-off-requests.index', ['current_team' => $member->currentTeam->slug]));
 
         $response->assertInertia(fn ($page) => $page
             ->component('time-off/index')

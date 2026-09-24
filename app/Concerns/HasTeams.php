@@ -52,7 +52,7 @@ trait HasTeams
             'id',
             'id',
             'team_id',
-        )->where('team_members.role', TeamRole::Owner->value);
+        )->where('team_members.role', TeamRole::TeamLead->value);
     }
 
     /**
@@ -123,7 +123,7 @@ trait HasTeams
      */
     public function ownsTeam(Team $team): bool
     {
-        return $this->teamRole($team) === TeamRole::Owner;
+        return $this->teamRole($team) === TeamRole::TeamLead;
     }
 
     /**

@@ -55,6 +55,7 @@ type Props = {
     members: ProjectMember[];
     memberCapacity: ProjectMemberCapacity[];
     availableUsers: TeamMemberOption[];
+    teamMembers: TeamMemberOption[];
     tasks: Task[];
     taskTypes: TaskTypeOption[];
     milestones: Milestone[];
@@ -109,6 +110,7 @@ export default function ProjectShow({
     members,
     memberCapacity,
     availableUsers,
+    teamMembers,
     tasks,
     taskTypes,
     milestones,
@@ -325,6 +327,7 @@ export default function ProjectShow({
                 statusOptions={statusOptions}
                 priorityOptions={priorityOptions}
                 healthOptions={healthOptions}
+                teamMembers={teamMembers}
                 onSaved={() => router.reload({ only: ['project'] })}
             />
 
@@ -461,6 +464,17 @@ function OverviewTab({
                     </CardHeader>
                     <CardContent className="text-sm">
                         {project.owner ? project.owner.name : 'Unassigned'}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Project Lead</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm">
+                        {project.project_lead
+                            ? project.project_lead.name
+                            : 'None'}
                     </CardContent>
                 </Card>
 

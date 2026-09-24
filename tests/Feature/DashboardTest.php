@@ -46,7 +46,7 @@ class DashboardTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create(['name' => 'Laravel Team']);
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -76,7 +76,7 @@ class DashboardTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         TeamInvitation::factory()->accepted()->create([
             'team_id' => $team->id,
@@ -101,7 +101,7 @@ class DashboardTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->expired()->create([
             'team_id' => $team->id,
@@ -192,7 +192,7 @@ class DashboardTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->expired()->create([
             'team_id' => $team->id,

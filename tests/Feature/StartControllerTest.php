@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\TeamRole;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
@@ -47,7 +48,7 @@ class StartControllerTest extends TestCase
 
         $owner = User::factory()->create();
         $team = Team::factory()->create(['name' => 'Invited Team']);
-        $team->members()->attach($owner, ['role' => 'owner']);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
             'email' => $user->email,

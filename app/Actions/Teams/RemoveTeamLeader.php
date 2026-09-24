@@ -22,7 +22,7 @@ class RemoveTeamLeader
     {
         DB::transaction(function () use ($team) {
             $team->memberships()
-                ->where('role', TeamRole::Owner->value)
+                ->where('role', TeamRole::TeamLead->value)
                 ->update(['role' => TeamRole::Member->value]);
         });
     }

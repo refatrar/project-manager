@@ -76,6 +76,7 @@ class ProjectController extends Controller
             'statusOptions' => ProjectStatus::options(),
             'priorityOptions' => Priority::options(),
             'healthOptions' => ProjectHealth::options(),
+            'teamMembers' => $current_team->members()->get(['users.id', 'users.name', 'users.email']),
         ]);
     }
 
@@ -92,6 +93,7 @@ class ProjectController extends Controller
         $project = $createProject->handle($current_team, $user, $request->safe()->only([
             'code', 'name', 'description', 'status', 'priority', 'health', 'color',
             'client_name', 'start_date', 'end_date', 'estimated_hours', 'budget', 'currency',
+            'project_lead_id',
         ]));
 
         return $this->savedResponse($request, $current_team, $project, __('Project created.'), 201);
@@ -113,7 +115,7 @@ class ProjectController extends Controller
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('view', $project);
 
-        $project->load('owner:id,name');
+        $project->load('owner:id,name', 'projectLead:id,name');
 
         $modules = $project->modules()
             ->orderBy('position')
@@ -143,6 +145,10 @@ class ProjectController extends Controller
         $availableUsers = $current_team->members()
             ->whereNotIn('users.id', $memberUserIds)
             ->get(['users.id', 'users.name', 'users.email']);
+
+        // Project Lead is picked from every team member, not only current
+        // project members — unlike `$availableUsers` above.
+        $teamMembers = $current_team->members()->get(['users.id', 'users.name', 'users.email']);
 
         // Not scoped to open(): the board needs its Done column populated too.
         $tasks = $project->tasks()
@@ -212,6 +218,8 @@ class ProjectController extends Controller
             'members' => $members,
             'memberCapacity' => $memberCapacity,
             'availableUsers' => $availableUsers,
+            'teamMembers' => $teamMembers,
+            'canManageProject' => Gate::allows('update', $project),
             'tasks' => $tasks,
             'taskTypes' => $taskTypes,
             'milestones' => $milestones,
@@ -262,6 +270,7 @@ class ProjectController extends Controller
         $project->fill($request->safe()->only([
             'code', 'name', 'description', 'status', 'priority', 'health', 'color',
             'client_name', 'start_date', 'end_date', 'estimated_hours', 'budget', 'currency',
+            'project_lead_id',
         ]));
         $project->updated_by = $user->id;
         $project->save();

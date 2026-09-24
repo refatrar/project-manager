@@ -1,4 +1,4 @@
-export type TeamRole = 'owner' | 'admin' | 'member';
+export type TeamRole = 'team_lead' | 'member';
 
 export type Team = {
     id: number;

@@ -20,7 +20,7 @@ class PruneExpiredTeamInvitationsTest extends TestCase
         $owner = User::factory()->create();
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $expiredInvitation = TeamInvitation::factory()->expired()->create([
             'team_id' => $team->id,

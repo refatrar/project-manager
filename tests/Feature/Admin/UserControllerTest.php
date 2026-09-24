@@ -123,12 +123,12 @@ class UserControllerTest extends TestCase
         $this->actingAs($this->admin(), 'admin')
             ->post(route('admin.users.teams.store', $next), [
                 'team_id' => $team->id,
-                'role' => TeamRole::Owner->value,
+                'role' => TeamRole::TeamLead->value,
             ])
             ->assertOk();
 
         $this->assertSame(
-            TeamRole::Owner,
+            TeamRole::TeamLead,
             $team->memberships()->where('user_id', $next->id)->firstOrFail()->role,
         );
         $this->assertSame(

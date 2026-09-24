@@ -105,7 +105,7 @@ class UserController extends Controller
             abort(404);
         }
 
-        if ($validated['role'] === TeamRole::Owner->value) {
+        if ($validated['role'] === TeamRole::TeamLead->value) {
             $assignTeamLeader->handle($team, $user);
         } else {
             $team->memberships()->updateOrCreate(
@@ -202,8 +202,8 @@ class UserController extends Controller
     private function roleOptions(): array
     {
         $options = [[
-            'value' => TeamRole::Owner->value,
-            'label' => TeamRole::Owner->label(),
+            'value' => TeamRole::TeamLead->value,
+            'label' => TeamRole::TeamLead->label(),
         ]];
 
         foreach ($this->access->assignableOptions(new Team) as $option) {

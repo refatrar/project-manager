@@ -52,6 +52,11 @@ class SaveProjectRequest extends FormRequest
             'estimated_hours' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'budget' => ['nullable', 'numeric', 'min:0', 'max:999999999999.99'],
             'currency' => ['nullable', 'string', 'size:3'],
+            'project_lead_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('team_members', 'user_id')->where(fn ($query) => $query->where('team_id', $team?->id)),
+            ],
         ];
     }
 
@@ -64,7 +69,7 @@ class SaveProjectRequest extends FormRequest
             $this->merge(['code' => strtoupper((string) $this->input('code'))]);
         }
 
-        foreach (['description', 'color', 'client_name', 'currency'] as $nullable) {
+        foreach (['description', 'color', 'client_name', 'currency', 'project_lead_id'] as $nullable) {
             if ($this->input($nullable) === '') {
                 $this->merge([$nullable => null]);
             }

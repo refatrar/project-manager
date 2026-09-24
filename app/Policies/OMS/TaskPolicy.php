@@ -6,15 +6,20 @@ use App\Enums\TeamModulePermission;
 use App\Models\OMS\Project;
 use App\Models\OMS\Task;
 use App\Models\User;
+use App\Policies\OMS\Concerns\AuthorizesProjectManagement;
 
 class TaskPolicy
 {
+    use AuthorizesProjectManagement;
+
     /**
      * Determine whether the user can view the project's tasks.
      */
     public function viewAny(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project) || $this->isActiveMember($user, $project);
+        return $this->hasWideVisibility($user, $project)
+            || $this->isActiveMember($user, $project)
+            || $this->managesProject($user, $project);
     }
 
     /**
@@ -27,11 +32,15 @@ class TaskPolicy
 
     /**
      * Determine whether the user can create a task on the project. Broader
-     * than "manage" — any active project member can log work.
+     * than "manage" — any active project member can log work, and (unlike
+     * `update`/`delete`) the Project Lead / Team Lead can too even without
+     * a project membership row of their own.
      */
     public function create(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project) || $this->isActiveMember($user, $project);
+        return $this->hasWideVisibility($user, $project)
+            || $this->isActiveMember($user, $project)
+            || $this->managesProject($user, $project);
     }
 
     /**
@@ -63,18 +72,13 @@ class TaskPolicy
     }
 
     /**
-     * @see App\Policies\OMS\ProjectPolicy::canManage() — duplicated rather than shared
-     * because Task's project is reached through a relation, not a route parameter.
+     * @see App\Policies\OMS\ProjectPolicy::canManage() — same rule, reached
+     * via `AuthorizesProjectManagement` since Task's project is a relation,
+     * not a route parameter.
      */
     private function canManage(User $user, Project $project): bool
     {
-        if ($this->hasWideVisibility($user, $project)) {
-            return true;
-        }
-
-        $membership = $project->members()->active()->where('user_id', $user->id)->first();
-
-        return $membership !== null && $membership->role->canManageProject();
+        return $this->hasWideVisibility($user, $project) || $this->managesProject($user, $project);
     }
 
     private function hasWideVisibility(User $user, Project $project): bool

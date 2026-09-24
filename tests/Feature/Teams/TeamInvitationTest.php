@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\Teams;
 
+use App\Enums\TeamModulePermission;
 use App\Enums\TeamRole;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
 use App\Notifications\Teams\TeamInvitation as TeamInvitationNotification;
+use App\Services\Teams\TeamAccessControl;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -22,7 +26,7 @@ class TeamInvitationTest extends TestCase
         $owner = User::factory()->create();
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $response = $this
             ->actingAs($owner)
@@ -46,7 +50,7 @@ class TeamInvitationTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -65,7 +69,7 @@ class TeamInvitationTest extends TestCase
         $owner = User::factory()->create();
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -79,19 +83,33 @@ class TeamInvitationTest extends TestCase
         $this->assertStringContainsString('log in', strtolower(implode(' ', $mail->introLines)));
     }
 
-    public function test_team_invitations_can_be_created_by_admins()
+    public function test_team_invitations_can_be_created_by_a_member_granted_the_permission()
     {
         Notification::fake();
 
-        $owner = User::factory()->create();
-        $admin = User::factory()->create();
+        $teamLead = User::factory()->create();
+        $recruiter = User::factory()->create();
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
-        $team->members()->attach($admin, ['role' => TeamRole::Admin->value]);
+        app(TeamAccessControl::class)->ensureCatalogue();
+        $role = Role::query()->create([
+            'team_id' => null,
+            'guard_name' => 'web',
+            'slug' => 'recruiter',
+            'name' => 'Recruiter',
+            'is_system' => false,
+        ]);
+        $role->syncPermissions([
+            Permission::query()->where('guard_name', 'web')
+                ->where('name', TeamModulePermission::CreateInvitation->value)
+                ->firstOrFail()->id,
+        ]);
+
+        $team->members()->attach($teamLead, ['role' => TeamRole::TeamLead->value]);
+        $team->members()->attach($recruiter, ['role' => 'recruiter']);
 
         $response = $this
-            ->actingAs($admin)
+            ->actingAs($recruiter)
             ->post(route('teams.invitations.store', $team), [
                 'email' => 'invited@example.com',
                 'role' => TeamRole::Member->value,
@@ -108,7 +126,7 @@ class TeamInvitationTest extends TestCase
         $member = User::factory()->create(['email' => 'member@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
         $team->members()->attach($member, ['role' => TeamRole::Member->value]);
 
         $response = $this
@@ -127,7 +145,7 @@ class TeamInvitationTest extends TestCase
 
         $owner = User::factory()->create();
         $team = Team::factory()->create();
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -151,7 +169,7 @@ class TeamInvitationTest extends TestCase
         $member = User::factory()->create();
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
         $team->members()->attach($member, ['role' => TeamRole::Member->value]);
 
         $response = $this
@@ -169,7 +187,7 @@ class TeamInvitationTest extends TestCase
         $owner = User::factory()->create();
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -193,7 +211,7 @@ class TeamInvitationTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -219,7 +237,7 @@ class TeamInvitationTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -244,7 +262,7 @@ class TeamInvitationTest extends TestCase
         $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -269,7 +287,7 @@ class TeamInvitationTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->accepted()->create([
             'team_id' => $team->id,
@@ -294,7 +312,7 @@ class TeamInvitationTest extends TestCase
         $uninvitedUser = User::factory()->create(['email' => 'uninvited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->create([
             'team_id' => $team->id,
@@ -317,7 +335,7 @@ class TeamInvitationTest extends TestCase
         $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
         $team = Team::factory()->create();
 
-        $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+        $team->members()->attach($owner, ['role' => TeamRole::TeamLead->value]);
 
         $invitation = TeamInvitation::factory()->expired()->create([
             'team_id' => $team->id,

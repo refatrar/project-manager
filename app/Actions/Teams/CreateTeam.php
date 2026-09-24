@@ -33,7 +33,7 @@ class CreateTeam
             if ($user !== null) {
                 $team->memberships()->create([
                     'user_id' => $user->id,
-                    'role' => TeamRole::Owner,
+                    'role' => TeamRole::TeamLead,
                 ]);
 
                 $user->switchTeam($team);
