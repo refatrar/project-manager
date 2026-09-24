@@ -27,6 +27,7 @@ type Props = {
     modules: ProjectModule[];
     statusOptions: ProjectModuleStatusOption[];
     priorityOptions: PriorityOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -35,6 +36,7 @@ export default function ModuleTree({
     modules,
     statusOptions,
     priorityOptions,
+    canManage,
     onChanged,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
@@ -132,50 +134,56 @@ export default function ModuleTree({
                         ) : null}
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-1">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={index <= 0}
-                            onClick={() => moveWithinSiblings(module, -1)}
-                            data-test="module-move-up"
-                        >
-                            <ChevronUp className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={index === -1 || index >= siblings.length - 1}
-                            onClick={() => moveWithinSiblings(module, 1)}
-                            data-test="module-move-down"
-                        >
-                            <ChevronDown className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setAddingUnderParentId(module.id)}
-                            data-test="module-add-child"
-                        >
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingModule(module)}
-                            data-test="module-edit"
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeletingModule(module)}
-                            data-test="module-delete"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    {canManage ? (
+                        <div className="flex shrink-0 items-center gap-1">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={index <= 0}
+                                onClick={() => moveWithinSiblings(module, -1)}
+                                data-test="module-move-up"
+                            >
+                                <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={
+                                    index === -1 || index >= siblings.length - 1
+                                }
+                                onClick={() => moveWithinSiblings(module, 1)}
+                                data-test="module-move-down"
+                            >
+                                <ChevronDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    setAddingUnderParentId(module.id)
+                                }
+                                data-test="module-add-child"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingModule(module)}
+                                data-test="module-edit"
+                            >
+                                <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeletingModule(module)}
+                                data-test="module-delete"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : null}
                 </div>
 
                 {children.length > 0 ? (
@@ -191,20 +199,26 @@ export default function ModuleTree({
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
-                <ModuleFormModal
-                    projectId={projectId}
-                    defaultParentId={null}
-                    availableParents={modules}
-                    statusOptions={statusOptions}
-                    priorityOptions={priorityOptions}
-                    onSaved={onChanged}
-                >
-                    <Button type="button" size="sm" data-test="module-add-root">
-                        <Plus className="h-4 w-4" /> Add module
-                    </Button>
-                </ModuleFormModal>
-            </div>
+            {canManage ? (
+                <div className="flex justify-end">
+                    <ModuleFormModal
+                        projectId={projectId}
+                        defaultParentId={null}
+                        availableParents={modules}
+                        statusOptions={statusOptions}
+                        priorityOptions={priorityOptions}
+                        onSaved={onChanged}
+                    >
+                        <Button
+                            type="button"
+                            size="sm"
+                            data-test="module-add-root"
+                        >
+                            <Plus className="h-4 w-4" /> Add module
+                        </Button>
+                    </ModuleFormModal>
+                </div>
+            ) : null}
 
             {roots.length > 0 ? (
                 <div className="space-y-2">

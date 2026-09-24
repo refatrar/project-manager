@@ -42,7 +42,10 @@ class TimeOffRequestPolicy
      */
     public function update(User $user, TimeOffRequest $request): bool
     {
-        return $request->user_id === $user->id && $request->status === ApprovalStatus::Pending;
+        return $request->user_id === $user->id
+            && $request->status === ApprovalStatus::Pending
+            && $request->team_id !== null
+            && $user->teamCan($request->loadMissing('team')->team, TeamModulePermission::ManageTimeOff);
     }
 
     /**
@@ -57,11 +60,13 @@ class TimeOffRequestPolicy
     /**
      * Determine whether the user can approve or reject the request. A
      * decision is final in this slice — a already-decided request cannot
-     * be re-decided.
+     * be re-decided — and nobody decides their own request.
      */
     public function decide(User $user, TimeOffRequest $request): bool
     {
-        return $this->canApprove($user, $request) && $request->status === ApprovalStatus::Pending;
+        return $request->user_id !== $user->id
+            && $this->canApprove($user, $request)
+            && $request->status === ApprovalStatus::Pending;
     }
 
     /**

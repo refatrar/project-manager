@@ -6,6 +6,7 @@ import TimeOffRequestFormModal from '@/components/time-off/time-off-request-form
 import TimeOffRequestList from '@/components/time-off/time-off-request-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTeamAccess } from '@/hooks/use-team-access';
 import { index as timeOffIndex } from '@/routes/time-off-requests';
 import type { TimeOffRequest, TimeOffTypeOption } from '@/types';
 
@@ -22,6 +23,7 @@ export default function TimeOffIndex({
     isApprover,
     typeOptions,
 }: Props) {
+    const can = useTeamAccess();
     const refresh = () => router.reload({ only: ['myRequests', 'pendingApprovals'] });
 
     return (
@@ -35,11 +37,13 @@ export default function TimeOffIndex({
                         description="Approved time off reduces your available capacity; pending requests do not."
                     />
 
-                    <TimeOffRequestFormModal typeOptions={typeOptions} onSaved={refresh}>
-                        <Button type="button" data-test="time-off-create-button">
-                            <Plus /> Request time off
-                        </Button>
-                    </TimeOffRequestFormModal>
+                    {can('time-off.manage') ? (
+                        <TimeOffRequestFormModal typeOptions={typeOptions} onSaved={refresh}>
+                            <Button type="button" data-test="time-off-create-button">
+                                <Plus /> Request time off
+                            </Button>
+                        </TimeOffRequestFormModal>
+                    ) : null}
                 </div>
 
                 {isApprover ? (

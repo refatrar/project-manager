@@ -12,6 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useTeamAccess } from '@/hooks/use-team-access';
 import { index, show } from '@/routes/meetings';
 import type {
     Meeting,
@@ -34,7 +35,10 @@ type Props = {
     typeOptions: MeetingTypeOption[];
 };
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const statusVariant: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     scheduled: 'default',
     in_progress: 'secondary',
     completed: 'outline',
@@ -49,6 +53,7 @@ export default function MeetingsIndex({
     typeOptions,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
+    const can = useTeamAccess();
     const [createOpen, setCreateOpen] = useState(false);
 
     const applyFilter = (key: 'status' | 'type', value: string) => {
@@ -59,7 +64,11 @@ export default function MeetingsIndex({
         router.get(
             index(teamSlug),
             { ...filters, [key]: value === 'all' ? undefined : value },
-            { preserveState: true, preserveScroll: true, only: ['meetings', 'filters'] },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['meetings', 'filters'],
+            },
         );
     };
 
@@ -74,21 +83,28 @@ export default function MeetingsIndex({
                         description="Every meeting scheduled for this team."
                     />
 
-                    <MeetingFormModal
-                        typeOptions={typeOptions}
-                        projects={projects}
-                        open={createOpen}
-                        onOpenChange={setCreateOpen}
-                        onSaved={(meeting) => {
-                            if (teamSlug) {
-                                router.visit(show.url([teamSlug, meeting.id]));
-                            }
-                        }}
-                    >
-                        <Button type="button" data-test="meetings-create-button">
-                            <Plus /> Schedule meeting
-                        </Button>
-                    </MeetingFormModal>
+                    {can('meetings.create') ? (
+                        <MeetingFormModal
+                            typeOptions={typeOptions}
+                            projects={projects}
+                            open={createOpen}
+                            onOpenChange={setCreateOpen}
+                            onSaved={(meeting) => {
+                                if (teamSlug) {
+                                    router.visit(
+                                        show.url([teamSlug, meeting.id]),
+                                    );
+                                }
+                            }}
+                        >
+                            <Button
+                                type="button"
+                                data-test="meetings-create-button"
+                            >
+                                <Plus /> Schedule meeting
+                            </Button>
+                        </MeetingFormModal>
+                    ) : null}
                 </div>
 
                 <div className="flex flex-wrap gap-3">
@@ -96,13 +112,19 @@ export default function MeetingsIndex({
                         value={filters.status ?? 'all'}
                         onValueChange={(value) => applyFilter('status', value)}
                     >
-                        <SelectTrigger className="w-40" data-test="filter-status">
+                        <SelectTrigger
+                            className="w-40"
+                            data-test="filter-status"
+                        >
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All statuses</SelectItem>
                             {statusOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -119,7 +141,10 @@ export default function MeetingsIndex({
                         <SelectContent>
                             <SelectItem value="all">All types</SelectItem>
                             {typeOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
+                                <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
                                     {option.label}
                                 </SelectItem>
                             ))}
@@ -131,7 +156,11 @@ export default function MeetingsIndex({
                     {meetings.data.map((meeting) => (
                         <Link
                             key={meeting.id}
-                            href={teamSlug ? show.url([teamSlug, meeting.id]) : '#'}
+                            href={
+                                teamSlug
+                                    ? show.url([teamSlug, meeting.id])
+                                    : '#'
+                            }
                             data-test="meeting-row"
                             className="hover:bg-accent flex items-center justify-between gap-4 rounded-lg border p-4"
                         >
@@ -177,7 +206,9 @@ export default function MeetingsIndex({
                             link.url ? (
                                 <Button
                                     key={`${link.label}-${linkIndex}`}
-                                    variant={link.active ? 'default' : 'outline'}
+                                    variant={
+                                        link.active ? 'default' : 'outline'
+                                    }
                                     size="sm"
                                     asChild
                                 >

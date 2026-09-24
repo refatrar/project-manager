@@ -17,9 +17,11 @@ class TaskPolicy
      */
     public function viewAny(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project)
+        return $this->canUseProjects($user, $project) && (
+            $this->hasWideVisibility($user, $project)
             || $this->isActiveMember($user, $project)
-            || $this->managesProject($user, $project);
+            || $this->managesProject($user, $project)
+        );
     }
 
     /**
@@ -38,9 +40,7 @@ class TaskPolicy
      */
     public function create(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project)
-            || $this->isActiveMember($user, $project)
-            || $this->managesProject($user, $project);
+        return $this->viewAny($user, $project);
     }
 
     /**
@@ -60,7 +60,8 @@ class TaskPolicy
      */
     public function changeStatus(User $user, Task $task): bool
     {
-        return $this->canManage($user, $task->project) || $this->isAssignee($user, $task);
+        return $this->canManage($user, $task->project)
+            || ($this->canUseProjects($user, $task->project) && $this->isAssignee($user, $task));
     }
 
     /**
@@ -78,7 +79,8 @@ class TaskPolicy
      */
     private function canManage(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project) || $this->managesProject($user, $project);
+        return $this->canUseProjects($user, $project)
+            && ($this->hasWideVisibility($user, $project) || $this->managesProject($user, $project));
     }
 
     private function hasWideVisibility(User $user, Project $project): bool

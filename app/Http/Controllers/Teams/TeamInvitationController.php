@@ -8,6 +8,7 @@ use App\Http\Requests\Teams\RespondToTeamInvitationRequest;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Notifications\Teams\TeamInvitation as TeamInvitationNotification;
+use App\Services\Teams\TeamAccessControl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -76,7 +77,7 @@ class TeamInvitationController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation accepted.')]);
 
-        return to_route('dashboard');
+        return redirect()->to(app(TeamAccessControl::class)->homeUrl($user, $invitation->team));
     }
 
     /**
@@ -88,6 +89,8 @@ class TeamInvitationController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation declined.')]);
 
-        return to_route('dashboard');
+        // `start` picks the right landing page — or the no-team page when
+        // declining left the user without one.
+        return to_route('start');
     }
 }

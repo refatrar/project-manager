@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Pencil, Plus } from 'lucide-react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
 import ProjectFormModal from '@/components/projects/project-form-modal';
@@ -12,6 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useTeamAccess } from '@/hooks/use-team-access';
 import { index, show } from '@/routes/projects';
 import type {
     Paginated,
@@ -56,7 +57,9 @@ export default function ProjectsIndex({
     teamMembers,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
+    const can = useTeamAccess();
     const [createOpen, setCreateOpen] = useState(false);
+    const [editingProject, setEditingProject] = useState<Project | null>(null);
 
     const applyFilter = (
         key: 'status' | 'priority' | 'health',
@@ -88,27 +91,48 @@ export default function ProjectsIndex({
                         description="Every project this team is running."
                     />
 
-                    <ProjectFormModal
-                        statusOptions={statusOptions}
-                        priorityOptions={priorityOptions}
-                        healthOptions={healthOptions}
-                        teamMembers={teamMembers}
-                        open={createOpen}
-                        onOpenChange={setCreateOpen}
-                        onSaved={(project) => {
-                            if (teamSlug) {
-                                router.visit(show.url([teamSlug, project.id]));
-                            }
-                        }}
-                    >
-                        <Button
-                            type="button"
-                            data-test="projects-create-button"
+                    {can('projects.create') ? (
+                        <ProjectFormModal
+                            statusOptions={statusOptions}
+                            priorityOptions={priorityOptions}
+                            healthOptions={healthOptions}
+                            teamMembers={teamMembers}
+                            open={createOpen}
+                            onOpenChange={setCreateOpen}
+                            onSaved={(project) => {
+                                if (teamSlug) {
+                                    router.visit(
+                                        show.url([teamSlug, project.id]),
+                                    );
+                                }
+                            }}
                         >
-                            <Plus /> New project
-                        </Button>
-                    </ProjectFormModal>
+                            <Button
+                                type="button"
+                                data-test="projects-create-button"
+                            >
+                                <Plus /> New project
+                            </Button>
+                        </ProjectFormModal>
+                    ) : null}
                 </div>
+
+                <ProjectFormModal
+                    statusOptions={statusOptions}
+                    priorityOptions={priorityOptions}
+                    healthOptions={healthOptions}
+                    teamMembers={teamMembers}
+                    project={editingProject}
+                    open={editingProject !== null}
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setEditingProject(null);
+                        }
+                    }}
+                    onSaved={() => {
+                        router.reload({ only: ['projects'] });
+                    }}
+                />
 
                 <div className="flex flex-wrap gap-3">
                     <Select
@@ -185,17 +209,19 @@ export default function ProjectsIndex({
 
                 <div className="space-y-3">
                     {projects.data.map((project) => (
-                        <Link
+                        <div
                             key={project.id}
-                            href={
-                                teamSlug
-                                    ? show.url([teamSlug, project.id])
-                                    : '#'
-                            }
                             data-test="project-row"
                             className="hover:bg-accent flex items-center justify-between gap-4 rounded-lg border p-4"
                         >
-                            <div className="min-w-0">
+                            <Link
+                                href={
+                                    teamSlug
+                                        ? show.url([teamSlug, project.id])
+                                        : '#'
+                                }
+                                className="min-w-0 flex-1"
+                            >
                                 <div className="flex flex-wrap items-center gap-2">
                                     <span className="text-muted-foreground font-mono text-xs">
                                         {project.code}
@@ -219,8 +245,20 @@ export default function ProjectsIndex({
                                     {project.priority} priority ·{' '}
                                     {project.progress_percentage}% complete
                                 </p>
-                            </div>
-                        </Link>
+                            </Link>
+
+                            {can('projects.create') ? (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    data-test="project-update-button"
+                                    onClick={() => setEditingProject(project)}
+                                >
+                                    <Pencil className="h-4 w-4" /> Update
+                                </Button>
+                            ) : null}
+                        </div>
                     ))}
 
                     {projects.data.length === 0 ? (

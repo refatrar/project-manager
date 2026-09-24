@@ -2,9 +2,11 @@
 
 namespace App\Services\Teams;
 
+use App\Enums\ProjectMemberRole;
 use App\Enums\TeamModulePermission;
 use App\Enums\TeamPermission;
 use App\Enums\TeamRole;
+use App\Models\OMS\Project;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Team;
@@ -22,6 +24,8 @@ use Spatie\Permission\PermissionRegistrar;
  */
 class TeamAccessControl
 {
+    private ?bool $catalogueSeeded = null;
+
     /**
      * @var array<string, array{name: string, description: string}>
      */
@@ -98,21 +102,7 @@ class TeamAccessControl
             return [];
         }
 
-        $role = $this->findRole($slug);
-
-        if ($role === null) {
-            return $this->defaultNames($slug);
-        }
-
-        $role->loadMissing('permissions');
-
-        $names = [];
-
-        foreach ($role->permissions as $permission) {
-            $names[] = $permission->name;
-        }
-
-        return $names;
+        return $this->permissionNamesFor($slug);
     }
 
     /**
@@ -151,17 +141,136 @@ class TeamAccessControl
         return array_column($this->assignableOptions($team), 'value');
     }
 
-    public function labelFor(Team $team, string $slug): string
+    /**
+     * The assignable roles the actor may hand out on the team — only those
+     * whose every permission the actor already holds. Without this, anyone
+     * with `member:update` or `invitation:create` could give themselves (or
+     * a second account) a custom role more powerful than their own.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public function grantableOptions(User $actor, Team $team): array
     {
-        $builtIn = TeamRole::tryFrom($slug);
+        $held = $actor->teamAccessList($team);
 
-        if ($builtIn !== null) {
-            return $builtIn->label();
+        return array_values(array_filter(
+            $this->assignableOptions($team),
+            fn (array $option): bool => array_diff($this->permissionNamesFor($option['value']), $held) === [],
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function grantableSlugs(User $actor, Team $team): array
+    {
+        return array_column($this->grantableOptions($actor, $team), 'value');
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function permissionNamesFor(string $slug): array
+    {
+        $role = $this->findRole($slug);
+
+        // The built-in matrix only stands in while the catalogue has never
+        // been seeded (factory-built teams in tests). Once roles exist, a
+        // missing row grants nothing rather than silently re-granting the
+        // defaults an admin may have taken away.
+        if ($role === null) {
+            return $this->catalogueSeeded() ? [] : $this->defaultNames($slug);
         }
 
+        $role->loadMissing('permissions');
+
+        return $role->permissions->pluck('name')->values()->all();
+    }
+
+    /**
+     * Where to land the user on the team: the dashboard when their role
+     * can see it, else the first team page it can open — so a role
+     * without `dashboard.view` doesn't log straight into a 403. Team
+     * settings is the last resort; every member can open it.
+     */
+    public function homeUrl(User $user, Team $team): string
+    {
+        $pages = [
+            'dashboard.view' => 'dashboard',
+            'my-day.view' => 'my-day',
+            'projects.view' => 'projects.index',
+            'meetings.view' => 'meetings.index',
+            'todos.manage' => 'todo-lists.index',
+            'time-off.view' => 'time-off-requests.index',
+            'time-logs.manage' => 'time-logs.index',
+            'timesheet.view' => 'timesheet.index',
+        ];
+
+        $granted = $user->teamAccessList($team);
+
+        foreach ($pages as $permission => $routeName) {
+            if (in_array($permission, $granted, true)) {
+                return route($routeName, ['current_team' => $team->slug]);
+            }
+        }
+
+        return route('teams.edit', ['team' => $team->slug]);
+    }
+
+    /**
+     * Whether the timesheet-approvals queue can hold anything for the user
+     * — the same people `TimeLogPolicy::decide` lets act: a team-wide
+     * approver, or anyone managing a project (manage-all, Project Lead, or
+     * an Owner/Manager/Lead project membership) who can use Projects.
+     * Drives only the nav link; the queue itself filters by the policy.
+     */
+    public function canApproveTimesheets(User $user, Team $team): bool
+    {
+        if ($user->teamCan($team, TeamModulePermission::DecideTimesheets)) {
+            return true;
+        }
+
+        if (! $user->teamCan($team, TeamModulePermission::ViewProjects)) {
+            return false;
+        }
+
+        if ($user->teamCan($team, TeamModulePermission::ManageAllProjects) || $user->teamCan($team, TeamModulePermission::ViewAllProjects)) {
+            return true;
+        }
+
+        return Project::query()
+            ->where('team_id', $team->id)
+            ->where(fn ($query) => $query
+                ->where('project_lead_id', $user->id)
+                ->orWhereHas('members', fn ($members) => $members
+                    ->active()
+                    ->where('user_id', $user->id)
+                    ->whereIn('role', array_map(
+                        fn (ProjectMemberRole $role): string => $role->value,
+                        array_filter(ProjectMemberRole::cases(), fn (ProjectMemberRole $role): bool => $role->canManageProject()),
+                    ))))
+            ->exists();
+    }
+
+    private function catalogueSeeded(): bool
+    {
+        return $this->catalogueSeeded ??= Role::query()
+            ->where('guard_name', 'web')
+            ->whereNull('team_id')
+            ->exists();
+    }
+
+    public function labelFor(Team $team, string $slug): string
+    {
+        // The stored name wins, even for the built-in slugs: the admin panel
+        // can rename them, and the role pickers already list stored names.
         $stored = $this->findRole($slug);
 
-        return $stored !== null ? $stored->name : Str::headline($slug);
+        if ($stored !== null) {
+            return $stored->name;
+        }
+
+        return TeamRole::tryFrom($slug)?->label() ?? Str::headline($slug);
     }
 
     /**

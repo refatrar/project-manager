@@ -46,6 +46,17 @@ class ProjectLeadTest extends TestCase
             'code' => 'ALPHA',
             'project_lead_id' => $lead->id,
         ]);
+        $this->assertDatabaseHas('project_members', [
+            'project_id' => $response->json('project.id'),
+            'user_id' => $lead->id,
+            'role' => ProjectMemberRole::Lead->value,
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('project_members', [
+            'project_id' => $response->json('project.id'),
+            'user_id' => $teamLead->id,
+            'role' => ProjectMemberRole::Owner->value,
+        ]);
     }
 
     public function test_project_lead_can_be_left_unset(): void
@@ -143,6 +154,45 @@ class ProjectLeadTest extends TestCase
 
         $response->assertOk();
         $response->assertJsonPath('project.name', 'Renamed by lead');
+        $this->assertDatabaseHas('project_members', [
+            'project_id' => $project->id,
+            'user_id' => $lead->id,
+            'role' => ProjectMemberRole::Lead->value,
+        ]);
+    }
+
+    public function test_updating_the_project_lead_adds_them_without_changing_an_existing_role(): void
+    {
+        $teamLead = User::factory()->create();
+        $team = $teamLead->currentTeam;
+        $currentLead = User::factory()->create();
+        $nextLead = User::factory()->create();
+        $team->members()->attach($currentLead, ['role' => TeamRole::Member->value]);
+        $team->members()->attach($nextLead, ['role' => TeamRole::Member->value]);
+        $project = Project::factory()->for($team)->create(['project_lead_id' => $currentLead->id]);
+        ProjectMember::factory()->for($project)->create([
+            'user_id' => $nextLead->id,
+            'role' => ProjectMemberRole::Developer,
+        ]);
+
+        $response = $this
+            ->actingAs($teamLead)
+            ->putJson($this->projectsRoute($teamLead, 'projects.update', project: $project), [
+                'code' => $project->code,
+                'name' => $project->name,
+                'status' => $project->status->value,
+                'priority' => $project->priority->value,
+                'health' => $project->health->value,
+                'project_lead_id' => $nextLead->id,
+            ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('project_members', [
+            'project_id' => $project->id,
+            'user_id' => $nextLead->id,
+            'role' => ProjectMemberRole::Developer->value,
+        ]);
+        $this->assertSame(1, ProjectMember::query()->where('project_id', $project->id)->where('user_id', $nextLead->id)->count());
     }
 
     public function test_project_lead_can_manage_meetings_and_attendees_without_being_organizer(): void
@@ -210,6 +260,12 @@ class ProjectLeadTest extends TestCase
                 'health' => ProjectHealth::OnTrack->value,
             ]);
         $updateResponse->assertOk();
+        $this->assertDatabaseHas('project_members', [
+            'project_id' => $project->id,
+            'user_id' => $teamLead->id,
+            'role' => ProjectMemberRole::Lead->value,
+            'status' => 'active',
+        ]);
     }
 
     public function test_team_lead_from_another_team_cannot_manage_the_project(): void

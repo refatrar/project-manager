@@ -20,6 +20,7 @@ type Props = {
     allocations: ResourceAllocation[];
     members: ProjectMember[];
     statusOptions: AllocationStatusOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -38,6 +39,7 @@ export default function AllocationList({
     allocations,
     members,
     statusOptions,
+    canManage,
     onChanged,
 }: Props) {
     const [editingAllocation, setEditingAllocation] =
@@ -47,18 +49,24 @@ export default function AllocationList({
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
-                <AllocationFormModal
-                    projectId={projectId}
-                    members={members}
-                    statusOptions={statusOptions}
-                    onSaved={onChanged}
-                >
-                    <Button type="button" size="sm" data-test="allocation-add">
-                        <Plus className="h-4 w-4" /> Book hours
-                    </Button>
-                </AllocationFormModal>
-            </div>
+            {canManage ? (
+                <div className="flex justify-end">
+                    <AllocationFormModal
+                        projectId={projectId}
+                        members={members}
+                        statusOptions={statusOptions}
+                        onSaved={onChanged}
+                    >
+                        <Button
+                            type="button"
+                            size="sm"
+                            data-test="allocation-add"
+                        >
+                            <Plus className="h-4 w-4" /> Book hours
+                        </Button>
+                    </AllocationFormModal>
+                </div>
+            ) : null}
 
             {allocations.length > 0 ? (
                 <div className="space-y-2">
@@ -123,28 +131,30 @@ export default function AllocationList({
                                 ) : null}
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                        setEditingAllocation(allocation)
-                                    }
-                                    data-test="allocation-edit"
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                        setDeletingAllocation(allocation)
-                                    }
-                                    data-test="allocation-delete"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            {canManage ? (
+                                <div className="flex shrink-0 items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setEditingAllocation(allocation)
+                                        }
+                                        data-test="allocation-edit"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setDeletingAllocation(allocation)
+                                        }
+                                        data-test="allocation-delete"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : null}
                         </div>
                     ))}
                 </div>

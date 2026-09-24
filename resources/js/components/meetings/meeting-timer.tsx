@@ -14,6 +14,8 @@ type TimerResponse = {
 type Props = {
     meetingId: number;
     timer: MeetingTimerData;
+    /** Whether the user may log time here (server `can.startTimer`). */
+    canStart: boolean;
     onChanged: () => void;
 };
 
@@ -32,7 +34,12 @@ function formatElapsed(seconds: number): string {
     return [hh, mm, ss].map((part) => String(part).padStart(2, '0')).join(':');
 }
 
-export default function MeetingTimer({ meetingId, timer, onChanged }: Props) {
+export default function MeetingTimer({
+    meetingId,
+    timer,
+    canStart,
+    onChanged,
+}: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const form = useHttp<Record<string, never>, TimerResponse>({});
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -45,7 +52,10 @@ export default function MeetingTimer({ meetingId, timer, onChanged }: Props) {
         }
 
         const startedAt = new Date(timer.running.started_at).getTime();
-        const tick = () => setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+        const tick = () =>
+            setElapsedSeconds(
+                Math.max(0, Math.floor((Date.now() - startedAt) / 1000)),
+            );
         tick();
 
         const interval = window.setInterval(tick, 1000);
@@ -101,7 +111,7 @@ export default function MeetingTimer({ meetingId, timer, onChanged }: Props) {
                         <Square className="h-4 w-4" /> Stop timer
                     </Button>
                 </>
-            ) : (
+            ) : canStart ? (
                 <Button
                     type="button"
                     variant="outline"
@@ -112,9 +122,12 @@ export default function MeetingTimer({ meetingId, timer, onChanged }: Props) {
                 >
                     <Play className="h-4 w-4" /> Start timer
                 </Button>
-            )}
+            ) : null}
 
-            <p className="text-muted-foreground text-sm" data-test="meeting-timer-total">
+            <p
+                className="text-muted-foreground text-sm"
+                data-test="meeting-timer-total"
+            >
                 {timer.total_minutes > 0
                     ? `${formatMinutes(timer.total_minutes)} logged for this meeting`
                     : 'No time logged yet'}

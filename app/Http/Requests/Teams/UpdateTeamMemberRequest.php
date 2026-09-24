@@ -22,7 +22,7 @@ class UpdateTeamMemberRequest extends FormRequest
         abort_if(! $team instanceof Team, 404);
 
         return [
-            'role' => ['required', 'string', Rule::in(app(TeamAccessControl::class)->assignableSlugs($team))],
+            'role' => ['required', 'string', Rule::in(app(TeamAccessControl::class)->grantableSlugs($this->user('web'), $team))],
         ];
     }
 }

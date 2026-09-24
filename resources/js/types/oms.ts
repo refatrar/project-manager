@@ -1,10 +1,5 @@
 export type ProjectStatus =
-    | 'planning'
-    | 'active'
-    | 'on_hold'
-    | 'completed'
-    | 'cancelled'
-    | 'archived';
+    'planning' | 'active' | 'on_hold' | 'completed' | 'cancelled' | 'archived';
 
 export type Priority = 'low' | 'medium' | 'high' | 'critical';
 
@@ -37,6 +32,7 @@ export type Project = {
     start_date: string | null;
     end_date: string | null;
     archived_at: string | null;
+    can_update?: boolean;
 };
 
 export type ProjectDetail = Project & {
@@ -53,11 +49,7 @@ export type ProjectDetail = Project & {
 };
 
 export type ProjectModuleStatus =
-    | 'planning'
-    | 'in_progress'
-    | 'on_hold'
-    | 'completed'
-    | 'cancelled';
+    'planning' | 'in_progress' | 'on_hold' | 'completed' | 'cancelled';
 
 export type ProjectModuleStatusOption = {
     value: ProjectModuleStatus;
@@ -95,7 +87,8 @@ export type ProjectMember = {
     role: ProjectMemberRole;
     status: ProjectMemberStatus;
     allocation_percentage: number;
-    hourly_rate: string | null;
+    /** Omitted by the server for viewers who can't manage the project. */
+    hourly_rate?: string | null;
     joined_on: string | null;
     left_on: string | null;
 };
@@ -180,13 +173,12 @@ export type Task = {
     assignees: TaskAssignee[];
     assignments: TaskAssignment[];
     labels: TaskLabel[];
+    /** Board rows only: whether the viewer may move this task (TaskPolicy::changeStatus). */
+    can_change_status?: boolean;
 };
 
 export type TaskDependencyType =
-    | 'blocked_by'
-    | 'relates_to'
-    | 'duplicates'
-    | 'parent_of';
+    'blocked_by' | 'relates_to' | 'duplicates' | 'parent_of';
 
 export type TaskDependencyTypeOption = {
     value: TaskDependencyType;
@@ -224,11 +216,7 @@ export type TaskDetail = Task & {
 };
 
 export type MilestoneStatus =
-    | 'pending'
-    | 'in_progress'
-    | 'completed'
-    | 'missed'
-    | 'cancelled';
+    'pending' | 'in_progress' | 'completed' | 'missed' | 'cancelled';
 
 export type MilestoneStatusOption = { value: MilestoneStatus; label: string };
 
@@ -321,11 +309,7 @@ export type CycleTimeReport = {
 };
 
 export type TodoListType =
-    | 'custom'
-    | 'daily'
-    | 'task_checklist'
-    | 'meeting_actions'
-    | 'generated';
+    'custom' | 'daily' | 'task_checklist' | 'meeting_actions' | 'generated';
 export type TodoListStatus = 'open' | 'completed' | 'archived';
 
 export type TodoListTypeOption = { value: TodoListType; label: string };
@@ -366,25 +350,14 @@ export type MeetingType =
     | 'one_on_one'
     | 'general';
 export type MeetingStatus =
-    | 'scheduled'
-    | 'in_progress'
-    | 'completed'
-    | 'cancelled';
+    'scheduled' | 'in_progress' | 'completed' | 'cancelled';
 export type MeetingTypeOption = { value: MeetingType; label: string };
 export type MeetingStatusOption = { value: MeetingStatus; label: string };
 
 export type MeetingAttendeeRole =
-    | 'organizer'
-    | 'note_taker'
-    | 'participant'
-    | 'optional';
+    'organizer' | 'note_taker' | 'participant' | 'optional';
 export type MeetingAttendanceStatus =
-    | 'invited'
-    | 'accepted'
-    | 'declined'
-    | 'tentative'
-    | 'attended'
-    | 'absent';
+    'invited' | 'accepted' | 'declined' | 'tentative' | 'attended' | 'absent';
 export type MeetingAttendeeRoleOption = {
     value: MeetingAttendeeRole;
     label: string;
@@ -539,10 +512,7 @@ export type TeamCapacityMember = {
 };
 
 export type AllocationStatus =
-    | 'planned'
-    | 'confirmed'
-    | 'completed'
-    | 'cancelled';
+    'planned' | 'confirmed' | 'completed' | 'cancelled';
 export type AllocationStatusOption = { value: AllocationStatus; label: string };
 
 export type ResourceAllocation = {
@@ -561,19 +531,10 @@ export type ResourceAllocation = {
 };
 
 export type TimeOffType =
-    | 'vacation'
-    | 'sick'
-    | 'public_holiday'
-    | 'training'
-    | 'personal'
-    | 'unpaid';
+    'vacation' | 'sick' | 'public_holiday' | 'training' | 'personal' | 'unpaid';
 export type TimeOffTypeOption = { value: TimeOffType; label: string };
 export type ApprovalStatus =
-    | 'pending'
-    | 'submitted'
-    | 'approved'
-    | 'rejected'
-    | 'cancelled';
+    'pending' | 'submitted' | 'approved' | 'rejected' | 'cancelled';
 
 export type TimeOffRequest = {
     id: number;

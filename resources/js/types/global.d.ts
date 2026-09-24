@@ -16,6 +16,8 @@ declare module '@inertiajs/core' {
             currentTeam: Team | null;
             teams: Team[];
             teamAccess: string[];
+            teamHome: string | null;
+            canApproveTimesheets: boolean;
             [key: string]: unknown;
         };
     }

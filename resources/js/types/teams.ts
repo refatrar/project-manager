@@ -17,6 +17,8 @@ export type TeamMember = {
     avatar?: string | null;
     role: string;
     role_label: string;
+    /** Whether the viewer may change this member's role or remove them. */
+    manageable: boolean;
 };
 
 export type TeamInvitation = {

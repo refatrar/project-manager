@@ -22,6 +22,7 @@ type Props = {
     capacity: ProjectMemberCapacity[];
     availableUsers: TeamMemberOption[];
     roleOptions: ProjectMemberRoleOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -62,6 +63,7 @@ export default function MemberList({
     capacity,
     availableUsers,
     roleOptions,
+    canManage,
     onChanged,
 }: Props) {
     const [editingMember, setEditingMember] = useState<ProjectMember | null>(
@@ -73,23 +75,25 @@ export default function MemberList({
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
-                <MemberFormModal
-                    projectId={projectId}
-                    availableUsers={availableUsers}
-                    roleOptions={roleOptions}
-                    onSaved={onChanged}
-                >
-                    <Button
-                        type="button"
-                        size="sm"
-                        disabled={availableUsers.length === 0}
-                        data-test="member-add-button"
+            {canManage ? (
+                <div className="flex justify-end">
+                    <MemberFormModal
+                        projectId={projectId}
+                        availableUsers={availableUsers}
+                        roleOptions={roleOptions}
+                        onSaved={onChanged}
                     >
-                        <Plus className="h-4 w-4" /> Add member
-                    </Button>
-                </MemberFormModal>
-            </div>
+                        <Button
+                            type="button"
+                            size="sm"
+                            disabled={availableUsers.length === 0}
+                            data-test="member-add-button"
+                        >
+                            <Plus className="h-4 w-4" /> Add member
+                        </Button>
+                    </MemberFormModal>
+                </div>
+            ) : null}
 
             {members.length > 0 ? (
                 <div className="space-y-2">
@@ -129,24 +133,28 @@ export default function MemberList({
                                 </p>
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setEditingMember(member)}
-                                    data-test="member-edit"
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setRemovingMember(member)}
-                                    data-test="member-remove"
-                                >
-                                    <UserMinus className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            {canManage ? (
+                                <div className="flex shrink-0 items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setEditingMember(member)}
+                                        data-test="member-edit"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setRemovingMember(member)
+                                        }
+                                        data-test="member-remove"
+                                    >
+                                        <UserMinus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : null}
                         </div>
                     ))}
                 </div>

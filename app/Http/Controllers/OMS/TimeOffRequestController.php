@@ -49,6 +49,8 @@ class TimeOffRequestController extends Controller
             ? TimeOffRequest::query()
                 ->where('team_id', $current_team->id)
                 ->where('status', ApprovalStatus::Pending->value)
+                // Their own requests go to another approver (see `decide`).
+                ->where('user_id', '!=', $user->id)
                 ->with(['user:id,name', 'approver:id,name'])
                 ->orderBy('starts_on')
                 ->get()

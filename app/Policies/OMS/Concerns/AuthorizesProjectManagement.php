@@ -18,6 +18,18 @@ use App\Models\User;
 trait AuthorizesProjectManagement
 {
     /**
+     * Determine whether the user's team role can use the Projects module at
+     * all. The baseline for every project and task ability: without it,
+     * project membership, Project Lead, and view-all/manage-all grant
+     * nothing — otherwise removing `projects.view` from a role would only
+     * hide the list, not the projects behind it.
+     */
+    protected function canUseProjects(User $user, Project $project): bool
+    {
+        return $user->teamCan($project->team, TeamModulePermission::ViewProjects);
+    }
+
+    /**
      * Determine whether the user has project-lead-level authority over the
      * project: they're its designated Project Lead, or their team role
      * grants team-wide project management, or their project membership

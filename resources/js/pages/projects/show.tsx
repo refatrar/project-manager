@@ -29,6 +29,7 @@ import type {
     Milestone,
     MilestoneStatusOption,
     PriorityOption,
+    Project,
     ProjectDetail,
     ProjectHealthOption,
     ProjectMember,
@@ -49,8 +50,17 @@ import type {
     TeamMemberOption,
 } from '@/types';
 
+// Managers get the full detail payload; other viewers get it without the
+// budget, currency and estimated hours — see ProjectController::show().
+type ProjectPayload = Project & Partial<Omit<ProjectDetail, keyof Project>>;
+
+function isProjectDetail(project: ProjectPayload): project is ProjectDetail {
+    return 'budget' in project;
+}
+
 type Props = {
-    project: ProjectDetail;
+    project: ProjectPayload;
+    canManageProject: boolean;
     modules: ProjectModule[];
     members: ProjectMember[];
     memberCapacity: ProjectMemberCapacity[];
@@ -132,6 +142,7 @@ export default function ProjectShow({
     milestoneStatusOptions,
     sprintStatusOptions,
     allocationStatusOptions,
+    canManageProject,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const [tab, setTab] = useState<Tab>('overview');
@@ -150,34 +161,36 @@ export default function ProjectShow({
                         description={project.description ?? undefined}
                     />
 
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditOpen(true)}
-                            data-test="project-edit-button"
-                        >
-                            <Pencil className="h-4 w-4" /> Edit
-                        </Button>
-                        {!project.archived_at ? (
+                    {canManageProject ? (
+                        <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setArchiveOpen(true)}
-                                data-test="project-archive-button"
+                                onClick={() => setEditOpen(true)}
+                                data-test="project-edit-button"
                             >
-                                Archive
+                                <Pencil className="h-4 w-4" /> Edit
                             </Button>
-                        ) : null}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteOpen(true)}
-                            data-test="project-delete-button"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
+                            {!project.archived_at ? (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setArchiveOpen(true)}
+                                    data-test="project-archive-button"
+                                >
+                                    Archive
+                                </Button>
+                            ) : null}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteOpen(true)}
+                                data-test="project-delete-button"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : null}
                 </div>
 
                 <nav
@@ -226,6 +239,7 @@ export default function ProjectShow({
                         statusOptions={taskStatusOptions}
                         priorityOptions={priorityOptions}
                         assignmentRoleOptions={taskAssignmentRoleOptions}
+                        canManage={canManageProject}
                         onChanged={() =>
                             router.reload({
                                 only: ['tasks', 'activities', 'cycleTime'],
@@ -249,6 +263,7 @@ export default function ProjectShow({
                         modules={modules}
                         statusOptions={moduleStatusOptions}
                         priorityOptions={priorityOptions}
+                        canManage={canManageProject}
                         onChanged={() =>
                             router.reload({ only: ['modules', 'activities'] })
                         }
@@ -261,6 +276,7 @@ export default function ProjectShow({
                         capacity={memberCapacity}
                         availableUsers={availableUsers}
                         roleOptions={memberRoleOptions}
+                        canManage={canManageProject}
                         onChanged={() =>
                             router.reload({
                                 only: [
@@ -278,6 +294,7 @@ export default function ProjectShow({
                         projectId={project.id}
                         milestones={milestones}
                         statusOptions={milestoneStatusOptions}
+                        canManage={canManageProject}
                         onChanged={() =>
                             router.reload({
                                 only: ['milestones', 'activities'],
@@ -290,6 +307,7 @@ export default function ProjectShow({
                         projectId={project.id}
                         sprints={sprints}
                         statusOptions={sprintStatusOptions}
+                        canManage={canManageProject}
                         onChanged={() =>
                             router.reload({ only: ['sprints', 'activities'] })
                         }
@@ -303,6 +321,7 @@ export default function ProjectShow({
                             allocations={resourceAllocations}
                             members={members}
                             statusOptions={allocationStatusOptions}
+                            canManage={canManageProject}
                             onChanged={() =>
                                 router.reload({
                                     only: [
@@ -320,36 +339,40 @@ export default function ProjectShow({
                 ) : null}
             </div>
 
-            <ProjectFormModal
-                open={editOpen}
-                onOpenChange={setEditOpen}
-                project={project}
-                statusOptions={statusOptions}
-                priorityOptions={priorityOptions}
-                healthOptions={healthOptions}
-                teamMembers={teamMembers}
-                onSaved={() => router.reload({ only: ['project'] })}
-            />
+            {canManageProject && isProjectDetail(project) ? (
+                <>
+                    <ProjectFormModal
+                        open={editOpen}
+                        onOpenChange={setEditOpen}
+                        project={project}
+                        statusOptions={statusOptions}
+                        priorityOptions={priorityOptions}
+                        healthOptions={healthOptions}
+                        teamMembers={teamMembers}
+                        onSaved={() => router.reload({ only: ['project'] })}
+                    />
 
-            <ProjectArchiveModal
-                project={project}
-                open={archiveOpen}
-                onOpenChange={setArchiveOpen}
-                onArchived={() =>
-                    router.reload({ only: ['project', 'activities'] })
-                }
-            />
+                    <ProjectArchiveModal
+                        project={project}
+                        open={archiveOpen}
+                        onOpenChange={setArchiveOpen}
+                        onArchived={() =>
+                            router.reload({ only: ['project', 'activities'] })
+                        }
+                    />
 
-            <ProjectDeleteModal
-                project={project}
-                open={deleteOpen}
-                onOpenChange={setDeleteOpen}
-                onDeleted={() => {
-                    if (teamSlug) {
-                        router.visit(index(teamSlug));
-                    }
-                }}
-            />
+                    <ProjectDeleteModal
+                        project={project}
+                        open={deleteOpen}
+                        onOpenChange={setDeleteOpen}
+                        onDeleted={() => {
+                            if (teamSlug) {
+                                router.visit(index(teamSlug));
+                            }
+                        }}
+                    />
+                </>
+            ) : null}
         </>
     );
 }
@@ -360,7 +383,7 @@ function OverviewTab({
     burndown,
     cycleTime,
 }: {
-    project: ProjectDetail;
+    project: ProjectPayload;
     progress: ProjectProgress;
     burndown: BurndownPoint[];
     cycleTime: CycleTimeReport;
@@ -458,25 +481,29 @@ function OverviewTab({
             <CycleTimeCard cycleTime={cycleTime} />
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Owner</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm">
-                        {project.owner ? project.owner.name : 'Unassigned'}
-                    </CardContent>
-                </Card>
+                {project.owner !== undefined ? (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Owner</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm">
+                            {project.owner ? project.owner.name : 'Unassigned'}
+                        </CardContent>
+                    </Card>
+                ) : null}
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Project Lead</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm">
-                        {project.project_lead
-                            ? project.project_lead.name
-                            : 'None'}
-                    </CardContent>
-                </Card>
+                {project.project_lead !== undefined ? (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Project Lead</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm">
+                            {project.project_lead
+                                ? project.project_lead.name
+                                : 'None'}
+                        </CardContent>
+                    </Card>
+                ) : null}
 
                 <Card>
                     <CardHeader>
@@ -488,29 +515,36 @@ function OverviewTab({
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Budget</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1 text-sm">
-                        <p>Estimated hours: {project.estimated_hours ?? '—'}</p>
-                        <p>
-                            Budget:{' '}
-                            {project.budget
-                                ? `${project.budget} ${project.currency ?? ''}`
-                                : '—'}
-                        </p>
-                    </CardContent>
-                </Card>
+                {isProjectDetail(project) ? (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Budget</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-1 text-sm">
+                            <p>
+                                Estimated hours:{' '}
+                                {project.estimated_hours ?? '—'}
+                            </p>
+                            <p>
+                                Budget:{' '}
+                                {project.budget
+                                    ? `${project.budget} ${project.currency ?? ''}`
+                                    : '—'}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : null}
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Client</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm">
-                        {project.client_name ?? 'Internal project'}
-                    </CardContent>
-                </Card>
+                {project.client_name !== undefined ? (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Client</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-sm">
+                            {project.client_name ?? 'Internal project'}
+                        </CardContent>
+                    </Card>
+                ) : null}
             </div>
         </div>
     );
@@ -618,7 +652,7 @@ function CycleTimeCard({ cycleTime }: { cycleTime: CycleTimeReport }) {
 }
 
 ProjectShow.layout = (props: {
-    project: ProjectDetail;
+    project: ProjectPayload;
     currentTeam?: { slug: string } | null;
 }) => ({
     breadcrumbs: [

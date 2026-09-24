@@ -41,6 +41,7 @@ import {
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
+import { useTeamAccess } from '@/hooks/use-team-access';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index as scopesIndex } from '@/routes/setup/scopes';
@@ -73,14 +74,20 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     const dashboardUrl = currentTeam ? dashboard(currentTeam.slug) : '/';
+    const homeUrl = page.props.teamHome ?? '/';
+    const can = useTeamAccess();
 
     const mainNavItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboardUrl,
-            icon: LayoutGrid,
-        },
-        ...(currentTeam
+        ...(can('dashboard.view')
+            ? [
+                  {
+                      title: 'Dashboard',
+                      href: dashboardUrl,
+                      icon: LayoutGrid,
+                  } satisfies NavItem,
+              ]
+            : []),
+        ...(currentTeam && can('setup.manage')
             ? [
                   {
                       title: 'Scopes',
@@ -162,7 +169,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                     </div>
 
                     <Link
-                        href={dashboardUrl}
+                        href={homeUrl}
                         prefetch
                         className="flex items-center space-x-2"
                     >

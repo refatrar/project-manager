@@ -12,6 +12,8 @@ use Illuminate\Support\Str;
 
 class CreateProject
 {
+    public function __construct(private EnsureProjectLeadIsMember $ensureProjectLeadIsMember) {}
+
     /**
      * Create a project on the given team and add the creator as its owner.
      *
@@ -36,6 +38,8 @@ class CreateProject
             ]);
             $membership->created_by = $creator->id;
             $membership->save();
+
+            $this->ensureProjectLeadIsMember->handle($project, $creator->id);
 
             return $project;
         });

@@ -1,6 +1,7 @@
 import { Head, Link, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -131,7 +132,13 @@ function CreateUserForm() {
     );
 }
 
-function EditUserForm({ user }: { user: TeamUser }) {
+function EditUserForm({
+    user,
+    onSaved,
+}: {
+    user: TeamUser;
+    onSaved: () => void;
+}) {
     const form = useHttp<
         { name: string; email: string; password: string },
         SavedResponse
@@ -144,7 +151,11 @@ function EditUserForm({ user }: { user: TeamUser }) {
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         void form.patch(update.url(user.id), {
-            onSuccess: () => router.reload({ only: ['users'] }),
+            onSuccess: (response) => {
+                toast.success(response.message);
+                onSaved();
+                router.reload({ only: ['users'] });
+            },
         });
     };
 
@@ -212,9 +223,19 @@ function AssignTeamForm({
     teams: TeamOption[];
     roles: RoleOption[];
 }) {
+    // Start from the user's existing membership, so the picker shows the
+    // role they actually hold rather than the first option (Team Lead).
+    const roleOn = (teamId: string): string | undefined =>
+        user.teams.find((team) => String(team.id) === teamId)?.role;
+    const fallbackRole =
+        roles.find((role) => role.value === 'member')?.value ??
+        roles[0]?.value ??
+        'member';
+    const initialTeamId = String(user.teams[0]?.id ?? teams[0]?.id ?? '');
+
     const form = useHttp<{ team_id: string; role: string }, SavedResponse>({
-        team_id: teams[0] ? String(teams[0].id) : '',
-        role: roles[0]?.value ?? 'member',
+        team_id: initialTeamId,
+        role: roleOn(initialTeamId) ?? fallbackRole,
     });
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -224,7 +245,10 @@ function AssignTeamForm({
             role: data.role,
         }));
         void form.post(assignToTeam.url(user.id), {
-            onSuccess: () => router.reload({ only: ['users'] }),
+            onSuccess: (response) => {
+                toast.success(response.message);
+                router.reload({ only: ['users'] });
+            },
         });
     };
 
@@ -242,7 +266,10 @@ function AssignTeamForm({
                 <Label htmlFor={`assign-team-${user.id}`}>Team</Label>
                 <Select
                     value={form.data.team_id}
-                    onValueChange={(value) => form.setData('team_id', value)}
+                    onValueChange={(value) => {
+                        form.setData('team_id', value);
+                        form.setData('role', roleOn(value) ?? fallbackRole);
+                    }}
                 >
                     <SelectTrigger
                         id={`assign-team-${user.id}`}
@@ -361,7 +388,10 @@ function UserRow({
 
             {editing ? (
                 <div className="mt-4">
-                    <EditUserForm user={user} />
+                    <EditUserForm
+                        user={user}
+                        onSaved={() => setEditing(false)}
+                    />
                 </div>
             ) : null}
 

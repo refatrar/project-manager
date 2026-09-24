@@ -7,7 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { destroy, move, toggle } from '@/routes/meetings/agenda-items';
-import type { MeetingAgendaItem, TaskReference, TeamMemberOption } from '@/types';
+import type {
+    MeetingAgendaItem,
+    TaskReference,
+    TeamMemberOption,
+} from '@/types';
 
 type MovedResponse = {
     agendaItems: MeetingAgendaItem[];
@@ -22,6 +26,8 @@ type Props = {
     agendaItems: MeetingAgendaItem[];
     projectTasks: TaskReference[];
     teamMembers: TeamMemberOption[];
+    /** Whether the user may edit the agenda (server `can.update`). */
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -30,6 +36,7 @@ export default function AgendaList({
     agendaItems,
     projectTasks,
     teamMembers,
+    canManage,
     onChanged,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
@@ -118,6 +125,7 @@ export default function AgendaList({
                         >
                             <Checkbox
                                 checked={item.is_discussed}
+                                disabled={!canManage}
                                 onCheckedChange={() => toggleDiscussed(item)}
                                 data-test="agenda-item-toggle"
                                 className="mt-0.5"
@@ -149,46 +157,48 @@ export default function AgendaList({
                                 </p>
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    disabled={index === 0}
-                                    onClick={() => moveItem(item, -1)}
-                                    data-test="agenda-item-move-up"
-                                >
-                                    <ChevronUp className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    disabled={index === items.length - 1}
-                                    onClick={() => moveItem(item, 1)}
-                                    data-test="agenda-item-move-down"
-                                >
-                                    <ChevronDown className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0"
-                                    data-test="agenda-item-edit"
-                                    onClick={() => setEditingItem(item)}
-                                >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0"
-                                    data-test="agenda-item-delete"
-                                    onClick={() => deleteItem(item)}
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                            </div>
+                            {canManage ? (
+                                <div className="flex shrink-0 items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        disabled={index === 0}
+                                        onClick={() => moveItem(item, -1)}
+                                        data-test="agenda-item-move-up"
+                                    >
+                                        <ChevronUp className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        disabled={index === items.length - 1}
+                                        onClick={() => moveItem(item, 1)}
+                                        data-test="agenda-item-move-down"
+                                    >
+                                        <ChevronDown className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        data-test="agenda-item-edit"
+                                        onClick={() => setEditingItem(item)}
+                                    >
+                                        <Pencil className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        data-test="agenda-item-delete"
+                                        onClick={() => deleteItem(item)}
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            ) : null}
                         </li>
                     ))}
                 </ul>
@@ -198,35 +208,39 @@ export default function AgendaList({
                 </p>
             )}
 
-            <AgendaItemFormModal
-                meetingId={meetingId}
-                projectTasks={projectTasks}
-                teamMembers={teamMembers}
-                onSaved={onChanged}
-            >
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    data-test="agenda-item-add"
-                >
-                    <Plus className="h-4 w-4" /> Add agenda item
-                </Button>
-            </AgendaItemFormModal>
+            {canManage ? (
+                <>
+                    <AgendaItemFormModal
+                        meetingId={meetingId}
+                        projectTasks={projectTasks}
+                        teamMembers={teamMembers}
+                        onSaved={onChanged}
+                    >
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            data-test="agenda-item-add"
+                        >
+                            <Plus className="h-4 w-4" /> Add agenda item
+                        </Button>
+                    </AgendaItemFormModal>
 
-            <AgendaItemFormModal
-                open={editingItem !== null}
-                onOpenChange={(nextOpen) => {
-                    if (!nextOpen) {
-                        setEditingItem(null);
-                    }
-                }}
-                meetingId={meetingId}
-                item={editingItem}
-                projectTasks={projectTasks}
-                teamMembers={teamMembers}
-                onSaved={onChanged}
-            />
+                    <AgendaItemFormModal
+                        open={editingItem !== null}
+                        onOpenChange={(nextOpen) => {
+                            if (!nextOpen) {
+                                setEditingItem(null);
+                            }
+                        }}
+                        meetingId={meetingId}
+                        item={editingItem}
+                        projectTasks={projectTasks}
+                        teamMembers={teamMembers}
+                        onSaved={onChanged}
+                    />
+                </>
+            ) : null}
         </div>
     );
 }

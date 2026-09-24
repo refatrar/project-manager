@@ -9,6 +9,7 @@ use App\Actions\OMS\CalculateProjectProgress;
 use App\Actions\OMS\CalculateUserAvailability;
 use App\Actions\OMS\CreateProject;
 use App\Actions\OMS\DetectOverAllocatedBookings;
+use App\Actions\OMS\EnsureProjectLeadIsMember;
 use App\Actions\OMS\RecordActivity;
 use App\Enums\AllocationStatus;
 use App\Enums\MilestoneStatus;
@@ -39,6 +40,7 @@ use App\Models\Team;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -56,6 +58,7 @@ class ProjectController extends Controller
         $user = $request->user('web');
 
         $projects = Project::query()
+            ->with(['owner:id,name', 'projectLead:id,name'])
             ->where('team_id', $current_team->id)
             ->when(
                 ! $this->hasWideVisibility($request, $current_team),
@@ -68,7 +71,15 @@ class ProjectController extends Controller
             ->orderBy('id')
             ->paginate(15)
             ->withQueryString()
-            ->through(fn (Project $project): array => $project->toListArray());
+            ->through(function (Project $project) use ($current_team): array {
+                $project->setRelation('team', $current_team);
+                $canUpdate = Gate::allows('update', $project);
+
+                return [
+                    ...($canUpdate ? $project->toDetailArray() : $project->toListArray()),
+                    'can_update' => $canUpdate,
+                ];
+            });
 
         return Inertia::render('projects/index', [
             'projects' => $projects,
@@ -117,6 +128,11 @@ class ProjectController extends Controller
 
         $project->load('owner:id,name', 'projectLead:id,name');
 
+        // Budget, estimated hours and members' hourly rates are visible only
+        // to whoever can manage this project — the same split `index()`
+        // applies — never to every project viewer.
+        $canManage = Gate::allows('update', $project);
+
         $modules = $project->modules()
             ->orderBy('position')
             ->get()
@@ -125,14 +141,22 @@ class ProjectController extends Controller
         $memberModels = $project->members()
             ->with('user:id,name,email')
             ->get();
-        $members = $memberModels->map(fn (ProjectMember $member): array => $member->toListArray());
+        $members = $memberModels->map(function (ProjectMember $member) use ($canManage): array {
+            $row = $member->toListArray();
+
+            if (! $canManage) {
+                unset($row['hourly_rate']);
+            }
+
+            return $row;
+        });
 
         // FR-8.8: a member's schedule and project-scoped availability is
         // visible only to whoever can manage this project (the same
         // threshold `Gate::authorize('update', $project)` already applies
         // to booking hours) — never to every project viewer, and never
         // touching another project's bookings even for someone who can.
-        $memberCapacity = Gate::allows('update', $project)
+        $memberCapacity = $canManage
             ? $calculateProjectMemberCapacity->handle(
                 $project,
                 $project->members()->active()->with('user:id,name,email')->get(),
@@ -155,7 +179,14 @@ class ProjectController extends Controller
             ->with(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color'])
             ->orderBy('position')
             ->get()
-            ->map(fn (Task $task): array => $task->toBoardArray());
+            ->map(function (Task $task) use ($project): array {
+                $task->setRelation('project', $project);
+
+                return [
+                    ...$task->toBoardArray(),
+                    'can_change_status' => Gate::allows('changeStatus', $task),
+                ];
+            });
 
         $taskTypes = TaskType::query()
             ->where('status', TaskTypeStatus::Active)
@@ -213,13 +244,17 @@ class ProjectController extends Controller
             ]);
 
         return Inertia::render('projects/show', [
-            'project' => $project->toDetailArray(),
+            // Viewers who can't manage still see what the project is and
+            // who runs it — only the money and effort figures are held back.
+            'project' => $canManage
+                ? $project->toDetailArray()
+                : Arr::except($project->toDetailArray(), ['budget', 'currency', 'estimated_hours']),
             'modules' => $modules,
             'members' => $members,
             'memberCapacity' => $memberCapacity,
             'availableUsers' => $availableUsers,
             'teamMembers' => $teamMembers,
-            'canManageProject' => Gate::allows('update', $project),
+            'canManageProject' => $canManage,
             'tasks' => $tasks,
             'taskTypes' => $taskTypes,
             'milestones' => $milestones,
@@ -259,7 +294,7 @@ class ProjectController extends Controller
     /**
      * Update the specified project.
      */
-    public function update(SaveProjectRequest $request, Team $current_team, Project $project): JsonResponse|RedirectResponse
+    public function update(SaveProjectRequest $request, Team $current_team, Project $project, EnsureProjectLeadIsMember $ensureProjectLeadIsMember): JsonResponse|RedirectResponse
     {
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('update', $project);
@@ -274,6 +309,8 @@ class ProjectController extends Controller
         ]));
         $project->updated_by = $user->id;
         $project->save();
+
+        $ensureProjectLeadIsMember->handle($project, $user->id);
 
         return $this->savedResponse($request, $current_team, $project, __('Project updated.'));
     }

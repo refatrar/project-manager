@@ -30,6 +30,8 @@ type Props = {
     teamMembers: TeamMemberOption[];
     roleOptions: MeetingAttendeeRoleOption[];
     attendanceStatusOptions: MeetingAttendanceStatusOption[];
+    /** Whether the user may edit the attendee list (server `can.update`). */
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -39,6 +41,7 @@ export default function AttendeeList({
     teamMembers,
     roleOptions,
     attendanceStatusOptions,
+    canManage,
     onChanged,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
@@ -120,67 +123,85 @@ export default function AttendeeList({
                                 </p>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-2">
-                                <Select
-                                    value={attendee.role}
-                                    onValueChange={(value) =>
-                                        updateRole(attendee, value)
-                                    }
-                                >
-                                    <SelectTrigger
-                                        className="h-8 w-36 text-xs"
-                                        data-test="attendee-role-select"
+                            {canManage ? (
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <Select
+                                        value={attendee.role}
+                                        onValueChange={(value) =>
+                                            updateRole(attendee, value)
+                                        }
                                     >
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {roleOptions.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-
-                                <Select
-                                    value={attendee.attendance_status}
-                                    onValueChange={(value) =>
-                                        updateAttendance(attendee, value)
-                                    }
-                                >
-                                    <SelectTrigger
-                                        className="h-8 w-36 text-xs"
-                                        data-test="attendee-status-select"
-                                    >
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {attendanceStatusOptions.map(
-                                            (option) => (
+                                        <SelectTrigger
+                                            className="h-8 w-36 text-xs"
+                                            data-test="attendee-role-select"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {roleOptions.map((option) => (
                                                 <SelectItem
                                                     key={option.value}
                                                     value={option.value}
                                                 >
                                                     {option.label}
                                                 </SelectItem>
-                                            ),
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
 
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0"
-                                    data-test="attendee-remove"
-                                    onClick={() => removeAttendee(attendee)}
-                                >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                            </div>
+                                    <Select
+                                        value={attendee.attendance_status}
+                                        onValueChange={(value) =>
+                                            updateAttendance(attendee, value)
+                                        }
+                                    >
+                                        <SelectTrigger
+                                            className="h-8 w-36 text-xs"
+                                            data-test="attendee-status-select"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {attendanceStatusOptions.map(
+                                                (option) => (
+                                                    <SelectItem
+                                                        key={option.value}
+                                                        value={option.value}
+                                                    >
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ),
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 w-7 p-0"
+                                        data-test="attendee-remove"
+                                        onClick={() => removeAttendee(attendee)}
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <Badge variant="outline">
+                                        {roleOptions.find(
+                                            (option) =>
+                                                option.value === attendee.role,
+                                        )?.label ?? attendee.role}
+                                    </Badge>
+                                    <Badge variant="secondary">
+                                        {attendanceStatusOptions.find(
+                                            (option) =>
+                                                option.value ===
+                                                attendee.attendance_status,
+                                        )?.label ?? attendee.attendance_status}
+                                    </Badge>
+                                </div>
+                            )}
                         </li>
                     ))}
                 </ul>
@@ -190,21 +211,23 @@ export default function AttendeeList({
                 </p>
             )}
 
-            <AttendeeInviteModal
-                meetingId={meetingId}
-                teamMembers={teamMembers}
-                roleOptions={roleOptions}
-                onInvited={onChanged}
-            >
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    data-test="attendee-invite-button"
+            {canManage ? (
+                <AttendeeInviteModal
+                    meetingId={meetingId}
+                    teamMembers={teamMembers}
+                    roleOptions={roleOptions}
+                    onInvited={onChanged}
                 >
-                    <Plus className="h-4 w-4" /> Invite attendee
-                </Button>
-            </AttendeeInviteModal>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        data-test="attendee-invite-button"
+                    >
+                        <Plus className="h-4 w-4" /> Invite attendee
+                    </Button>
+                </AttendeeInviteModal>
+            ) : null}
         </div>
     );
 }

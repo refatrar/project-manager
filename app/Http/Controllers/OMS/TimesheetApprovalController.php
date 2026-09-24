@@ -3,14 +3,10 @@
 namespace App\Http\Controllers\OMS;
 
 use App\Enums\ApprovalStatus;
-use App\Enums\ProjectMemberRole;
-use App\Enums\TeamModulePermission;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OMS\DecideTimeLogRequest;
-use App\Models\OMS\ProjectMember;
 use App\Models\OMS\TimeLog;
 use App\Models\Team;
-use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,40 +18,30 @@ use Inertia\Response;
 class TimesheetApprovalController extends Controller
 {
     /**
-     * Display every submitted time log the acting user may decide on: a
-     * team admin sees every submitted entry team-wide, a project manager
-     * sees only the submitted entries logged against a project they
-     * manage — an entry with no project (`project_id` null) is a team
-     * admin's to decide, never a project manager's, mirroring
-     * `TimeLogPolicy::decide`.
+     * Display every submitted time log the acting user may decide on —
+     * filtered through `TimeLogPolicy::decide` itself, so the queue and
+     * the decide action can never disagree (Project Leads, project
+     * managers, `projects.manage-all`, and `timesheet-approvals.decide`
+     * holders each see exactly what they can act on, never their own).
      */
     public function index(Request $request, Team $current_team): Response
     {
         $user = $request->user('web');
         abort_unless($user !== null, 403);
 
-        $query = TimeLog::query()
+        $entries = TimeLog::query()
             ->where('team_id', $current_team->id)
-            ->where('approval_status', ApprovalStatus::Submitted->value);
-
-        if (! $this->isTeamAdmin($user, $current_team)) {
-            $managedProjectIds = ProjectMember::query()
-                ->where('user_id', $user->id)
-                ->active()
-                ->whereIn('role', [
-                    ProjectMemberRole::Owner->value,
-                    ProjectMemberRole::Manager->value,
-                    ProjectMemberRole::Lead->value,
-                ])
-                ->pluck('project_id');
-
-            $query->whereIn('project_id', $managedProjectIds);
-        }
-
-        $entries = $query
-            ->with(['user:id,name', 'project:id,code,name', 'task:id,number,title'])
+            ->where('approval_status', ApprovalStatus::Submitted->value)
+            ->where('user_id', '!=', $user->id)
+            ->with(['user:id,name', 'project', 'task:id,number,title'])
             ->orderBy('logged_on')
             ->get()
+            ->each(function (TimeLog $timeLog) use ($current_team): void {
+                $timeLog->setRelation('team', $current_team);
+                $timeLog->project?->setRelation('team', $current_team);
+            })
+            ->filter(fn (TimeLog $timeLog): bool => $user->can('decide', $timeLog))
+            ->values()
             ->map(fn (TimeLog $timeLog): array => $timeLog->toListArray());
 
         return Inertia::render('timesheet-approvals/index', [
@@ -90,10 +76,5 @@ class TimesheetApprovalController extends Controller
         }
 
         return response()->json(['message' => $message]);
-    }
-
-    private function isTeamAdmin(User $user, Team $team): bool
-    {
-        return $user->teamCan($team, TeamModulePermission::DecideTimesheets);
     }
 }

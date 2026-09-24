@@ -10,10 +10,14 @@ type Props = {
     projectId: number;
     milestones: Milestone[];
     statusOptions: MilestoneStatusOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const statusVariant: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     pending: 'outline',
     in_progress: 'secondary',
     completed: 'default',
@@ -25,6 +29,7 @@ export default function MilestoneList({
     projectId,
     milestones,
     statusOptions,
+    canManage,
     onChanged,
 }: Props) {
     const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(
@@ -50,17 +55,23 @@ export default function MilestoneList({
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
-                <MilestoneFormModal
-                    projectId={projectId}
-                    statusOptions={statusOptions}
-                    onSaved={onChanged}
-                >
-                    <Button type="button" size="sm" data-test="milestone-add">
-                        <Plus className="h-4 w-4" /> Add milestone
-                    </Button>
-                </MilestoneFormModal>
-            </div>
+            {canManage ? (
+                <div className="flex justify-end">
+                    <MilestoneFormModal
+                        projectId={projectId}
+                        statusOptions={statusOptions}
+                        onSaved={onChanged}
+                    >
+                        <Button
+                            type="button"
+                            size="sm"
+                            data-test="milestone-add"
+                        >
+                            <Plus className="h-4 w-4" /> Add milestone
+                        </Button>
+                    </MilestoneFormModal>
+                </div>
+            ) : null}
 
             {sorted.length > 0 ? (
                 <div className="space-y-2">
@@ -95,26 +106,30 @@ export default function MilestoneList({
                                 </p>
                             </div>
 
-                            <div className="flex shrink-0 items-center gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setEditingMilestone(milestone)}
-                                    data-test="milestone-edit"
-                                >
-                                    <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() =>
-                                        setDeletingMilestone(milestone)
-                                    }
-                                    data-test="milestone-delete"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
+                            {canManage ? (
+                                <div className="flex shrink-0 items-center gap-1">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setEditingMilestone(milestone)
+                                        }
+                                        data-test="milestone-edit"
+                                    >
+                                        <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            setDeletingMilestone(milestone)
+                                        }
+                                        data-test="milestone-delete"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : null}
                         </div>
                     ))}
                 </div>

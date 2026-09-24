@@ -53,6 +53,7 @@ type Props = {
     statusOptions: TaskStatusOption[];
     priorityOptions: PriorityOption[];
     assignmentRoleOptions: TaskAssignmentRoleOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -68,6 +69,7 @@ export default function KanbanBoard({
     statusOptions,
     priorityOptions,
     assignmentRoleOptions,
+    canManage,
     onChanged,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
@@ -198,43 +200,45 @@ export default function KanbanBoard({
                                                     {task.title}
                                                 </p>
                                             </Link>
-                                            <div className="flex shrink-0 flex-col gap-0.5">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 w-6 p-0"
-                                                    disabled={index === 0}
-                                                    onClick={() =>
-                                                        moveWithinColumn(
-                                                            task,
-                                                            -1,
-                                                        )
-                                                    }
-                                                    data-test="task-move-up"
-                                                    aria-label="Move task up"
-                                                >
-                                                    <ChevronUp className="h-3 w-3" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 w-6 p-0"
-                                                    disabled={
-                                                        index ===
-                                                        column.length - 1
-                                                    }
-                                                    onClick={() =>
-                                                        moveWithinColumn(
-                                                            task,
-                                                            1,
-                                                        )
-                                                    }
-                                                    data-test="task-move-down"
-                                                    aria-label="Move task down"
-                                                >
-                                                    <ChevronDown className="h-3 w-3" />
-                                                </Button>
-                                            </div>
+                                            {task.can_change_status ? (
+                                                <div className="flex shrink-0 flex-col gap-0.5">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 w-6 p-0"
+                                                        disabled={index === 0}
+                                                        onClick={() =>
+                                                            moveWithinColumn(
+                                                                task,
+                                                                -1,
+                                                            )
+                                                        }
+                                                        data-test="task-move-up"
+                                                        aria-label="Move task up"
+                                                    >
+                                                        <ChevronUp className="h-3 w-3" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-6 w-6 p-0"
+                                                        disabled={
+                                                            index ===
+                                                            column.length - 1
+                                                        }
+                                                        onClick={() =>
+                                                            moveWithinColumn(
+                                                                task,
+                                                                1,
+                                                            )
+                                                        }
+                                                        data-test="task-move-down"
+                                                        aria-label="Move task down"
+                                                    >
+                                                        <ChevronDown className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                            ) : null}
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-1">
@@ -254,76 +258,94 @@ export default function KanbanBoard({
                                             </p>
                                         ) : null}
 
-                                        <div className="flex items-center gap-2">
-                                            <Select
-                                                value={task.status}
-                                                onValueChange={(value) =>
-                                                    changeColumn(
-                                                        task,
-                                                        value as TaskStatus,
-                                                    )
-                                                }
-                                            >
-                                                <SelectTrigger
-                                                    className="h-7 flex-1 text-xs"
-                                                    data-test="task-status-select"
-                                                >
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {statusOptions.map(
-                                                        (option) => (
-                                                            <SelectItem
-                                                                key={
-                                                                    option.value
-                                                                }
-                                                                value={
-                                                                    option.value
-                                                                }
-                                                            >
-                                                                {option.label}
-                                                            </SelectItem>
-                                                        ),
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0"
-                                                onClick={() =>
-                                                    setAssigningTaskId(task.id)
-                                                }
-                                                data-test="task-assign"
-                                                aria-label="Assign task"
-                                            >
-                                                <Users className="h-3.5 w-3.5" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0"
-                                                onClick={() =>
-                                                    setEditingTask(task)
-                                                }
-                                                data-test="task-edit"
-                                                aria-label="Edit task"
-                                            >
-                                                <Pencil className="h-3.5 w-3.5" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0"
-                                                onClick={() =>
-                                                    setDeletingTask(task)
-                                                }
-                                                data-test="task-delete"
-                                                aria-label="Delete task"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
-                                        </div>
+                                        {task.can_change_status || canManage ? (
+                                            <div className="flex items-center gap-2">
+                                                {task.can_change_status ? (
+                                                    <Select
+                                                        value={task.status}
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
+                                                            changeColumn(
+                                                                task,
+                                                                value as TaskStatus,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger
+                                                            className="h-7 flex-1 text-xs"
+                                                            data-test="task-status-select"
+                                                        >
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {statusOptions.map(
+                                                                (option) => (
+                                                                    <SelectItem
+                                                                        key={
+                                                                            option.value
+                                                                        }
+                                                                        value={
+                                                                            option.value
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            option.label
+                                                                        }
+                                                                    </SelectItem>
+                                                                ),
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                ) : null}
+                                                {canManage ? (
+                                                    <>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 w-7 p-0"
+                                                            onClick={() =>
+                                                                setAssigningTaskId(
+                                                                    task.id,
+                                                                )
+                                                            }
+                                                            data-test="task-assign"
+                                                            aria-label="Assign task"
+                                                        >
+                                                            <Users className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 w-7 p-0"
+                                                            onClick={() =>
+                                                                setEditingTask(
+                                                                    task,
+                                                                )
+                                                            }
+                                                            data-test="task-edit"
+                                                            aria-label="Edit task"
+                                                        >
+                                                            <Pencil className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 w-7 p-0"
+                                                            onClick={() =>
+                                                                setDeletingTask(
+                                                                    task,
+                                                                )
+                                                            }
+                                                            data-test="task-delete"
+                                                            aria-label="Delete task"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
                                     </div>
                                 ))}
                             </div>

@@ -10,6 +10,7 @@ type Props = {
     projectId: number;
     sprints: Sprint[];
     statusOptions: SprintStatusOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -17,6 +18,7 @@ export default function SprintList({
     projectId,
     sprints,
     statusOptions,
+    canManage,
     onChanged,
 }: Props) {
     const [editingSprint, setEditingSprint] = useState<Sprint | null>(null);
@@ -24,24 +26,27 @@ export default function SprintList({
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-end">
-                <SprintFormModal
-                    projectId={projectId}
-                    statusOptions={statusOptions}
-                    onSaved={onChanged}
-                >
-                    <Button type="button" size="sm" data-test="sprint-add">
-                        <Plus className="h-4 w-4" /> Add sprint
-                    </Button>
-                </SprintFormModal>
-            </div>
+            {canManage ? (
+                <div className="flex justify-end">
+                    <SprintFormModal
+                        projectId={projectId}
+                        statusOptions={statusOptions}
+                        onSaved={onChanged}
+                    >
+                        <Button type="button" size="sm" data-test="sprint-add">
+                            <Plus className="h-4 w-4" /> Add sprint
+                        </Button>
+                    </SprintFormModal>
+                </div>
+            ) : null}
 
             {sprints.length > 0 ? (
                 <div className="space-y-2">
                     {sprints.map((sprint) => {
                         const capacity = Number(sprint.capacity_hours ?? 0);
                         const committed = Number(sprint.committed_hours ?? 0);
-                        const overCommitted = capacity > 0 && committed > capacity;
+                        const overCommitted =
+                            capacity > 0 && committed > capacity;
 
                         return (
                             <div
@@ -71,24 +76,30 @@ export default function SprintList({
                                     </p>
                                 </div>
 
-                                <div className="flex shrink-0 items-center gap-1">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setEditingSprint(sprint)}
-                                        data-test="sprint-edit"
-                                    >
-                                        <Pencil className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setDeletingSprint(sprint)}
-                                        data-test="sprint-delete"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                                {canManage ? (
+                                    <div className="flex shrink-0 items-center gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                setEditingSprint(sprint)
+                                            }
+                                            data-test="sprint-edit"
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                setDeletingSprint(sprint)
+                                            }
+                                            data-test="sprint-delete"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ) : null}
                             </div>
                         );
                     })}

@@ -35,6 +35,7 @@ type Props = {
     dependencies: TaskDependencyItem[];
     candidates: TaskReference[];
     typeOptions: TaskDependencyTypeOption[];
+    canManage: boolean;
     onChanged: () => void;
 };
 
@@ -44,6 +45,7 @@ export default function TaskDependencyEditor({
     dependencies,
     candidates,
     typeOptions,
+    canManage,
     onChanged,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
@@ -118,15 +120,19 @@ export default function TaskDependencyEditor({
                                 </Link>
                                 <span>{dependency.relatedTask.title}</span>
                             </div>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={removeForm.processing}
-                                onClick={() => removeDependency(dependency.id)}
-                                data-test="dependency-remove"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canManage ? (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={removeForm.processing}
+                                    onClick={() =>
+                                        removeDependency(dependency.id)
+                                    }
+                                    data-test="dependency-remove"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            ) : null}
                         </div>
                     ))}
                 </div>
@@ -136,60 +142,69 @@ export default function TaskDependencyEditor({
                 </p>
             )}
 
-            <div className="flex flex-wrap items-end gap-2 border-t pt-3">
-                <div className="grid gap-1">
-                    <Select
-                        value={type}
-                        onValueChange={(value) =>
-                            setType(value as TaskDependencyType)
-                        }
+            {canManage ? (
+                <div className="flex flex-wrap items-end gap-2 border-t pt-3">
+                    <div className="grid gap-1">
+                        <Select
+                            value={type}
+                            onValueChange={(value) =>
+                                setType(value as TaskDependencyType)
+                            }
+                        >
+                            <SelectTrigger
+                                className="w-40"
+                                data-test="dependency-type"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {typeOptions.map((option) => (
+                                    <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="grid gap-1">
+                        <Select
+                            value={relatedTaskId}
+                            onValueChange={setRelatedTaskId}
+                        >
+                            <SelectTrigger
+                                className="w-56"
+                                data-test="dependency-task"
+                            >
+                                <SelectValue placeholder="Select a task" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {candidates.map((candidate) => (
+                                    <SelectItem
+                                        key={candidate.id}
+                                        value={String(candidate.id)}
+                                    >
+                                        {candidate.reference} —{' '}
+                                        {candidate.title}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <Button
+                        type="button"
+                        disabled={!relatedTaskId || addForm.processing}
+                        onClick={addDependency}
+                        data-test="dependency-add"
                     >
-                        <SelectTrigger
-                            className="w-40"
-                            data-test="dependency-type"
-                        >
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {typeOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        Add
+                    </Button>
                 </div>
-
-                <div className="grid gap-1">
-                    <Select value={relatedTaskId} onValueChange={setRelatedTaskId}>
-                        <SelectTrigger
-                            className="w-56"
-                            data-test="dependency-task"
-                        >
-                            <SelectValue placeholder="Select a task" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {candidates.map((candidate) => (
-                                <SelectItem
-                                    key={candidate.id}
-                                    value={String(candidate.id)}
-                                >
-                                    {candidate.reference} — {candidate.title}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <Button
-                    type="button"
-                    disabled={!relatedTaskId || addForm.processing}
-                    onClick={addDependency}
-                    data-test="dependency-add"
-                >
-                    Add
-                </Button>
-            </div>
+            ) : null}
         </div>
     );
 }

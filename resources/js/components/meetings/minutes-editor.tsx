@@ -20,10 +20,12 @@ type SavedResponse = {
 
 type Props = {
     meeting: MeetingDetail;
+    /** Whether the user may record/publish minutes (server `can.recordMinutes`). */
+    canEdit: boolean;
     onChanged: () => void;
 };
 
-export default function MinutesEditor({ meeting, onChanged }: Props) {
+export default function MinutesEditor({ meeting, canEdit, onChanged }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const form = useHttp<MinutesFormData, SavedResponse>(
         () => update([teamSlug ?? '', meeting.id]),
@@ -58,15 +60,46 @@ export default function MinutesEditor({ meeting, onChanged }: Props) {
         });
     };
 
+    const publishedBadge = meeting.minutes_published_at ? (
+        <Badge variant="outline" data-test="minutes-published-badge">
+            Published {new Date(meeting.minutes_published_at).toLocaleString()}
+            {meeting.recorder ? ` by ${meeting.recorder.name}` : ''}
+        </Badge>
+    ) : null;
+
+    if (!canEdit) {
+        return (
+            <div className="space-y-6" data-test="minutes-read-only">
+                {publishedBadge}
+
+                <div className="grid gap-2">
+                    <p className="text-sm font-medium">Minutes</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                        {meeting.minutes || (
+                            <span className="text-muted-foreground">
+                                No minutes recorded yet.
+                            </span>
+                        )}
+                    </p>
+                </div>
+
+                <div className="grid gap-2">
+                    <p className="text-sm font-medium">Decisions</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                        {meeting.decisions || (
+                            <span className="text-muted-foreground">
+                                No decisions recorded yet.
+                            </span>
+                        )}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <form onSubmit={submit} className="space-y-6">
-            {meeting.minutes_published_at ? (
-                <Badge variant="outline" data-test="minutes-published-badge">
-                    Published{' '}
-                    {new Date(meeting.minutes_published_at).toLocaleString()}
-                    {meeting.recorder ? ` by ${meeting.recorder.name}` : ''}
-                </Badge>
-            ) : null}
+            {publishedBadge}
 
             <div className="grid gap-2">
                 <Label htmlFor="meeting-minutes">Minutes</Label>

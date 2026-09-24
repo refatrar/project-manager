@@ -49,7 +49,7 @@ class DemoSeeder extends Seeder
         // `ProfilingSeeder` learned the hard way — see MEMORY.md).
         // `Team::factory()` sets `slug` itself, so it doesn't depend on
         // that event either way.
-        $team = Team::factory()->create(['name' => 'PHP 360']);
+        $team = Team::factory()->create(['name' => 'PHP 360', 'slug' => 'php-360']);
         $team->memberships()->create(['user_id' => $owner->id, 'role' => TeamRole::TeamLead]);
         $owner->forceFill(['current_team_id' => $team->id])->save();
         (new LabelSeeder)->run($team);
@@ -77,21 +77,23 @@ class DemoSeeder extends Seeder
                 ['name' => $person['name'], 'password' => bcrypt('password')],
             );
 
-            if (! $team->members()->where('user_id', $user->id)->exists()) {
-                $team->members()->attach($user, ['role' => $person['role']]);
+            // Same as the admin panel's assign flow: `updateOrCreate` keeps
+            // the role in sync on re-seeds (a skip-if-exists attach would
+            // leave a stale role behind), and a user with no current team
+            // lands on this one — otherwise login shows "not on a team yet".
+            $team->memberships()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['role' => $person['role']],
+            );
+
+            if ($user->current_team_id === null) {
+                $user->forceFill(['current_team_id' => $team->id])->save();
             }
 
             return $user;
         });
     }
 
-    /**
-     * A standard Mon-Fri, 9-to-5 schedule for everyone — without it, every
-     * capacity-driven screen (availability search, timesheet, the team
-     * capacity heatmap) has nothing to show on a fresh demo team.
-     *
-     * @param  Collection<int, User>  $people
-     */
     /**
      * The platform's single global schedule (TASKS.md 7.10 — replaces the
      * former per-user template) plus a couple of demo holidays, so the

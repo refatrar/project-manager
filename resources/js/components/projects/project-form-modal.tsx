@@ -60,15 +60,15 @@ export default function ProjectFormModal({
             {children ? (
                 <DialogTrigger asChild>{children}</DialogTrigger>
             ) : null}
-            <DialogContent className="sm:max-w-2xl">
-                <DialogHeader>
+            <DialogContent className="flex max-h-[min(92vh,48rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
+                <DialogHeader className="shrink-0 border-b px-6 py-5 pr-12">
                     <DialogTitle>
                         {isEditing ? 'Edit project' : 'Create project'}
                     </DialogTitle>
                     <DialogDescription>
                         {isEditing
-                            ? 'Update the plan for this project.'
-                            : 'Set up a new project for this team. You become its owner.'}
+                            ? 'Update the plan for this project. The code stays the same.'
+                            : 'You become the owner. Name and code are required. Schedule, people, and budget can be added later.'}
                     </DialogDescription>
                 </DialogHeader>
 

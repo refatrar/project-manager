@@ -28,6 +28,7 @@ import type {
     TeamMemberOption,
     TodoList,
 } from '@/types';
+import type { MeetingAbilities } from '@/types/meetings';
 
 type Props = {
     meeting: MeetingDetail;
@@ -42,9 +43,13 @@ type Props = {
     projects: ProjectOption[];
     projectTasks: TaskReference[];
     taskTypes: TaskTypeOption[];
+    can: MeetingAbilities;
 };
 
-const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const statusVariant: Record<
+    string,
+    'default' | 'secondary' | 'destructive' | 'outline'
+> = {
     scheduled: 'default',
     in_progress: 'secondary',
     completed: 'outline',
@@ -64,6 +69,7 @@ export default function MeetingShow({
     projects,
     projectTasks,
     taskTypes,
+    can,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const [editOpen, setEditOpen] = useState(false);
@@ -98,15 +104,17 @@ export default function MeetingShow({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditOpen(true)}
-                            data-test="meeting-edit-button"
-                        >
-                            <Pencil className="h-4 w-4" /> Edit
-                        </Button>
-                        {meeting.status !== 'cancelled' ? (
+                        {can.update ? (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditOpen(true)}
+                                data-test="meeting-edit-button"
+                            >
+                                <Pencil className="h-4 w-4" /> Edit
+                            </Button>
+                        ) : null}
+                        {can.cancel && meeting.status !== 'cancelled' ? (
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -116,14 +124,16 @@ export default function MeetingShow({
                                 <XCircle className="h-4 w-4" /> Cancel
                             </Button>
                         ) : null}
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteOpen(true)}
-                            data-test="meeting-delete-button"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {can.delete ? (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteOpen(true)}
+                                data-test="meeting-delete-button"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        ) : null}
                     </div>
                 </div>
 
@@ -199,6 +209,7 @@ export default function MeetingShow({
                             teamMembers={teamMembers}
                             roleOptions={roleOptions}
                             attendanceStatusOptions={attendanceStatusOptions}
+                            canManage={can.update}
                             onChanged={() => reload(['attendees'])}
                         />
                     </CardContent>
@@ -214,6 +225,7 @@ export default function MeetingShow({
                             agendaItems={agendaItems}
                             projectTasks={projectTasks}
                             teamMembers={teamMembers}
+                            canManage={can.update}
                             onChanged={() => reload(['agendaItems'])}
                         />
                     </CardContent>
@@ -226,6 +238,7 @@ export default function MeetingShow({
                     <CardContent>
                         <MinutesEditor
                             meeting={meeting}
+                            canEdit={can.recordMinutes}
                             onChanged={() => reload(['meeting'])}
                         />
                     </CardContent>
@@ -239,6 +252,7 @@ export default function MeetingShow({
                         <MeetingTimer
                             meetingId={meeting.id}
                             timer={timer}
+                            canStart={can.startTimer}
                             onChanged={() => reload(['timer'])}
                         />
                     </CardContent>
@@ -260,32 +274,38 @@ export default function MeetingShow({
                 </Card>
             </div>
 
-            <MeetingFormModal
-                open={editOpen}
-                onOpenChange={setEditOpen}
-                meeting={meeting}
-                typeOptions={typeOptions}
-                projects={projects}
-                onSaved={() => reload(['meeting'])}
-            />
+            {can.update ? (
+                <MeetingFormModal
+                    open={editOpen}
+                    onOpenChange={setEditOpen}
+                    meeting={meeting}
+                    typeOptions={typeOptions}
+                    projects={projects}
+                    onSaved={() => reload(['meeting', 'can'])}
+                />
+            ) : null}
 
-            <MeetingCancelModal
-                meeting={meeting}
-                open={cancelOpen}
-                onOpenChange={setCancelOpen}
-                onCancelled={() => reload(['meeting'])}
-            />
+            {can.cancel ? (
+                <MeetingCancelModal
+                    meeting={meeting}
+                    open={cancelOpen}
+                    onOpenChange={setCancelOpen}
+                    onCancelled={() => reload(['meeting'])}
+                />
+            ) : null}
 
-            <MeetingDeleteModal
-                meeting={meeting}
-                open={deleteOpen}
-                onOpenChange={setDeleteOpen}
-                onDeleted={() => {
-                    if (teamSlug) {
-                        router.visit(index(teamSlug));
-                    }
-                }}
-            />
+            {can.delete ? (
+                <MeetingDeleteModal
+                    meeting={meeting}
+                    open={deleteOpen}
+                    onOpenChange={setDeleteOpen}
+                    onDeleted={() => {
+                        if (teamSlug) {
+                            router.visit(index(teamSlug));
+                        }
+                    }}
+                />
+            ) : null}
         </>
     );
 }

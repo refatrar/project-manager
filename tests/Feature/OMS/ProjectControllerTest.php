@@ -42,7 +42,9 @@ class ProjectControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->component('projects/index')
-            ->has('projects.data', 2),
+            ->has('projects.data', 2)
+            ->where('projects.data.0.can_update', true)
+            ->where('projects.data.1.can_update', true),
         );
     }
 
@@ -63,7 +65,8 @@ class ProjectControllerTest extends TestCase
 
         $response->assertInertia(fn (Assert $page) => $page
             ->has('projects.data', 1)
-            ->where('projects.data.0.id', $visible->id),
+            ->where('projects.data.0.id', $visible->id)
+            ->where('projects.data.0.can_update', false),
         );
     }
 

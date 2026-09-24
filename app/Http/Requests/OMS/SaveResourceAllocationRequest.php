@@ -29,7 +29,7 @@ class SaveResourceAllocationRequest extends FormRequest
         $projectId = $project instanceof Project ? $project->id : null;
 
         return [
-            'user_id' => ['required', 'integer', Rule::exists('project_members', 'user_id')->where('project_id', $projectId)],
+            'user_id' => ['required', 'integer', Rule::exists('project_members', 'user_id')->where('project_id', $projectId)->where('status', 'active')->whereNull('deleted_at')],
             'task_id' => ['nullable', 'integer', Rule::exists('tasks', 'id')->where('project_id', $projectId)],
             'sprint_id' => ['nullable', 'integer', Rule::exists('sprints', 'id')->where('project_id', $projectId)],
             'status' => ['required', Rule::enum(AllocationStatus::class)],

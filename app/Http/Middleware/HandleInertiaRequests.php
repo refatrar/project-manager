@@ -58,6 +58,11 @@ class HandleInertiaRequests extends Middleware
             'teamAccess' => fn (): array => $teamUser?->currentTeam
                 ? app(TeamAccessControl::class)->grantedNames($teamUser, $teamUser->currentTeam)
                 : [],
+            'teamHome' => fn (): ?string => $teamUser?->currentTeam
+                ? app(TeamAccessControl::class)->homeUrl($teamUser, $teamUser->currentTeam)
+                : null,
+            'canApproveTimesheets' => fn (): bool => $teamUser?->currentTeam !== null
+                && app(TeamAccessControl::class)->canApproveTimesheets($teamUser, $teamUser->currentTeam),
         ];
     }
 }

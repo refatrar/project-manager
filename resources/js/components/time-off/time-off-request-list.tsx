@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import TimeOffRequestFormModal from '@/components/time-off/time-off-request-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useTeamAccess } from '@/hooks/use-team-access';
 import { cancel } from '@/routes/time-off-requests';
 import type { TimeOffRequest, TimeOffTypeOption } from '@/types';
 
@@ -27,6 +28,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
 
 export default function TimeOffRequestList({ requests, typeOptions, onChanged }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
+    const can = useTeamAccess();
     const [editingRequest, setEditingRequest] = useState<TimeOffRequest | null>(null);
     const form = useHttp<Record<string, never>, CancelledResponse>({});
 
@@ -82,7 +84,7 @@ export default function TimeOffRequestList({ requests, typeOptions, onChanged }:
                             ) : null}
                         </div>
 
-                        {request.status === 'pending' ? (
+                        {request.status === 'pending' && can('time-off.manage') ? (
                             <div className="flex shrink-0 items-center gap-1">
                                 <Button
                                     variant="ghost"

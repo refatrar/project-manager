@@ -41,6 +41,8 @@ type Props = {
     dependencyTypeOptions: TaskDependencyTypeOption[];
     checklist: TodoList;
     projectMembers: TeamMemberOption[];
+    canManageTask: boolean;
+    canDeleteTask: boolean;
 };
 
 export default function TaskShow({
@@ -57,6 +59,8 @@ export default function TaskShow({
     dependencyTypeOptions,
     checklist,
     projectMembers,
+    canManageTask,
+    canDeleteTask,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const [editOpen, setEditOpen] = useState(false);
@@ -95,22 +99,26 @@ export default function TaskShow({
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditOpen(true)}
-                            data-test="task-edit-button"
-                        >
-                            <Pencil className="h-4 w-4" /> Edit
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteOpen(true)}
-                            data-test="task-delete-button"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {canManageTask ? (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditOpen(true)}
+                                data-test="task-edit-button"
+                            >
+                                <Pencil className="h-4 w-4" /> Edit
+                            </Button>
+                        ) : null}
+                        {canDeleteTask ? (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeleteOpen(true)}
+                                data-test="task-delete-button"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        ) : null}
                     </div>
                 </div>
 
@@ -274,6 +282,7 @@ export default function TaskShow({
                             dependencies={task.dependencies}
                             candidates={taskCandidates}
                             typeOptions={dependencyTypeOptions}
+                            canManage={canManageTask}
                             onChanged={() => reload(['task', 'taskCandidates'])}
                         />
                     </CardContent>

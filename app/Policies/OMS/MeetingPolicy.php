@@ -22,19 +22,27 @@ class MeetingPolicy
     }
 
     /**
-     * Determine whether the user can view the meeting. A team-wide meeting
-     * (no project) is visible to the whole team; a project meeting follows
-     * the project's own visibility rule (ADR-011).
+     * Determine whether the user can view the meeting. `meetings.view` is
+     * the baseline: without it nothing else grants access. On top of it, a
+     * team-wide meeting (no project) is visible to the whole team; a project
+     * meeting follows the project's own visibility rule (ADR-011), plus
+     * anyone who can manage the meeting — they can't manage what they
+     * can't see.
      */
     public function view(User $user, Meeting $meeting): bool
     {
+        if (! $this->canUseMeetings($user, $meeting->team)) {
+            return false;
+        }
+
         if ($meeting->project_id === null) {
-            return $user->teamCan($meeting->team, TeamModulePermission::ViewMeetings);
+            return true;
         }
 
         return $this->hasWideVisibility($user, $meeting)
             || $this->isActiveProjectMember($user, $meeting)
-            || $this->managesProject($user, $meeting->project);
+            || $this->managesProject($user, $meeting->project)
+            || $this->canManage($user, $meeting);
     }
 
     /**
@@ -42,7 +50,8 @@ class MeetingPolicy
      */
     public function create(User $user, Team $team): bool
     {
-        return $user->teamCan($team, TeamModulePermission::CreateMeetings);
+        return $this->canUseMeetings($user, $team)
+            && $user->teamCan($team, TeamModulePermission::CreateMeetings);
     }
 
     /**
@@ -50,7 +59,7 @@ class MeetingPolicy
      */
     public function update(User $user, Meeting $meeting): bool
     {
-        return $this->canManage($user, $meeting);
+        return $this->canUseMeetings($user, $meeting->team) && $this->canManage($user, $meeting);
     }
 
     /**
@@ -58,7 +67,7 @@ class MeetingPolicy
      */
     public function cancel(User $user, Meeting $meeting): bool
     {
-        return $this->canManage($user, $meeting);
+        return $this->update($user, $meeting);
     }
 
     /**
@@ -66,7 +75,7 @@ class MeetingPolicy
      */
     public function delete(User $user, Meeting $meeting): bool
     {
-        return $this->canManage($user, $meeting);
+        return $this->update($user, $meeting);
     }
 
     /**
@@ -77,6 +86,10 @@ class MeetingPolicy
      */
     public function recordMinutes(User $user, Meeting $meeting): bool
     {
+        if (! $this->canUseMeetings($user, $meeting->team)) {
+            return false;
+        }
+
         if ($this->canManage($user, $meeting)) {
             return true;
         }
@@ -88,18 +101,16 @@ class MeetingPolicy
     }
 
     /**
-     * Determine whether the user organized the meeting, manages its
-     * project (as its Project Lead, its team's Team Lead, or through a
-     * managing project role), or has team-admin-level wide visibility
-     * into it.
+     * Determine whether the user organized the meeting, holds team-wide
+     * meeting management (`meetings.manage-all`), or manages its project
+     * (as its Project Lead or through a managing project role). Wide
+     * visibility (`meetings.view-all`) alone is deliberately not enough —
+     * seeing every meeting is not managing every meeting. Callers apply
+     * the `meetings.view` baseline.
      */
     private function canManage(User $user, Meeting $meeting): bool
     {
         if ($meeting->organized_by === $user->id) {
-            return true;
-        }
-
-        if ($this->hasWideVisibility($user, $meeting)) {
             return true;
         }
 
@@ -112,6 +123,15 @@ class MeetingPolicy
         }
 
         return $this->isProjectLead($user, $meeting->project) || $this->hasManagingMembership($user, $meeting->project);
+    }
+
+    /**
+     * Determine whether the user's team role can use the Meetings module at
+     * all — the baseline for every meeting ability.
+     */
+    private function canUseMeetings(User $user, Team $team): bool
+    {
+        return $user->teamCan($team, TeamModulePermission::ViewMeetings);
     }
 
     private function hasWideVisibility(User $user, Meeting $meeting): bool

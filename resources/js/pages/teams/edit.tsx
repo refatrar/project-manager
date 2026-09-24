@@ -196,7 +196,7 @@ export default function TeamEdit({
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    {member.role !== 'team_lead' &&
+                                    {member.manageable &&
                                     permissions.canUpdateMember ? (
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -232,7 +232,7 @@ export default function TeamEdit({
                                         </Badge>
                                     )}
 
-                                    {member.role !== 'team_lead' &&
+                                    {member.manageable &&
                                     permissions.canRemoveMember ? (
                                         <TooltipProvider>
                                             <Tooltip>

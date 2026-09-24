@@ -203,7 +203,7 @@ class UserController extends Controller
     {
         $options = [[
             'value' => TeamRole::TeamLead->value,
-            'label' => TeamRole::TeamLead->label(),
+            'label' => $this->access->labelFor(new Team, TeamRole::TeamLead->value),
         ]];
 
         foreach ($this->access->assignableOptions(new Team) as $option) {

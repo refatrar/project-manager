@@ -24,7 +24,7 @@ class CreateTeamInvitationRequest extends FormRequest
 
         return [
             'email' => ['required', 'string', 'email', 'max:255', new UniqueTeamInvitation($team)],
-            'role' => ['required', 'string', Rule::in(app(TeamAccessControl::class)->assignableSlugs($team))],
+            'role' => ['required', 'string', Rule::in(app(TeamAccessControl::class)->grantableSlugs($this->user('web'), $team))],
         ];
     }
 }

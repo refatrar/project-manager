@@ -112,6 +112,8 @@ class TaskController extends Controller
                     'name' => $member->user->name,
                     'email' => $member->user->email,
                 ]),
+            'canManageTask' => Gate::allows('update', $task),
+            'canDeleteTask' => Gate::allows('delete', $task),
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Teams;
 
+use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\DeleteTeamRequest;
 use App\Http\Requests\Teams\SaveTeamRequest;
@@ -37,6 +38,8 @@ class TeamController extends Controller
     {
         $user = $request->user('web');
 
+        $grantableSlugs = $access->grantableSlugs($user, $team);
+
         return Inertia::render('teams/edit', [
             'team' => [
                 'id' => $team->id,
@@ -44,7 +47,7 @@ class TeamController extends Controller
                 'slug' => $team->slug,
                 'isPersonal' => $team->is_personal,
             ],
-            'members' => $team->members()->get()->map(function (User $member) use ($team, $access) {
+            'members' => $team->members()->get()->map(function (User $member) use ($team, $access, $user, $grantableSlugs) {
                 /** @var Membership $membership */
                 $membership = $member->getRelation('pivot');
 
@@ -54,6 +57,11 @@ class TeamController extends Controller
                     'email' => $member->email,
                     'avatar' => $member->avatar ?? null,
                     ...$access->describe($team, $membership->role),
+                    // Mirrors `TeamMemberController`'s guards: not yourself,
+                    // not the team lead, only roles you could grant.
+                    'manageable' => ! $member->is($user)
+                        && $membership->roleSlug() !== TeamRole::TeamLead->value
+                        && in_array($membership->roleSlug(), $grantableSlugs, true),
                 ];
             }),
             'invitations' => $team->invitations()
@@ -66,7 +74,7 @@ class TeamController extends Controller
                     'created_at' => $invitation->created_at->toISOString(),
                 ]),
             'permissions' => $user->toTeamPermissions($team),
-            'availableRoles' => $access->assignableOptions($team),
+            'availableRoles' => $access->grantableOptions($user, $team),
         ]);
     }
 

@@ -18,6 +18,7 @@ use App\Models\OMS\MeetingAgendaItem;
 use App\Models\OMS\MeetingAttendee;
 use App\Models\OMS\Project;
 use App\Models\OMS\Task;
+use App\Models\OMS\TimeLog;
 use App\Models\Setup\TaskType;
 use App\Models\Team;
 use App\Models\User;
@@ -83,6 +84,7 @@ class MeetingController extends Controller
     public function store(SaveMeetingRequest $request, Team $current_team): JsonResponse|RedirectResponse
     {
         Gate::authorize('create', [Meeting::class, $current_team]);
+        $this->authorizeProjectAssignment($request, null);
 
         $user = $request->user('web');
         abort_unless($user !== null, 403);
@@ -176,6 +178,13 @@ class MeetingController extends Controller
             'roleOptions' => MeetingAttendeeRole::options(),
             'attendanceStatusOptions' => MeetingAttendanceStatus::options(),
             'typeOptions' => MeetingType::options(),
+            'can' => [
+                'update' => Gate::allows('update', $meeting),
+                'cancel' => Gate::allows('cancel', $meeting),
+                'delete' => Gate::allows('delete', $meeting),
+                'recordMinutes' => Gate::allows('recordMinutes', $meeting),
+                'startTimer' => Gate::allows('create', [TimeLog::class, $current_team]),
+            ],
         ]);
     }
 
@@ -186,6 +195,7 @@ class MeetingController extends Controller
     {
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('update', $meeting);
+        $this->authorizeProjectAssignment($request, $meeting);
 
         $user = $request->user('web');
         abort_unless($user !== null, 403);
@@ -256,6 +266,7 @@ class MeetingController extends Controller
     {
         $this->authorizeMeetingOnTeam($current_team, $meeting);
         Gate::authorize('view', $meeting);
+        Gate::authorize('create', [TimeLog::class, $current_team]);
 
         $user = $request->user('web');
         abort_unless($user !== null, 403);
@@ -340,6 +351,30 @@ class MeetingController extends Controller
     private function authorizeMeetingOnTeam(Team $current_team, Meeting $meeting): void
     {
         abort_unless($meeting->team_id === $current_team->id, 404);
+    }
+
+    /**
+     * Placing a meeting on a project makes its scheduler the organizer of
+     * a meeting inside that project, so they must be able to see the
+     * project (`ProjectPolicy::view`). `SaveMeetingRequest` only checks
+     * that the project belongs to the team. On update, only a change of
+     * project is checked — someone who may manage the meeting (e.g. with
+     * `meetings.manage-all`) can still edit it in place without project
+     * visibility.
+     */
+    private function authorizeProjectAssignment(SaveMeetingRequest $request, ?Meeting $meeting): void
+    {
+        $projectId = $request->validated('project_id');
+
+        if ($projectId === null) {
+            return;
+        }
+
+        if ($meeting !== null && (int) $meeting->project_id === (int) $projectId) {
+            return;
+        }
+
+        Gate::authorize('view', Project::query()->findOrFail($projectId));
     }
 
     /**

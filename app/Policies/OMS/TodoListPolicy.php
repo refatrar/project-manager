@@ -38,11 +38,11 @@ class TodoListPolicy
     public function view(User $user, TodoList $list): bool
     {
         if ($list->owner_id === $user->id) {
-            return true;
+            return $this->isShared($list) || $this->canManageTodos($user, $list);
         }
 
         if ($list->type === TodoListType::TaskChecklist) {
-            return $this->isActiveProjectMember($user, $list);
+            return $this->canViewChecklistTask($user, $list);
         }
 
         if ($list->type === TodoListType::MeetingActions) {
@@ -57,7 +57,7 @@ class TodoListPolicy
      */
     public function create(User $user, Team $team): bool
     {
-        return $user->belongsToTeam($team);
+        return $user->teamCan($team, TeamModulePermission::ManageTodos);
     }
 
     /**
@@ -76,26 +76,41 @@ class TodoListPolicy
      */
     public function delete(User $user, TodoList $list): bool
     {
-        return $list->owner_id === $user->id;
+        return $list->owner_id === $user->id
+            && ($this->isShared($list) || $this->canManageTodos($user, $list));
     }
 
     /**
-     * Determine whether the user is an active member of the checklist's
-     * project, or has team-admin-level wide visibility into it.
+     * Task checklists and meeting action lists are shared project work,
+     * governed by project/meeting access rather than `todos.manage`.
      */
-    private function isActiveProjectMember(User $user, TodoList $list): bool
+    private function isShared(TodoList $list): bool
     {
-        $list->loadMissing('project');
+        return $list->type === TodoListType::TaskChecklist || $list->type === TodoListType::MeetingActions;
+    }
 
-        if ($list->project === null) {
-            return false;
-        }
+    /**
+     * A personal list is only usable while the owner's team role still
+     * grants `todos.manage` — revoking it has to reach existing lists too.
+     */
+    private function canManageTodos(User $user, TodoList $list): bool
+    {
+        $list->loadMissing('team');
 
-        if ($user->teamCan($list->project->team, TeamModulePermission::ViewAllProjects)) {
-            return true;
-        }
+        return $list->team !== null && $user->teamCan($list->team, TeamModulePermission::ManageTodos);
+    }
 
-        return $list->project->members()->active()->where('user_id', $user->id)->exists();
+    /**
+     * Determine whether the user can see the checklist's task, reusing
+     * `TaskPolicy::view` (which requires `projects.view`, then project
+     * membership, Project Lead, or view-all/manage-all standing) so the
+     * checklist is open to exactly the people who can open the task.
+     */
+    private function canViewChecklistTask(User $user, TodoList $list): bool
+    {
+        $list->loadMissing('task.project');
+
+        return $list->task !== null && $user->can('view', $list->task);
     }
 
     /**

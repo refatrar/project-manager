@@ -108,14 +108,24 @@ class TeamInvitationTest extends TestCase
         $team->members()->attach($teamLead, ['role' => TeamRole::TeamLead->value]);
         $team->members()->attach($recruiter, ['role' => 'recruiter']);
 
+        // Only roles whose permissions the inviter already holds can be
+        // handed out — the recruiter can invite another recruiter…
         $response = $this
             ->actingAs($recruiter)
             ->post(route('teams.invitations.store', $team), [
                 'email' => 'invited@example.com',
-                'role' => TeamRole::Member->value,
+                'role' => 'recruiter',
             ]);
 
         $response->assertRedirect(route('teams.edit', $team));
+
+        // …but not a Member, whose permissions the recruiter doesn't have.
+        $this->actingAs($recruiter)
+            ->postJson(route('teams.invitations.store', $team), [
+                'email' => 'second@example.com',
+                'role' => TeamRole::Member->value,
+            ])
+            ->assertJsonValidationErrors('role');
     }
 
     public function test_existing_team_members_cannot_be_invited()
@@ -249,7 +259,7 @@ class TeamInvitationTest extends TestCase
             ->actingAs($invitedUser)
             ->delete(route('invitations.decline', $invitation));
 
-        $response->assertRedirect(route('dashboard'));
+        $response->assertRedirect(route('start'));
 
         $this->assertDatabaseMissing('team_invitations', [
             'id' => $invitation->id,

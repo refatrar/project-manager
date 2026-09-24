@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Teams\FindPendingInvitations;
+use App\Services\Teams\TeamAccessControl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,7 +18,7 @@ use Inertia\Response;
  */
 class StartController
 {
-    public function __invoke(Request $request, FindPendingInvitations $findPendingInvitations): Response|RedirectResponse
+    public function __invoke(Request $request, FindPendingInvitations $findPendingInvitations, TeamAccessControl $access): Response|RedirectResponse
     {
         $user = $request->user('web');
         abort_unless($user !== null, 403);
@@ -25,7 +26,7 @@ class StartController
         $team = $user->currentTeam ?? $user->personalTeam();
 
         if ($team !== null) {
-            return to_route('dashboard', ['current_team' => $team->slug]);
+            return redirect()->to($access->homeUrl($user, $team));
         }
 
         return Inertia::render('no-team', [

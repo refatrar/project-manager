@@ -27,9 +27,11 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project)
+        return $this->canUseProjects($user, $project) && (
+            $this->hasWideVisibility($user, $project)
             || $this->isActiveMember($user, $project)
-            || $this->managesProject($user, $project);
+            || $this->managesProject($user, $project)
+        );
     }
 
     /**
@@ -74,7 +76,8 @@ class ProjectPolicy
      */
     protected function canManage(User $user, Project $project): bool
     {
-        return $this->hasWideVisibility($user, $project) || $this->managesProject($user, $project);
+        return $this->canUseProjects($user, $project)
+            && ($this->hasWideVisibility($user, $project) || $this->managesProject($user, $project));
     }
 
     /**

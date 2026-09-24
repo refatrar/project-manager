@@ -51,7 +51,9 @@ class TimeLogPolicy
      */
     public function update(User $user, TimeLog $timeLog): bool
     {
-        return $timeLog->user_id === $user->id && $timeLog->approval_status === ApprovalStatus::Pending;
+        return $timeLog->user_id === $user->id
+            && $timeLog->approval_status === ApprovalStatus::Pending
+            && $this->canLogTime($user, $timeLog);
     }
 
     /**
@@ -67,33 +69,53 @@ class TimeLogPolicy
      */
     public function stop(User $user, TimeLog $timeLog): bool
     {
-        return $timeLog->user_id === $user->id && $timeLog->ended_at === null;
+        return $timeLog->user_id === $user->id
+            && $timeLog->ended_at === null
+            && $this->canLogTime($user, $timeLog);
     }
 
     /**
      * Determine whether the user can approve or reject the entry — only
-     * once it's been submitted, and only the project manager it was
-     * logged against (RD.md names "project manager" as who "approves
-     * timesheets"), reusing `ProjectPolicy::update`'s own manage-rights
-     * check rather than re-deriving it. An entry logged against no
-     * project at all (`project_id` null — time with no project context,
-     * e.g. general admin work) has no project manager to fall back on,
-     * so a team admin decides those instead.
+     * once it's been submitted. A `timesheet-approvals.decide` holder
+     * decides any entry on the team; otherwise only the project manager
+     * it was logged against (RD.md names "project manager" as who
+     * "approves timesheets"), reusing `ProjectPolicy::update`'s own
+     * manage-rights check rather than re-deriving it. An entry logged
+     * against no project (`project_id` null) has no project manager to
+     * fall back on. Nobody decides their own entry, whatever their
+     * standing.
      */
     public function decide(User $user, TimeLog $timeLog): bool
     {
-        if ($timeLog->approval_status !== ApprovalStatus::Submitted) {
+        if ($timeLog->approval_status !== ApprovalStatus::Submitted || $timeLog->user_id === $user->id) {
             return false;
         }
 
-        if ($timeLog->project_id === null) {
-            $timeLog->loadMissing('team');
+        $timeLog->loadMissing('team');
 
-            return $user->teamCan($timeLog->team, TeamModulePermission::DecideTimesheets);
+        // `timesheet-approvals.decide` is the team-wide approver grant:
+        // every entry on the team, with or without a project.
+        if ($timeLog->team !== null && $user->teamCan($timeLog->team, TeamModulePermission::DecideTimesheets)) {
+            return true;
+        }
+
+        if ($timeLog->project_id === null) {
+            return false;
         }
 
         $timeLog->loadMissing('project');
 
         return $this->projectPolicy->update($user, $timeLog->project);
+    }
+
+    /**
+     * Owning an entry isn't enough on its own: a role that loses
+     * `time-logs.manage` stops being able to change its logs too.
+     */
+    private function canLogTime(User $user, TimeLog $timeLog): bool
+    {
+        $timeLog->loadMissing('team');
+
+        return $timeLog->team !== null && $user->teamCan($timeLog->team, TeamModulePermission::ManageTimeLogs);
     }
 }
