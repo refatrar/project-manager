@@ -50,12 +50,10 @@ import type {
     TeamMemberOption,
 } from '@/types';
 
-// Managers get the full detail payload; other viewers get it without the
-// budget, currency and estimated hours — see ProjectController::show().
 type ProjectPayload = Project & Partial<Omit<ProjectDetail, keyof Project>>;
 
 function isProjectDetail(project: ProjectPayload): project is ProjectDetail {
-    return 'budget' in project;
+    return 'description' in project;
 }
 
 type Props = {
@@ -514,26 +512,6 @@ function OverviewTab({
                         <p>End: {project.end_date ?? '—'}</p>
                     </CardContent>
                 </Card>
-
-                {isProjectDetail(project) ? (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Budget</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-1 text-sm">
-                            <p>
-                                Estimated hours:{' '}
-                                {project.estimated_hours ?? '—'}
-                            </p>
-                            <p>
-                                Budget:{' '}
-                                {project.budget
-                                    ? `${project.budget} ${project.currency ?? ''}`
-                                    : '—'}
-                            </p>
-                        </CardContent>
-                    </Card>
-                ) : null}
 
                 {project.client_name !== undefined ? (
                     <Card>

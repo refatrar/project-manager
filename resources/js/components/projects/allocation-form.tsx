@@ -104,7 +104,7 @@ export default function AllocationForm({
                 <InputError message={form.errors.user_id} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-4 *:min-w-0">
                 <div className="grid gap-2">
                     <Label htmlFor="allocation-starts-on">Starts on</Label>
                     <Input
@@ -129,7 +129,7 @@ export default function AllocationForm({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-4 *:min-w-0">
                 <div className="grid gap-2">
                     <Label htmlFor="allocation-hours">Hours per day</Label>
                     <Input

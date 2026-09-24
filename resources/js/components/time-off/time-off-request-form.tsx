@@ -90,7 +90,7 @@ export default function TimeOffRequestForm({
                 <InputError message={form.errors.type} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-4 *:min-w-0">
                 <div className="grid gap-2">
                     <Label htmlFor="time-off-starts-on">Starts on</Label>
                     <Input
@@ -126,7 +126,7 @@ export default function TimeOffRequestForm({
             </div>
 
             {!form.data.is_full_day ? (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid w-full min-w-0 grid-cols-2 gap-4 *:min-w-0">
                     <div className="grid gap-2">
                         <Label htmlFor="time-off-start-time">Start time</Label>
                         <Input

@@ -116,7 +116,7 @@ export default function MemberForm({
                 </div>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="member-role">Role</Label>
                     <Select
@@ -160,7 +160,7 @@ export default function MemberForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="member-hourly-rate">Hourly rate</Label>
                     <Input

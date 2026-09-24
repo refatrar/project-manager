@@ -42,9 +42,6 @@ export type ProjectFormData = {
     client_name: string;
     start_date: string;
     end_date: string;
-    estimated_hours: string;
-    budget: string;
-    currency: string;
     project_lead_id: string;
 };
 
@@ -132,7 +129,7 @@ function Field({
     return (
         <div
             className={cn(
-                'grid w-full gap-2 [&_[data-slot=select-trigger]]:w-full',
+                'grid w-full min-w-0 gap-2 [&_[data-slot=select-trigger]]:w-full',
                 className,
             )}
         >
@@ -181,9 +178,6 @@ export default function ProjectForm({
             client_name: detail?.client_name ?? '',
             start_date: project?.start_date ?? '',
             end_date: project?.end_date ?? '',
-            estimated_hours: detail?.estimated_hours ?? '',
-            budget: detail?.budget ?? '',
-            currency: detail?.currency ?? '',
             project_lead_id: detail?.project_lead
                 ? String(detail.project_lead.id)
                 : '',
@@ -207,7 +201,7 @@ export default function ProjectForm({
                     title="Basics"
                     description="The name people see, and a short code used in lists."
                 >
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-3">
                         <Field
                             id="project-name"
                             label="Name"
@@ -281,7 +275,7 @@ export default function ProjectForm({
                     title="People"
                     description="Who leads the work, and who it is for."
                 >
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                         <Field
                             id="project-lead"
                             label="Project lead"
@@ -350,7 +344,7 @@ export default function ProjectForm({
                     title="Status"
                     description="These start with sensible defaults. Change them when the project moves."
                 >
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-3">
                         <Field
                             id="project-status"
                             label="Status"
@@ -459,7 +453,7 @@ export default function ProjectForm({
                     title="Schedule"
                     description="Leave these blank if the dates are not set yet. The end date must be on or after the start date."
                 >
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                         <Field
                             id="project-start-date"
                             label="Start date"
@@ -495,77 +489,6 @@ export default function ProjectForm({
                                     form.setData('end_date', event.target.value)
                                 }
                                 data-test="project-end-date"
-                            />
-                        </Field>
-                    </div>
-                </Section>
-
-                <Section
-                    title="Effort and budget"
-                    description="A rough plan for hours and money. Currency is a 3-letter code, such as USD."
-                >
-                    <div className="grid gap-4 sm:grid-cols-[1fr_1fr_7rem]">
-                        <Field
-                            id="project-estimated-hours"
-                            label="Estimated hours"
-                            error={form.errors.estimated_hours}
-                        >
-                            <Input
-                                id="project-estimated-hours"
-                                name="estimated_hours"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={form.data.estimated_hours}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'estimated_hours',
-                                        event.target.value,
-                                    )
-                                }
-                                placeholder="120"
-                                data-test="project-estimated-hours"
-                            />
-                        </Field>
-
-                        <Field
-                            id="project-budget"
-                            label="Budget"
-                            error={form.errors.budget}
-                        >
-                            <Input
-                                id="project-budget"
-                                name="budget"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={form.data.budget}
-                                onChange={(event) =>
-                                    form.setData('budget', event.target.value)
-                                }
-                                placeholder="10000"
-                                data-test="project-budget"
-                            />
-                        </Field>
-
-                        <Field
-                            id="project-currency"
-                            label="Currency"
-                            error={form.errors.currency}
-                        >
-                            <Input
-                                id="project-currency"
-                                name="currency"
-                                maxLength={3}
-                                value={form.data.currency}
-                                onChange={(event) =>
-                                    form.setData(
-                                        'currency',
-                                        event.target.value.toUpperCase(),
-                                    )
-                                }
-                                placeholder="USD"
-                                data-test="project-currency"
                             />
                         </Field>
                     </div>

@@ -121,7 +121,7 @@ export default function SprintForm({
                 <InputError message={form.errors.status} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="sprint-starts-on">Starts on</Label>
                     <Input
@@ -153,7 +153,7 @@ export default function SprintForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="sprint-capacity">Capacity hours</Label>
                     <Input

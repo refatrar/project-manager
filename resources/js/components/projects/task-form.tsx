@@ -165,7 +165,7 @@ export default function TaskForm({
                 <InputError message={form.errors.description} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="task-type">Type</Label>
                     <Select
@@ -215,7 +215,7 @@ export default function TaskForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="task-milestone">Milestone</Label>
                     <Select
@@ -313,7 +313,7 @@ export default function TaskForm({
                 </div>
             ) : null}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 {!task ? (
                     <div className="grid gap-2">
                         <Label htmlFor="task-status">Status</Label>
@@ -364,7 +364,7 @@ export default function TaskForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="task-starts-at">Start date</Label>
                     <Input
@@ -392,7 +392,7 @@ export default function TaskForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3 sm:items-end">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-3 sm:items-end">
                 <div className="grid gap-2">
                     <Label htmlFor="task-estimated-hours">Est. hours</Label>
                     <Input

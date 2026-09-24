@@ -148,7 +148,7 @@ export default function ModuleForm({
                 <InputError message={form.errors.description} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="module-status">Status</Label>
                     <Select
@@ -196,7 +196,7 @@ export default function ModuleForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-3">
                 <div className="grid gap-2">
                     <Label htmlFor="module-start-date">Start date</Label>
                     <Input

@@ -121,7 +121,7 @@ function CreateRoleForm({ permissions }: { permissions: PermissionOption[] }) {
 
     return (
         <form onSubmit={submit} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="role-name">Role name</Label>
                     <Input
@@ -240,7 +240,7 @@ function RoleCard({
             {editing ? (
                 <CardContent>
                     <form onSubmit={submit} className="space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor={`role-${role.id}-name`}>
                                     Name

@@ -80,7 +80,7 @@ function CreateUserForm() {
     };
 
     return (
-        <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={submit} className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
             <div className="grid gap-2">
                 <Label htmlFor="user-name">Name</Label>
                 <Input
@@ -160,7 +160,7 @@ function EditUserForm({
     };
 
     return (
-        <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
+        <form onSubmit={submit} className="grid w-full min-w-0 gap-3 *:min-w-0 sm:grid-cols-2">
             <div className="grid gap-1">
                 <Label htmlFor={`user-${user.id}-name`}>Name</Label>
                 <Input

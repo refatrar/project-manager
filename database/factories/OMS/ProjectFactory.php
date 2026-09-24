@@ -36,7 +36,6 @@ class ProjectFactory extends Factory
             'health' => ProjectHealth::OnTrack,
             'start_date' => $startDate,
             'end_date' => fake()->dateTimeBetween($startDate, '+6 months'),
-            'estimated_hours' => fake()->numberBetween(80, 1200),
         ];
     }
 

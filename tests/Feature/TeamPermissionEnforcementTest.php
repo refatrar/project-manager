@@ -52,7 +52,7 @@ class TeamPermissionEnforcementTest extends TestCase
         $member = User::factory()->create();
         $team->members()->attach($member, ['role' => TeamRole::Member->value]);
         app(TeamAccessControl::class)->ensureCatalogue();
-        $project = Project::factory()->create(['team_id' => $team->id, 'budget' => 5000]);
+        $project = Project::factory()->create(['team_id' => $team->id]);
         ProjectMember::factory()->create(['project_id' => $project->id, 'user_id' => $member->id, 'role' => ProjectMemberRole::Developer->value]);
 
         $this->actingAs($member)

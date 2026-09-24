@@ -68,7 +68,7 @@ export default function ProjectFormModal({
                     <DialogDescription>
                         {isEditing
                             ? 'Update the plan for this project. The code stays the same.'
-                            : 'You become the owner. Name and code are required. Schedule, people, and budget can be added later.'}
+                            : 'You become the owner. Name and code are required. Schedule and people can be added later.'}
                     </DialogDescription>
                 </DialogHeader>
 

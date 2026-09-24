@@ -40,7 +40,6 @@ use App\Models\Team;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -103,8 +102,7 @@ class ProjectController extends Controller
 
         $project = $createProject->handle($current_team, $user, $request->safe()->only([
             'code', 'name', 'description', 'status', 'priority', 'health', 'color',
-            'client_name', 'start_date', 'end_date', 'estimated_hours', 'budget', 'currency',
-            'project_lead_id',
+            'client_name', 'start_date', 'end_date', 'project_lead_id',
         ]));
 
         return $this->savedResponse($request, $current_team, $project, __('Project created.'), 201);
@@ -128,9 +126,9 @@ class ProjectController extends Controller
 
         $project->load('owner:id,name', 'projectLead:id,name');
 
-        // Budget, estimated hours and members' hourly rates are visible only
-        // to whoever can manage this project — the same split `index()`
-        // applies — never to every project viewer.
+        // Members' hourly rates are visible only to whoever can manage this
+        // project — the same split `index()` applies — never to every
+        // project viewer.
         $canManage = Gate::allows('update', $project);
 
         $modules = $project->modules()
@@ -244,11 +242,7 @@ class ProjectController extends Controller
             ]);
 
         return Inertia::render('projects/show', [
-            // Viewers who can't manage still see what the project is and
-            // who runs it — only the money and effort figures are held back.
-            'project' => $canManage
-                ? $project->toDetailArray()
-                : Arr::except($project->toDetailArray(), ['budget', 'currency', 'estimated_hours']),
+            'project' => $project->toDetailArray(),
             'modules' => $modules,
             'members' => $members,
             'memberCapacity' => $memberCapacity,
@@ -304,8 +298,7 @@ class ProjectController extends Controller
 
         $project->fill($request->safe()->only([
             'code', 'name', 'description', 'status', 'priority', 'health', 'color',
-            'client_name', 'start_date', 'end_date', 'estimated_hours', 'budget', 'currency',
-            'project_lead_id',
+            'client_name', 'start_date', 'end_date', 'project_lead_id',
         ]));
         $project->updated_by = $user->id;
         $project->save();

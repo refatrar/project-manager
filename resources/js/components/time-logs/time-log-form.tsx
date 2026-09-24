@@ -82,7 +82,7 @@ export default function TimeLogForm({ log = null, projects, activityTypeOptions,
 
     return (
         <form onSubmit={submit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-4 *:min-w-0">
                 <div className="grid gap-2">
                     <Label htmlFor="time-log-project">Project</Label>
                     <Select
@@ -123,7 +123,7 @@ export default function TimeLogForm({ log = null, projects, activityTypeOptions,
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid w-full min-w-0 grid-cols-2 gap-4 *:min-w-0">
                 <div className="grid gap-2">
                     <Label htmlFor="time-log-started-at">Started at</Label>
                     <Input

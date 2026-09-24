@@ -27,9 +27,6 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->date('actual_start_date')->nullable();
             $table->date('actual_end_date')->nullable();
-            $table->decimal('estimated_hours', 10, 2)->nullable();
-            $table->decimal('budget', 14, 2)->nullable();
-            $table->char('currency', 3)->nullable();
             $table->unsignedTinyInteger('progress_percentage')->default(0);
             $table->unsignedInteger('next_task_number')->default(1);
             $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();

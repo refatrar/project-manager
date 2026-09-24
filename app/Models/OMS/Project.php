@@ -38,9 +38,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $end_date
  * @property Carbon|null $actual_start_date
  * @property Carbon|null $actual_end_date
- * @property string|null $estimated_hours
- * @property string|null $budget
- * @property string|null $currency
  * @property int $progress_percentage
  * @property int $next_task_number
  * @property int|null $owner_id
@@ -71,7 +68,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'code', 'slug', 'name', 'description', 'status', 'priority', 'health', 'color',
     'client_name', 'start_date', 'end_date', 'actual_start_date', 'actual_end_date',
-    'estimated_hours', 'budget', 'currency', 'owner_id', 'project_lead_id',
+    'owner_id', 'project_lead_id',
 ])]
 class Project extends Model
 {
@@ -335,9 +332,6 @@ class Project extends Model
             'client_name' => $this->client_name,
             'actual_start_date' => $this->actual_start_date?->toDateString(),
             'actual_end_date' => $this->actual_end_date?->toDateString(),
-            'estimated_hours' => $this->estimated_hours,
-            'budget' => $this->budget,
-            'currency' => $this->currency,
             'owner' => $this->owner ? [
                 'id' => $this->owner->id,
                 'name' => $this->owner->name,

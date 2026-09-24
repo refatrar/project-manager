@@ -105,7 +105,7 @@ export default function MeetingForm({
                 <InputError message={form.errors.title} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="meeting-type">Type</Label>
                     <Select
@@ -163,7 +163,7 @@ export default function MeetingForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="meeting-scheduled-start">Starts</Label>
                     <Input
@@ -198,7 +198,7 @@ export default function MeetingForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="meeting-location">Location</Label>
                     <Input

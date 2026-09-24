@@ -102,7 +102,7 @@ export default function TodoItemForm({
                 <InputError message={form.errors.notes} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="todo-item-priority">Priority</Label>
                     <Select
@@ -157,7 +157,7 @@ export default function TodoItemForm({
                 </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid w-full min-w-0 gap-4 *:min-w-0 sm:grid-cols-2">
                 <div className="grid gap-2">
                     <Label htmlFor="todo-item-due-at">Due</Label>
                     <Input

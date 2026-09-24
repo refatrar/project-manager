@@ -41,9 +41,6 @@ export type ProjectDetail = Project & {
     client_name: string | null;
     actual_start_date: string | null;
     actual_end_date: string | null;
-    estimated_hours: string | null;
-    budget: string | null;
-    currency: string | null;
     owner: ProjectOwner | null;
     project_lead: ProjectOwner | null;
 };
