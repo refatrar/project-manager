@@ -5,6 +5,7 @@ namespace App\Http\Controllers\OMS;
 use App\Actions\OMS\ChangeTaskStatus;
 use App\Actions\OMS\CreateTask;
 use App\Actions\OMS\GetOrCreateTaskChecklist;
+use App\Actions\OMS\SyncTaskChecklistItems;
 use App\Enums\Priority;
 use App\Enums\TaskDependencyType;
 use App\Enums\TaskStatus;
@@ -32,7 +33,7 @@ class TaskController extends Controller
     /**
      * Store a newly created task on the project.
      */
-    public function store(SaveTaskRequest $request, Team $current_team, Project $project, CreateTask $createTask): JsonResponse|RedirectResponse
+    public function store(SaveTaskRequest $request, Team $current_team, Project $project, CreateTask $createTask, SyncTaskChecklistItems $syncTaskChecklistItems): JsonResponse|RedirectResponse
     {
         $this->authorizeProjectOnTeam($current_team, $project);
         Gate::authorize('create', [Task::class, $project]);
@@ -45,7 +46,12 @@ class TaskController extends Controller
             'priority', 'estimated_hours', 'remaining_hours', 'is_billable', 'starts_at', 'due_at',
         ]));
         $task->labels()->sync($request->validated('label_ids', []));
-        $task->load(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color']);
+
+        if ($request->safe()->has('todos')) {
+            $syncTaskChecklistItems->handle($task, $project, $user, $request->validated('todos'));
+        }
+
+        $task->load(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color', 'checklistItems']);
 
         return $this->savedResponse($request, $current_team, $project, $task, __('Task created.'), 201);
     }
@@ -65,6 +71,7 @@ class TaskController extends Controller
             'assignees:id,name',
             'assignments.user:id,name',
             'labels:id,name,color',
+            'checklistItems',
             'parent:id,project_id,number,title,status',
             'subtasks' => fn ($query) => $query->with(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color'])->orderBy('position'),
             'dependencies.relatedTask:id,project_id,number,title,status',
@@ -120,7 +127,7 @@ class TaskController extends Controller
     /**
      * Update the specified task's own fields (not its board position).
      */
-    public function update(SaveTaskRequest $request, Team $current_team, Project $project, Task $task): JsonResponse|RedirectResponse
+    public function update(SaveTaskRequest $request, Team $current_team, Project $project, Task $task, SyncTaskChecklistItems $syncTaskChecklistItems): JsonResponse|RedirectResponse
     {
         $this->authorizeTaskOnProject($current_team, $project, $task);
         Gate::authorize('update', $task);
@@ -135,7 +142,12 @@ class TaskController extends Controller
         $task->updated_by = $user->id;
         $task->save();
         $task->labels()->sync($request->validated('label_ids', []));
-        $task->load(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color']);
+
+        if ($request->safe()->has('todos')) {
+            $syncTaskChecklistItems->handle($task, $project, $user, $request->validated('todos'));
+        }
+
+        $task->load(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color', 'checklistItems']);
 
         return $this->savedResponse($request, $current_team, $project, $task, __('Task updated.'));
     }

@@ -174,8 +174,9 @@ class ProjectController extends Controller
 
         // Not scoped to open(): the board needs its Done column populated too.
         $tasks = $project->tasks()
-            ->with(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color'])
+            ->with(['taskType:id,name', 'assignees:id,name', 'assignments.user:id,name', 'labels:id,name,color', 'checklistItems'])
             ->orderBy('position')
+            ->orderBy('id')
             ->get()
             ->map(function (Task $task) use ($project): array {
                 $task->setRelation('project', $project);

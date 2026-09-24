@@ -4,8 +4,10 @@ namespace App\Http\Requests\OMS;
 
 use App\Enums\Priority;
 use App\Enums\TaskStatus;
+use App\Enums\TodoListType;
 use App\Models\OMS\Project;
 use App\Models\OMS\Task;
+use App\Models\OMS\TodoList;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -48,6 +50,22 @@ class SaveTaskRequest extends FormRequest
             'label_ids.*' => ['integer', Rule::exists('labels', 'id')->where('team_id', $project instanceof Project ? $project->team_id : null)],
         ];
 
+        // Optional: when `todos` is omitted the task's checklist is left
+        // untouched. An `id` must name an item on this task's own checklist.
+        $task = $this->route('task');
+        $rules['todos'] = ['sometimes', 'array', 'max:100'];
+        $rules['todos.*.title'] = ['required', 'string', 'max:255'];
+        $rules['todos.*.id'] = $isCreating
+            ? ['prohibited']
+            : ['nullable', 'integer', 'distinct', Rule::exists('todo_items', 'id')->whereIn(
+                'todo_list_id',
+                TodoList::query()
+                    ->where('task_id', $task instanceof Task ? $task->id : null)
+                    ->where('type', TodoListType::TaskChecklist->value)
+                    ->pluck('id')
+                    ->all(),
+            )];
+
         if ($isCreating) {
             $rules['status'] = ['required', Rule::enum(TaskStatus::class)];
             // parent_id is create-only: a new task can never be its own
@@ -81,6 +99,14 @@ class SaveTaskRequest extends FormRequest
 
         if ($this->input('sprint_id') === '' || $this->input('sprint_id') === 'none') {
             $this->merge(['sprint_id' => null]);
+        }
+
+        // Blank to-do rows left in the form are dropped rather than rejected.
+        if (is_array($this->input('todos'))) {
+            $this->merge(['todos' => array_values(array_filter(
+                $this->input('todos'),
+                fn (mixed $todo): bool => ! is_array($todo) || trim((string) ($todo['title'] ?? '')) !== '',
+            ))]);
         }
     }
 }

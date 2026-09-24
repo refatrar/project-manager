@@ -301,7 +301,7 @@ export default function TaskShow({
                 labels={labels}
                 statusOptions={statusOptions}
                 priorityOptions={priorityOptions}
-                onSaved={() => reload(['task'])}
+                onSaved={() => reload(['task', 'checklist'])}
             />
 
             <TaskFormModal

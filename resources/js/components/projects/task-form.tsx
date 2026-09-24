@@ -1,4 +1,5 @@
 import { useHttp, usePage } from '@inertiajs/react';
+import { Plus, Trash2 } from 'lucide-react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -46,6 +47,12 @@ export type TaskFormData = {
     starts_at: string;
     due_at: string;
     label_ids: number[];
+    todos: TaskTodoRow[];
+};
+
+export type TaskTodoRow = {
+    id: number | null;
+    title: string;
 };
 
 export type TaskSavedResponse = {
@@ -114,8 +121,41 @@ export default function TaskForm({
             starts_at: detail?.starts_at?.slice(0, 10) ?? '',
             due_at: task?.due_at?.slice(0, 10) ?? '',
             label_ids: task?.labels.map((l) => l.id) ?? [],
+            todos:
+                task?.todos?.map((todo) => ({
+                    id: todo.id,
+                    title: todo.title,
+                })) ?? [],
         },
     );
+
+    // An edited task whose to-dos were not loaded must not send `todos`,
+    // or the server would treat the empty list as "remove them all".
+    const canEditTodos = !task || task.todos !== undefined;
+    const completedTodoIds = new Set(
+        task?.todos?.filter((todo) => todo.is_completed).map((todo) => todo.id),
+    );
+    const todoErrors = form.errors as Record<string, string | undefined>;
+
+    const addTodo = () => {
+        form.setData('todos', [...form.data.todos, { id: null, title: '' }]);
+    };
+
+    const updateTodo = (index: number, title: string) => {
+        form.setData(
+            'todos',
+            form.data.todos.map((todo, i) =>
+                i === index ? { ...todo, title } : todo,
+            ),
+        );
+    };
+
+    const removeTodo = (index: number) => {
+        form.setData(
+            'todos',
+            form.data.todos.filter((_, i) => i !== index),
+        );
+    };
 
     const toggleLabel = (labelId: number) => {
         const current = form.data.label_ids;
@@ -129,6 +169,16 @@ export default function TaskForm({
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        form.transform((data) => {
+            if (canEditTodos) {
+                return data;
+            }
+
+            const { todos: _todos, ...rest } = data;
+
+            return rest;
+        });
 
         void form.submit({
             onSuccess: (response) => {
@@ -434,6 +484,73 @@ export default function TaskForm({
                     <Label htmlFor="task-billable">Billable</Label>
                 </div>
             </div>
+
+            {canEditTodos ? (
+                <div className="grid gap-2">
+                    <Label>To-dos</Label>
+                    {form.data.todos.length > 0 ? (
+                        <ul className="space-y-2">
+                            {form.data.todos.map((todo, index) => (
+                                <li
+                                    key={todo.id ?? `new-${index}`}
+                                    data-test="task-todo-row"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            value={todo.title}
+                                            onChange={(event) =>
+                                                updateTodo(
+                                                    index,
+                                                    event.target.value,
+                                                )
+                                            }
+                                            placeholder="Write the release notes"
+                                            aria-label={`To-do ${index + 1}`}
+                                            className={cn(
+                                                todo.id !== null &&
+                                                    completedTodoIds.has(
+                                                        todo.id,
+                                                    ) &&
+                                                    'text-muted-foreground line-through',
+                                            )}
+                                            data-test="task-todo-title"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-9 w-9 shrink-0 p-0"
+                                            onClick={() => removeTodo(index)}
+                                            aria-label="Remove to-do"
+                                            data-test="task-todo-remove"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <InputError
+                                        message={
+                                            todoErrors[`todos.${index}.title`] ??
+                                            todoErrors[`todos.${index}.id`]
+                                        }
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    ) : null}
+                    <div>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={addTodo}
+                            data-test="task-todo-add"
+                        >
+                            <Plus className="h-4 w-4" /> Add to-do
+                        </Button>
+                    </div>
+                    <InputError message={todoErrors.todos} />
+                </div>
+            ) : null}
 
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 {onCancel ? (

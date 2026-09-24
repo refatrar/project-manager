@@ -172,6 +172,14 @@ export type Task = {
     labels: TaskLabel[];
     /** Board rows only: whether the viewer may move this task (TaskPolicy::changeStatus). */
     can_change_status?: boolean;
+    /** The task's checklist items, present only when the server loaded them. */
+    todos?: TaskTodo[];
+};
+
+export type TaskTodo = {
+    id: number;
+    title: string;
+    is_completed: boolean;
 };
 
 export type TaskDependencyType =

@@ -61,11 +61,43 @@ class ChangeTaskStatus
             }
 
             $task->status = $newStatus;
-            $task->position = $newPosition;
+            $task->position = $this->placeInColumn($task, $newStatus, $newPosition);
             $task->updated_by = $changedBy->id;
             $task->save();
         });
 
         return $task->refresh();
+    }
+
+    /**
+     * Treat `$slot` as the task's index within the target column: the other
+     * tasks there are renumbered 0..n around it, so two cards never share a
+     * position and moving up/down always swaps with the neighbour. Returns
+     * the task's own new position.
+     */
+    private function placeInColumn(Task $task, TaskStatus $status, int $slot): int
+    {
+        $siblings = Task::query()
+            ->where('project_id', $task->project_id)
+            ->where('status', $status->value)
+            ->whereKeyNot($task->id)
+            ->orderBy('position')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get(['id', 'position']);
+
+        $slot = max(0, min($slot, $siblings->count()));
+
+        foreach ($siblings->values() as $index => $sibling) {
+            $position = $index < $slot ? $index : $index + 1;
+
+            if ($sibling->position !== $position) {
+                // A plain column update: renumbering neighbours is not an
+                // edit of those tasks, so no audit/updated_by churn.
+                Task::query()->whereKey($sibling->id)->update(['position' => $position]);
+            }
+        }
+
+        return $slot;
     }
 }

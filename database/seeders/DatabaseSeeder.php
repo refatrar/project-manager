@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
             AdminAccessControlSeeder::class,
             DemoSeeder::class,
             TeamAccessControlSeeder::class,
-            // AlpRtmImportSeeder::class,
-            // MothersAtWorkImportSeeder::class
+            AlpRtmImportSeeder::class,
+            MothersAtWorkImportSeeder::class
         ]);
     }
 }

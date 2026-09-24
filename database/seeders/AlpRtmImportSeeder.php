@@ -69,7 +69,7 @@ class AlpRtmImportSeeder extends Seeder
             return;
         }
 
-        $creator = User::query()->orderBy('id')->first();
+        $creator = User::query()->where('email', 'hasib@kaz-software.com')->first();
         if ($creator === null) {
             $this->command->warn('AlpRtmImportSeeder: no user exists to attribute the import to. Skipping.');
 
@@ -109,10 +109,10 @@ class AlpRtmImportSeeder extends Seeder
 
     private function createProject(Team $team, User $creator): Project
     {
-        $project = (new CreateProject)->handle($team, $creator, [
+        $project = app(CreateProject::class)->handle($team, $creator, [
             'code' => 'ALPRTM',
             'name' => 'ALP-RTM',
-            'description' => $this->projectDescription(),
+            'description' => "To enhance the Alternative Learning Programme (ALP), we propose a Real-Time Monitoring (RTM) system for seamless management and evaluation. This RTM features a comprehensive database for learners, trainers, and stakeholders, accessible via a user-friendly portal. It supports both online and offline access, ensuring functionality in areas with limited internet connectivity. Designed for scalability, the RTM tracks participants across all divisions, recording data at both output and activity levels. This innovative system aims to improve ALP's efficiency, empowering marginalized individuals through technology and data-driven insights",
             'status' => ProjectStatus::Active,
             'priority' => Priority::High,
             'health' => ProjectHealth::AtRisk,
@@ -265,40 +265,6 @@ class AlpRtmImportSeeder extends Seeder
         return [
             ['TASK-059', 'TASK-095'], // both wire an email notification to Event/Activity creation (Module 17 vs Module 29) - likely overlapping work in the source document.
         ];
-    }
-
-    private function projectDescription(): string
-    {
-        return <<<'PROJECT_DESCRIPTION'
-ALP-RTM / Skilfo (UNICEF) — Real-Time Monitoring (RTM) / M&E system for out-of-school-youth vocational training (learners, trainers, mastercraft persons, training centers, monitoring visits, employment outcomes). Laravel 10 + Inertia.js + Vue.js, operating as two tenants on one codebase: the original ALP scope and the newer Skilfo/BNFE scope.
-
-Imported from a full project audit and requirement-traceability analysis (`ALP-RTM_TASKS.md`, generated 2026-09-22) covering four source documents:
-- **CLIENT** — ToR for ALP RTM.docx (original Terms of Reference)
-- **COMMITMENT** — System Requirement Specification (SRS) 1.pdf (14 Mar 2024)
-- **UAT** — UAT Feedback By KAZ, 4 September
-- **NEW** — Skilfo Projects Comparison.pdf (scope expansion)
-- **REVIEW** — full codebase review of `/var/www/kazsoft/kaz_unicef-alp`
-
-35 modules and 118 tasks were imported, each retaining its original module, source document, requirement ID, status, and priority (see each module's and task's description for full detail, and the source `ALP-RTM_TASKS.md` file in this repo for the complete unabridged analysis).
-
-**Note on source-document numbering:** the source document's own summary table states 121 total tasks, but only 118 task rows actually exist in its register — task numbers TASK-071, TASK-072, TASK-073 are skipped/never defined in the source file itself (not an import error). The source's Critical-priority count (9) likewise does not correspond to any literal per-task priority tag in the register — no task is tagged CRITICAL; only HIGH/MEDIUM/LOW appear. Both discrepancies are pre-existing in the source document, not introduced during import.
-
-## Open Questions / Clarifications Required (from source document)
-
-- **OQ-001** (NEW-011): What exactly are "CA-1" through "CA-4" in the Monthly Progress Report, and how often are they filled? Are they assessment-, attendance-, or performance-related?
-- **OQ-002** (NEW-007): How does "Literacy Center" differ from the existing "Training Center"? Is it a distinct module or a Training Center sub-type?
-- **OQ-003** (NEW-005): What are the precise differences intended between "Pre-Assessment" and "Training Assessment" (NEW-005)?
-- **OQ-004** (NEW-009): Beyond the existing Trainer/MCP profile, what additional data does the general "Craft Database" (NEW-009) need to capture?
-- **OQ-005** (NEW-008): Should "Institution" (NEW-008) be a fully independent module, or always linked to Training Centers/Courses?
-- **OQ-006** (REV-027): Is the Task Tracking / Form Builder / Support-ticketing functionality found in the codebase an intentional, approved deliverable, unbilled scope creep, or something that should be removed/hidden?
-- **OQ-007** (CR-009): Is the 100GB storage / 16GB RAM hardware spec in the SRS (COM-028) still adequate now that the target scale has grown from ~25,000 to ~100,000 participants (CR-009) plus the added Skilfo/BNFE scope?
-- **OQ-008** (COM-028): Does "mobile SSO" (COM-028) mean integration with an existing UNICEF/partner identity provider (OIDC/SAML), or something narrower (e.g. shared session between web and mobile)?
-
-## Requirement Conflicts (from source document)
-
-- **CONF-001**: CR-018/COM-031 commit to "automated backup procedures" vs. Actual Backup feature is manual-trigger only (index/store/destroy, no scheduled job) — Impact: Data-loss risk if backups depend on an admin remembering to click a button Resolution needed: Decide: add a scheduled job, or formally amend the commitment to "on-demand backup" (TASK-106)
-- **CONF-002**: SRS commits (COM-012/013/014) to a "Logbooks" timeline tab on every profile-type detail page vs. Trainer/MCP/Learner detail pages all omit the Logbook tab despite the underlying data/relation existing — Impact: Client-visible gap between spec and delivered UI across 3 modules Resolution needed: Add the missing tab uniformly (TASK-023/027/033) rather than three separate ad hoc fixes
-PROJECT_DESCRIPTION;
     }
 
     /**

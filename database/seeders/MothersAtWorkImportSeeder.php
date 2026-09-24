@@ -99,7 +99,7 @@ class MothersAtWorkImportSeeder extends Seeder
             return;
         }
 
-        $creator = User::query()->orderBy('id')->first();
+        $creator = User::query()->where('email', 'hasib@kaz-software.com')->first();
         if ($creator === null) {
             $this->command->warn('MothersAtWorkImportSeeder: no user exists to attribute the import to. Skipping.');
 
@@ -159,10 +159,11 @@ class MothersAtWorkImportSeeder extends Seeder
             throw new RuntimeException('MothersAtWorkImportSeeder: a deleted project with code MAW exists on this team - restore or force-delete it first.');
         }
 
-        $project = (new CreateProject)->handle($team, $creator, [
+        $project = app(CreateProject::class)->handle($team, $creator, [
             'code' => self::PROJECT_CODE,
             'name' => 'Mothers@Work',
-            'description' => $this->projectDescription(),
+            'description' => "The “Mother at Work” Learning Management and Monitoring System (LMS) is a digital platform designed to support ready-made garment (RMG) factories in Bangladesh in implementing and monitoring compliance with seven essential maternity protection standards for pregnant and post-partum women workers.
+The main goal of this application is to ensure that factories provide a safe, fair, and supportive working environment for women during pregnancy and after childbirth.",
             'status' => ProjectStatus::Active,
             'priority' => Priority::High,
             'health' => ProjectHealth::OnTrack,
@@ -499,75 +500,6 @@ class MothersAtWorkImportSeeder extends Seeder
             ['TASK-057', 'TASK-085', 'blocked_by'], // TASK-085 client-blocker table row 12 (DIFE: Endpoint specification and credentials)
             ['TASK-030', 'TASK-085', 'blocked_by'], // TASK-085 client-blocker table row 13 (UNICEF: E-learning module content (SRS §2.6.1 assumption))
         ];
-    }
-
-    private function projectDescription(): string
-    {
-        return <<<'MAW_PROJECT_DESCRIPTION'
-Mothers@Work (M@W) Digital Monitoring System — UNICEF / KAZ Software. Monitors factory compliance with the seven M@W maternity-rights standards (breastfeeding spaces and breaks, childcare, paid maternity leave, cash and medical benefits, employment protection, safe work) across BGMEA/BKMEA member factories, with an LMS, reporting, dashboards and a Flutter mobile app. Repository `UNICEF-KAZ-motheratwork` (branch `dev`): Laravel 12, Vue 3 + Inertia 2, MySQL.
-
-Imported from the Master Task & Requirement Register (`Mother-At-Work_TASKS.md`, generated 2026-09-23): 22 modules and 85 tasks. Task number N in this project is source TASK-N (for example MAW-17 is TASK-017). Each task's description keeps the full source entry plus its matrix, conflict, open-question and sequencing references.
-
-## Source Documents
-
-- **DOC-01** TOR for M@W Digitalization v3 — client requirements (CR)
-- **DOC-02** SRS Rev-G, 24 Nov 2025 — our commitments (COM)
-- **DOC-03** Inception Report Rev-M, 24 Nov 2025 — our commitments and implementation plan (COM)
-- **DOC-04** Meeting Minutes 29 June — review/change items (REV-JUN)
-- **DOC-05** Meeting Minutes 13 July — process decision; reporting blocked on the UNICEF format (REV-JUL)
-- **DOC-06** Meeting Minutes 17 September — latest review/change authority (REV-SEP)
-- Repository review — technical findings (REVIEW) and defects (BUG)
-
-## Conflict Register (from source)
-
-- **CONFLICT-01 — "Industry" (June) vs "Factory" (September)** (DOC-04 REV-JUN-004 vs DOC-06 REV-SEP-004). June 29 directed replacing "RMG" with "Industry"; September 17 directed replacing "Industry" with "Factory". The later instruction reverses the earlier one. Required clarification: Does "Factory" apply to user-visible text only, or must internal identifiers follow? Recommendation: presentation layer only. Related: TASK-009, TASK-010.
-- **CONFLICT-02 — Community feed: TOR requires it, September says hide it** (DOC-01 CR-009 (TOR §3e) and DOC-02 FR-RS-004 vs DOC-06 REV-SEP-021). The TOR requires a scrollable news feed showcasing events, updates, multimedia and partnerships — a paid deliverable under the 40% development milestone. September asks to hide the community feed "for the time being". Required clarification: Is the TOR news-feed requirement satisfied by another surface (e.g. Story/Notice), or deferred? Is the hide temporary — and if so, until when? Related: TASK-038, TASK-039.
-- **CONFLICT-03 — LMS open to all vs UNICEF approval of all content** (DOC-06 REV-SEP-014 vs REV-SEP-001, REV-SEP-016). September asks to open the LMS publicly via self-registration, and in the same meeting requires UNICEF to review all content before launch and to approve every course/training creation. Required clarification: Confirm the approval workflow (TASK-031) must ship *before* public access (TASK-030). Related: TASK-030, TASK-031, TASK-001.
-- **CONFLICT-04 — Light colours vs WCAG contrast and UI consistency** (DOC-06 REV-SEP-003 vs DOC-02 NFR-UI-003/NFR-UI-004 and DOC-03 §15.1). September asks for no dark colours and varied colours per area. The SRS commits to a consistent colour scheme across modules and standard contrast ratios; the Inception commits to WCAG 2.1 Level AA. Required clarification: Confirm that AA contrast takes precedence where it conflicts with the light-palette preference, and whether dark mode is removed. Related: TASK-065, TASK-077.
-- **CONFLICT-05 — PostgreSQL committed, MySQL built** (DOC-02 §2.4.1, §5.2.3, NFR-SW-001 and DOC-03 §3.2 vs implementation). Both contractual documents commit to PostgreSQL; the system runs MySQL. Separately, the SRS commits to UUID primary keys; the system uses auto-increment integers with Hashids. Required clarification: Approve the MySQL and integer-PK decisions and amend the SRS, or justify them formally. Related: TASK-074, TASK-064.
-- **CONFLICT-06 — Monthly self-monitoring cadence vs quarterly implementation** (DOC-02 FR-ME-008 ("Monthly data update requirements") vs DOC-04 REV-JUN-010 ("Configure quarterly assessments")). The SRS commits to monthly self-monitoring updates; June directed quarterly assessment configuration, which is what was built. Required clarification: Confirm quarterly supersedes monthly for all monitoring modes, including employer self-monitoring. Related: TASK-019, TASK-048, TASK-024.
-- **CONFLICT-07 — Report Card commitments vs delivered scoring** (DOC-01 §1(i), DOC-02 FR-ME-001/002/003 and Appendix C Table 6 vs implementation). The SRS commits to a scorecard entity with national and partner rankings, performance tiers, percentiles, badges, peer comparison and a 12-month trend. None of it is built. Required clarification: Which FR-ME-001/003 elements remain in scope, given the September focus shifted toward checklist-based reports? Related: TASK-024, TASK-046, TASK-058.
-- **CONFLICT-08 — July 13 blocking dependency unresolved past its deadline** (DOC-04 REV-JUN-016/017, DOC-05 REV-JUL-001, DOC-06 REV-SEP-008). June set 2 Jul for the associations' format, 17 Jul for KAZ's implementation. July formally made development contingent on UNICEF delivering the finalized format. September then added *more* reporting requirements without recording receipt of that format. Required clarification: Has UNICEF delivered the format? If not, the schedule and any contractual milestone tied to reporting need renegotiation. Related: TASK-025, TASK-026, TASK-050.
-- **CONFLICT-09 — BGMEA/BKMEA API specifications never received** (DOC-01 §3b, DOC-02 FR-INT-002 and §2.6.1 assumption, DOC-03 §14.3 vs implementation). The SRS assumed the associations would provide API specifications within two weeks of project start. No integration code exists, indicating the assumption failed. The dependency is not raised in any later meeting minutes. Required clarification: Escalate formally: have the specifications been provided? If not, renegotiate scope or agree a stub/manual-exchange interim. Related: TASK-056, TASK-057, TASK-058.
-
-## Open Questions (from source)
-
-- **Q-01**: Does "Factory" replace "Industry" in user-visible text only, or must schema, routes and permissions follow? (blocks TASK-009, TASK-010; raised by CONFLICT-01)
-- **Q-02**: Is hiding the community feed temporary? If so, until when — and does the TOR news-feed deliverable stand? (blocks TASK-038; raised by CONFLICT-02)
-- **Q-03**: Is the pass mark 85% fixed system-wide, or a per-quiz default that admins may change? (blocks TASK-034; raised by REV-SEP-019)
-- **Q-04**: May the pass threshold still be displayed to learners once obtained marks are hidden? (blocks TASK-035; raised by REV-SEP-019)
-- **Q-05**: Does "weightage parameters" mean rating bands (built), per-question marks (built), or per-standard weights (missing)? (blocks TASK-023; raised by REV-SEP-006)
-- **Q-06**: How should a quarter-over-quarter "difference" be expressed for yes/no answers? (blocks TASK-020; raised by REV-SEP-012)
-- **Q-07**: Does embedding ECCD questions in Standard 3 satisfy the ECCD checklist request, or is a standalone checklist required? (blocks TASK-015; raised by REV-JUN-012)
-- **Q-08**: Is "Learning Hub" accepted in place of "LMS" for the home page menu? (blocks TASK-084; raised by REV-SEP-030)
-- **Q-09**: What role and permission set does a self-registered public learner receive? (blocks TASK-001, TASK-030; raised by REV-SEP-014)
-- **Q-10**: Which FR-ME-001/003 Report Card elements (rankings, percentiles, tiers, badges, peer comparison) remain in scope? (blocks TASK-024; raised by CONFLICT-07)
-- **Q-11**: Does quarterly monitoring supersede the SRS monthly self-monitoring cadence for all modes? (blocks TASK-048; raised by CONFLICT-06)
-- **Q-12**: Are the MySQL and integer-primary-key decisions approved, and will the SRS be amended to match? (blocks TASK-074; raised by CONFLICT-05)
-- **Q-13**: Where the light-palette preference conflicts with WCAG AA contrast, which takes precedence? Is dark mode removed? (blocks TASK-065, TASK-077; raised by CONFLICT-04)
-- **Q-14**: Have the BGMEA/BKMEA API specifications been provided? If not, is interoperability descoped or deferred? (blocks TASK-056; raised by CONFLICT-09)
-
-## Recommended Implementation Sequence (from source)
-
-- **Phase 1 — Security & Critical Defects**: TASK-055, TASK-053, TASK-054, TASK-052, TASK-003, TASK-004, TASK-059
-- **Phase 2 — Escalate Blockers (parallel with Phase 1; no development)**: TASK-085, TASK-025, TASK-056, TASK-008
-- **Phase 3 — September Review Items That Are Unblocked**: TASK-034, TASK-035, TASK-036, TASK-009, TASK-038, TASK-039, TASK-020, TASK-033, TASK-084, TASK-044, TASK-043
-- **Phase 4 — Public LMS (ordered — approval before opening)**: TASK-031, TASK-002, TASK-001, TASK-030, TASK-032
-- **Phase 5 — Reporting (starts on receipt of the format)**: TASK-026, TASK-016, TASK-022, TASK-021, TASK-027, TASK-050, TASK-028, TASK-029
-- **Phase 6 — Outstanding Commitments**: TASK-024, TASK-023, TASK-046, TASK-047, TASK-048, TASK-049, TASK-012, TASK-005, TASK-006, TASK-060, TASK-061
-- **Phase 7 — Integration**: TASK-056, TASK-057, TASK-058
-- **Phase 8 — Compliance, QA & Launch**: TASK-080, TASK-079, TASK-077, TASK-065, TASK-066, TASK-067, TASK-078, TASK-062, TASK-063, TASK-064, TASK-081, TASK-082, TASK-070, TASK-071, TASK-072, TASK-073, TASK-074
-
-## Notes on the Source Document
-
-These inconsistencies are in the source document itself. The import did not introduce them.
-
-- The summary says 15 client requirements. Task sources cite CR-001 to CR-014; CR-015 appears only in the traceability matrix, where it is linked to TASK-024.
-- The summary says 43 commitments. Tasks cite 43 distinct IDs, but they are COM-001 and COM-003 to COM-044 (there is no COM-002), and four tasks also cite an unnumbered "COM".
-- The summary says 12 new requirements and 4 commitment extensions. The register marks 11 tasks NEW REQUIREMENT and 3 COMMITMENT EXTENSION, and its own quality check lists the same 3.
-- The matrix numbers REV-JUN-014 to 017 differently from the tasks. Examples: the matrix has REV-JUN-014 as Profile Image API, but TASK-038 uses it for the community post fix; the matrix has REV-JUN-016/017 as the post fix and notices, but TASK-025 uses them for the report-format deadlines. REV-SEP-005 is the report rename in the matrix and TASK-027, but the app-name check in TASK-066. Every task keeps both versions exactly as written.
-- Dependencies lines cite TASK-086 to TASK-096, which don't exist in this 85-task register, and some annotated references cite the wrong number (for example "TASK-033 (7 reports)", when TASK-033 is the Course Title rename). 11 such references were linked to the task their annotation names. 25 were not linked. Each case is listed in the task's Source Traceability section.
-MAW_PROJECT_DESCRIPTION;
     }
 
     /**

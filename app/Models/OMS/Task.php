@@ -7,6 +7,7 @@ use App\Enums\Priority;
 use App\Enums\TaskAssignmentRole;
 use App\Enums\TaskReviewStatus;
 use App\Enums\TaskStatus;
+use App\Enums\TodoListType;
 use App\Models\Concerns\HasAuditUsers;
 use App\Models\Git\GitBranch;
 use App\Models\Git\GitCommit;
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -74,6 +76,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, Label> $labels
  * @property-read Collection<int, TimeLog> $timeLogs
  * @property-read Collection<int, TodoList> $checklists
+ * @property-read Collection<int, TodoItem> $checklistItems
  * @property-read Collection<int, GitCommit> $commits
  * @property-read Collection<int, GitBranch> $branches
  * @property-read Collection<int, GitPullRequest> $pullRequests
@@ -242,6 +245,20 @@ class Task extends Model
     }
 
     /**
+     * Get the ordered items on the task's checklist — the to-dos edited
+     * from the task form.
+     *
+     * @return HasManyThrough<TodoItem, TodoList, $this>
+     */
+    public function checklistItems(): HasManyThrough
+    {
+        return $this->hasManyThrough(TodoItem::class, TodoList::class)
+            ->where('todo_lists.type', TodoListType::TaskChecklist->value)
+            ->orderBy('todo_items.position')
+            ->orderBy('todo_items.id');
+    }
+
+    /**
      * Get the commits linked to the task.
      *
      * @return BelongsToMany<GitCommit, $this>
@@ -388,6 +405,15 @@ class Task extends Model
                 'name' => $label->name,
                 'color' => $label->color,
             ])->values(),
+            // Only present when `checklistItems` is loaded, so the task form
+            // knows whether it may sync to-dos without wiping unseen ones.
+            ...($this->relationLoaded('checklistItems') ? [
+                'todos' => $this->checklistItems->map(fn (TodoItem $item): array => [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'is_completed' => $item->is_completed,
+                ])->values(),
+            ] : []),
         ];
     }
 

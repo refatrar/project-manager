@@ -100,7 +100,7 @@ export default function KanbanBoard({
         }
 
         for (const column of groups.values()) {
-            column.sort((a, b) => a.position - b.position);
+            column.sort((a, b) => a.position - b.position || a.id - b.id);
         }
 
         return groups;
@@ -119,42 +119,42 @@ export default function KanbanBoard({
         });
     };
 
+    // `position` is sent as the slot index within the target column; the
+    // server renumbers the column around it (ChangeTaskStatus).
     const moveWithinColumn = (task: Task, direction: -1 | 1) => {
         const column = byStatus.get(task.status) ?? [];
         const index = column.findIndex((row) => row.id === task.id);
-        const swapWith = column[index + direction];
+        const target = index + direction;
 
-        if (!swapWith) {
+        if (index === -1 || target < 0 || target >= column.length) {
             return;
         }
 
-        moveTask(task, task.status, swapWith.position);
+        moveTask(task, task.status, target);
     };
 
     const changeColumn = (task: Task, status: TaskStatus) => {
-        const column = byStatus.get(status) ?? [];
-        const nextPosition =
-            column.length > 0
-                ? Math.max(...column.map((row) => row.position)) + 1
-                : 0;
-
-        moveTask(task, status, nextPosition);
+        moveTask(task, status, (byStatus.get(status) ?? []).length);
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="min-w-0 space-y-4">
+            {/* The whole board scrolls sideways; each column scrolls its own cards. */}
+            <div
+                className="flex h-[calc(100svh-16rem)] min-h-96 gap-4 overflow-x-auto overflow-y-hidden pb-3"
+                data-test="board-scroll"
+            >
                 {statusOptions.map((statusOption) => {
                     const column = byStatus.get(statusOption.value) ?? [];
 
                     return (
                         <div
                             key={statusOption.value}
-                            className="w-72 shrink-0 space-y-3"
+                            className="bg-muted/40 flex h-full w-72 shrink-0 flex-col rounded-lg border"
                             data-test={`board-column-${statusOption.value}`}
                         >
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold">
+                            <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
+                                <h3 className="min-w-0 truncate text-sm font-semibold">
                                     {statusOption.label}{' '}
                                     <span className="text-muted-foreground font-normal">
                                         ({column.length})
@@ -163,6 +163,7 @@ export default function KanbanBoard({
                                 <Button
                                     variant="ghost"
                                     size="sm"
+                                    className="shrink-0"
                                     onClick={() =>
                                         setAddingToStatus(statusOption.value)
                                     }
@@ -172,12 +173,15 @@ export default function KanbanBoard({
                                 </Button>
                             </div>
 
-                            <div className="space-y-2">
+                            <div
+                                className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2"
+                                data-test="board-column-scroll"
+                            >
                                 {column.map((task, index) => (
                                     <div
                                         key={task.id}
                                         data-test="task-card"
-                                        className="space-y-2 rounded-lg border p-3"
+                                        className="bg-card min-w-0 space-y-2 rounded-lg border p-3 shadow-xs"
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <Link
@@ -190,13 +194,13 @@ export default function KanbanBoard({
                                                           ])
                                                         : '#'
                                                 }
-                                                className="min-w-0"
+                                                className="min-w-0 flex-1"
                                                 data-test="task-card-link"
                                             >
-                                                <p className="text-muted-foreground font-mono text-xs">
+                                                <p className="text-muted-foreground truncate font-mono text-xs">
                                                     {task.reference}
                                                 </p>
-                                                <p className="text-sm font-medium hover:underline">
+                                                <p className="text-sm font-medium [overflow-wrap:anywhere] hover:underline">
                                                     {task.title}
                                                 </p>
                                             </Link>
@@ -241,8 +245,11 @@ export default function KanbanBoard({
                                             ) : null}
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-1">
-                                            <Badge variant="secondary">
+                                        <div className="flex min-w-0 flex-wrap items-center gap-1">
+                                            <Badge
+                                                variant="secondary"
+                                                className="max-w-full truncate"
+                                            >
                                                 {task.taskType.name}
                                             </Badge>
                                             <Badge variant="outline">
@@ -251,7 +258,7 @@ export default function KanbanBoard({
                                         </div>
 
                                         {task.assignees.length > 0 ? (
-                                            <p className="text-muted-foreground text-xs">
+                                            <p className="text-muted-foreground text-xs [overflow-wrap:anywhere]">
                                                 {task.assignees
                                                     .map((a) => a.name)
                                                     .join(', ')}
@@ -259,7 +266,7 @@ export default function KanbanBoard({
                                         ) : null}
 
                                         {task.can_change_status || canManage ? (
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex min-w-0 items-center gap-2">
                                                 {task.can_change_status ? (
                                                     <Select
                                                         value={task.status}
@@ -273,7 +280,7 @@ export default function KanbanBoard({
                                                         }
                                                     >
                                                         <SelectTrigger
-                                                            className="h-7 flex-1 text-xs"
+                                                            className="h-7 min-w-0 flex-1 text-xs"
                                                             data-test="task-status-select"
                                                         >
                                                             <SelectValue />

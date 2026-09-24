@@ -5,6 +5,7 @@ namespace Tests\Feature\OMS;
 use App\Enums\Priority;
 use App\Enums\TaskStatus;
 use App\Enums\TeamRole;
+use App\Enums\TodoListType;
 use App\Models\OMS\Milestone;
 use App\Models\OMS\Project;
 use App\Models\OMS\ProjectMember;
@@ -12,6 +13,8 @@ use App\Models\OMS\Sprint;
 use App\Models\OMS\Task;
 use App\Models\OMS\TaskAssignment;
 use App\Models\OMS\TaskDependency;
+use App\Models\OMS\TodoItem;
+use App\Models\OMS\TodoList;
 use App\Models\Setup\Label;
 use App\Models\Setup\TaskType;
 use App\Models\Team;
@@ -274,7 +277,71 @@ class TaskControllerTest extends TestCase
         ])->assertOk();
 
         $this->assertDatabaseCount('task_status_histories', 0);
-        $this->assertSame(3, $task->fresh()->position);
+        // The only task in its column: an out-of-range slot clamps to 0.
+        $this->assertSame(0, $task->fresh()->position);
+    }
+
+    public function test_moving_a_task_up_swaps_it_with_the_card_above(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $first = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 0]);
+        $second = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 1]);
+        $third = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 2]);
+
+        $this->actingAs($user)->patchJson($this->taskRoute($user, 'projects.tasks.move', $project, $third), [
+            'status' => TaskStatus::Todo->value,
+            'position' => 1,
+        ])->assertOk();
+
+        $this->assertSame([$first->id, $third->id, $second->id], $this->columnOrder($project, TaskStatus::Todo));
+    }
+
+    public function test_moving_a_task_down_swaps_it_with_the_card_below(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $first = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 0]);
+        $second = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 1]);
+        $third = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 2]);
+
+        $this->actingAs($user)->patchJson($this->taskRoute($user, 'projects.tasks.move', $project, $first), [
+            'status' => TaskStatus::Todo->value,
+            'position' => 1,
+        ])->assertOk();
+
+        $this->assertSame([$second->id, $first->id, $third->id], $this->columnOrder($project, TaskStatus::Todo));
+    }
+
+    public function test_reordering_untangles_tasks_that_share_a_position(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $first = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 0]);
+        $second = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 0]);
+
+        $this->actingAs($user)->patchJson($this->taskRoute($user, 'projects.tasks.move', $project, $second), [
+            'status' => TaskStatus::Todo->value,
+            'position' => 0,
+        ])->assertOk();
+
+        $this->assertSame([$second->id, $first->id], $this->columnOrder($project, TaskStatus::Todo));
+        $this->assertSame([0, 1], Task::query()->where('project_id', $project->id)->orderBy('position')->pluck('position')->all());
+    }
+
+    public function test_moving_a_task_to_another_column_appends_it_there(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $existing = Task::factory()->for($project)->create(['status' => TaskStatus::InProgress, 'position' => 0]);
+        $task = Task::factory()->for($project)->create(['status' => TaskStatus::Todo, 'position' => 0]);
+
+        $this->actingAs($user)->patchJson($this->taskRoute($user, 'projects.tasks.move', $project, $task), [
+            'status' => TaskStatus::InProgress->value,
+            'position' => 1,
+        ])->assertOk();
+
+        $this->assertSame([$existing->id, $task->id], $this->columnOrder($project, TaskStatus::InProgress));
     }
 
     public function test_a_task_cannot_be_reached_through_another_projects_url(): void
@@ -395,6 +462,145 @@ class TaskControllerTest extends TestCase
             ->get($this->taskRoute($user, 'projects.tasks.show', $project, $task));
 
         $response->assertNotFound();
+    }
+
+    public function test_a_task_can_be_created_with_multiple_todos(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $taskType = TaskType::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->postJson($this->taskRoute($user, 'projects.tasks.store', $project), [
+                'title' => 'Release',
+                'task_type_id' => $taskType->id,
+                'status' => TaskStatus::Backlog->value,
+                'priority' => Priority::Medium->value,
+                'todos' => [
+                    ['title' => 'Tag the build'],
+                    ['title' => '   '],
+                    ['title' => 'Write release notes'],
+                ],
+            ]);
+
+        $response->assertCreated();
+        $response->assertJsonCount(2, 'task.todos');
+        $response->assertJsonPath('task.todos.0.title', 'Tag the build');
+        $response->assertJsonPath('task.todos.1.title', 'Write release notes');
+
+        $task = Task::query()->where('title', 'Release')->firstOrFail();
+        $checklist = TodoList::query()->where('task_id', $task->id)->where('type', TodoListType::TaskChecklist->value)->sole();
+        $this->assertSame(['Tag the build', 'Write release notes'], $checklist->items->pluck('title')->all());
+        $this->assertSame($user->id, $checklist->items->first()->created_by);
+    }
+
+    public function test_creating_a_task_without_todos_creates_no_checklist(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $taskType = TaskType::factory()->create();
+
+        $this
+            ->actingAs($user)
+            ->postJson($this->taskRoute($user, 'projects.tasks.store', $project), [
+                'title' => 'No todos',
+                'task_type_id' => $taskType->id,
+                'status' => TaskStatus::Backlog->value,
+                'priority' => Priority::Medium->value,
+                'todos' => [],
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseCount('todo_lists', 0);
+    }
+
+    public function test_updating_a_task_syncs_its_todos(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $task = Task::factory()->for($project)->create();
+        $checklist = TodoList::factory()->checklistFor($task)->create(['team_id' => $project->team_id]);
+        $kept = TodoItem::factory()->for($checklist, 'list')->create(['title' => 'Old title', 'position' => 0, 'is_completed' => true]);
+        $removed = TodoItem::factory()->for($checklist, 'list')->create(['title' => 'Drop me', 'position' => 1]);
+
+        $response = $this
+            ->actingAs($user)
+            ->putJson($this->taskRoute($user, 'projects.tasks.update', $project, $task), [
+                'title' => $task->title,
+                'task_type_id' => $task->task_type_id,
+                'priority' => Priority::Medium->value,
+                'todos' => [
+                    ['title' => 'Brand new'],
+                    ['id' => $kept->id, 'title' => 'Renamed'],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('task.todos.0.title', 'Brand new');
+        $response->assertJsonPath('task.todos.1.id', $kept->id);
+        $response->assertJsonPath('task.todos.1.is_completed', true);
+
+        $this->assertDatabaseMissing('todo_items', ['id' => $removed->id]);
+        $this->assertDatabaseHas('todo_items', ['id' => $kept->id, 'title' => 'Renamed', 'position' => 1, 'is_completed' => true]);
+        $this->assertDatabaseHas('todo_items', ['todo_list_id' => $checklist->id, 'title' => 'Brand new', 'position' => 0]);
+    }
+
+    public function test_updating_a_task_without_todos_leaves_its_checklist_untouched(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $task = Task::factory()->for($project)->create();
+        $checklist = TodoList::factory()->checklistFor($task)->create(['team_id' => $project->team_id]);
+        $item = TodoItem::factory()->for($checklist, 'list')->create();
+
+        $this
+            ->actingAs($user)
+            ->putJson($this->taskRoute($user, 'projects.tasks.update', $project, $task), [
+                'title' => 'Renamed task',
+                'task_type_id' => $task->task_type_id,
+                'priority' => Priority::Medium->value,
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('todo_items', ['id' => $item->id]);
+    }
+
+    public function test_a_todo_id_from_another_tasks_checklist_is_rejected(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $task = Task::factory()->for($project)->create();
+        $otherTask = Task::factory()->for($project)->create();
+        $otherChecklist = TodoList::factory()->checklistFor($otherTask)->create(['team_id' => $project->team_id]);
+        $foreignItem = TodoItem::factory()->for($otherChecklist, 'list')->create(['title' => 'Not yours']);
+
+        $this
+            ->actingAs($user)
+            ->putJson($this->taskRoute($user, 'projects.tasks.update', $project, $task), [
+                'title' => $task->title,
+                'task_type_id' => $task->task_type_id,
+                'priority' => Priority::Medium->value,
+                'todos' => [['id' => $foreignItem->id, 'title' => 'Hijacked']],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('todos.0.id');
+
+        $this->assertDatabaseHas('todo_items', ['id' => $foreignItem->id, 'title' => 'Not yours']);
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function columnOrder(Project $project, TaskStatus $status): array
+    {
+        return Task::query()
+            ->where('project_id', $project->id)
+            ->where('status', $status->value)
+            ->orderBy('position')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
     }
 
     private function taskRoute(User $user, string $name, Project $project, ?Task $task = null, ?Team $team = null): string
