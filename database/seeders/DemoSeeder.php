@@ -67,8 +67,9 @@ class DemoSeeder extends Seeder
             ['name' => 'Mohammad Rana', 'email' => 'rana@kaz-software.com', 'role' => TeamRole::Member],
             ['name' => 'Fardin Ahsan', 'email' => 'fardin@kaz-software.com', 'role' => TeamRole::Member],
             ['name' => 'Md Al-amin', 'email' => 'alamin@kaz-software.com', 'role' => TeamRole::Member],
-            ['name' => 'Muhammad Mahedi Hasan', 'email' => 'mahedi@kaz-software.com', 'role' => TeamRole::Member],
-            ['name' => 'Fazle Rabbi', 'email' => 'rabbi@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Muhammad Mahedi Hasan', 'email' => 'mahadih@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Fazle Rabbi', 'email' => 'fazlerabbi@kaz-software.com', 'role' => TeamRole::Member],
+            ['name' => 'Bashir Fardoush', 'email' => 'bashir@kaz-software.com', 'role' => TeamRole::Member],
         ];
 
         return collect($people)->map(function (array $person) use ($team): User {
