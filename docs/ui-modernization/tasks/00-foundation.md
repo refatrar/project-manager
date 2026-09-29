@@ -125,7 +125,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes. This is a behaviour change.
 - **Commit Requirement:** `ui: implement UI-FIX-001 gate project update by can_update`
 
-## [ ] UI-FIX-002 — "Overdue only" filter matches the server definition
+## [x] UI-FIX-002 — "Overdue only" filter matches the server definition
 - **Objective:** The List tab's overdue filter excludes Done and Cancelled tasks, matching `Task::overdue()` and the Overview card.
 - **Current State:** `components/projects/task-list-view.tsx:83` checks only `due_at < now`.
 - **Problem:** Finished tasks appear as overdue, and the counts disagree between tabs.

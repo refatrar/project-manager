@@ -166,6 +166,8 @@ export type Task = {
     priority: Priority;
     position: number;
     due_at: string | null;
+    /** Past due and not Done/Cancelled (Task::isOverdue), evaluated when the page loaded. */
+    is_overdue: boolean;
     taskType: TaskTypeOption;
     assignees: TaskAssignee[];
     assignments: TaskAssignment[];

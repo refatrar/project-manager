@@ -46,8 +46,6 @@ export default function TaskListView({
     const [overdueOnly, setOverdueOnly] = useState(false);
 
     const filtered = useMemo(() => {
-        const today = new Date().toISOString().slice(0, 10);
-
         return tasks.filter((task) => {
             if (
                 assigneeId !== 'all' &&
@@ -80,7 +78,7 @@ export default function TaskListView({
                 return false;
             }
 
-            if (overdueOnly && (!dueDate || dueDate >= today)) {
+            if (overdueOnly && !task.is_overdue) {
                 return false;
             }
 

@@ -9,6 +9,7 @@ use App\Enums\ProjectStatus;
 use App\Enums\TeamRole;
 use App\Models\OMS\Project;
 use App\Models\OMS\ProjectMember;
+use App\Models\OMS\Task;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -213,6 +214,25 @@ class ProjectControllerTest extends TestCase
             ->get($this->projectsRoute($user, 'projects.show', project: $project));
 
         $response->assertNotFound();
+    }
+
+    public function test_workspace_tasks_carry_an_is_overdue_flag_that_ignores_closed_tasks(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->for($user->currentTeam)->create();
+        $open = Task::factory()->for($project)->overdue()->create(['number' => 1]);
+        $done = Task::factory()->for($project)->done()->create(['number' => 2, 'due_at' => now()->subWeek()]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get($this->projectsRoute($user, 'projects.show', project: $project));
+
+        $response->assertOk();
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('projects/show')
+            ->where('tasks', fn ($tasks): bool => collect($tasks)->pluck('is_overdue', 'id')->sortKeys()->all()
+                === collect([$open->id => true, $done->id => false])->sortKeys()->all()),
+        );
     }
 
     public function test_a_developer_cannot_update_the_project(): void

@@ -102,6 +102,15 @@ class Task extends Model
     }
 
     /**
+     * Determine whether the task is past its due date and still open,
+     * matching the `overdue` scope and the project progress count.
+     */
+    public function isOverdue(): bool
+    {
+        return $this->due_at !== null && $this->due_at->isPast() && ! $this->status->isClosed();
+    }
+
+    /**
      * Get the project the task belongs to.
      *
      * @return BelongsTo<Project, $this>
@@ -388,6 +397,7 @@ class Task extends Model
             'priority' => $this->priority->value,
             'position' => $this->position,
             'due_at' => $this->due_at?->toIso8601String(),
+            'is_overdue' => $this->isOverdue(),
             'taskType' => [
                 'id' => $this->taskType->id,
                 'name' => $this->taskType->name,

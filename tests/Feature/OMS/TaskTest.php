@@ -107,6 +107,22 @@ class TaskTest extends TestCase
         $this->assertSame([$overdue->id], Task::overdue()->pluck('id')->all());
     }
 
+    public function test_is_overdue_agrees_with_the_overdue_scope(): void
+    {
+        $project = Project::factory()->create();
+        Task::factory()->for($project)->overdue()->create(['number' => 1]);
+        Task::factory()->for($project)->inProgress()->create(['number' => 2, 'due_at' => now()->subHour()]);
+        Task::factory()->for($project)->create(['number' => 3, 'due_at' => now()->addHour()]);
+        Task::factory()->for($project)->create(['number' => 4, 'due_at' => null]);
+        Task::factory()->for($project)->done()->create(['number' => 5, 'due_at' => now()->subWeek()]);
+        Task::factory()->for($project)->create(['number' => 6, 'status' => TaskStatus::Cancelled, 'due_at' => now()->subWeek()]);
+
+        $flagged = Task::query()->get()->filter(fn (Task $task): bool => $task->isOverdue())->pluck('id')->sort()->values()->all();
+
+        $this->assertSame(Task::overdue()->pluck('id')->sort()->values()->all(), $flagged);
+        $this->assertCount(2, $flagged);
+    }
+
     public function test_the_assigned_to_scope_ignores_unassigned_records(): void
     {
         $user = User::factory()->create();
