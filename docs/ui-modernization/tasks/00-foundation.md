@@ -100,7 +100,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 
 ## Phase 0.5 — Behavioural UI fixes (each changes visible behaviour; approve individually)
 
-## [ ] UI-FIX-001 — Projects list "Update" uses per-row `can_update`
+## [x] UI-FIX-001 — Projects list "Update" uses per-row `can_update`
 - **Objective:** Show the Update action to exactly the users the server allows.
 - **Current State:** The button is gated by team-wide `can('projects.create')` (`pages/projects/index.tsx:250`). The server sends `can_update` per row (`ProjectController.php:75-79`).
 - **Problem:** A project lead without create rights can't edit from the list, and users with create rights see Update on projects they can't update, getting a 403 on save.

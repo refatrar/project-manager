@@ -247,7 +247,7 @@ export default function ProjectsIndex({
                                 </p>
                             </Link>
 
-                            {can('projects.create') ? (
+                            {project.can_update ? (
                                 <Button
                                     type="button"
                                     variant="outline"
