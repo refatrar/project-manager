@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Team-panel roles are per team (an Owner on team A is not the Owner
      * role row of team B). `team_id` null stays the platform-admin roles.
-     * A generated `team_scope` keeps name/slug unique per team while still
+     * A generated (stored, so it also works on PostgreSQL < 18) `team_scope` keeps name/slug unique per team while still
      * rejecting two admin-guard roles with the same name: MySQL would
      * otherwise treat every NULL `team_id` as distinct in a unique index.
      */
@@ -25,7 +25,7 @@ return new class extends Migration
         });
 
         Schema::table('roles', function (Blueprint $table) {
-            $table->unsignedBigInteger('team_scope')->virtualAs('ifnull(`team_id`, 0)');
+            $table->unsignedBigInteger('team_scope')->storedAs('coalesce(team_id, 0)');
             $table->unique(['team_scope', 'name', 'guard_name'], 'roles_scope_name_guard_unique');
             $table->unique(['team_scope', 'slug'], 'roles_scope_slug_unique');
         });
