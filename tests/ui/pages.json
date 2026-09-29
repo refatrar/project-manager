@@ -1,0 +1,173 @@
+{
+    "$comment": "Page manifest for tests/ui/capture.mjs (UI-TEST-001). {team} is replaced with UI_TEAM. 'tabs' are clicked in order after load and captured as separate shots. 'skipped' documents pages that cannot be reached without creating data or special state.",
+    "pages": [
+        { "id": "auth-login", "role": "guest", "path": "/login" },
+        { "id": "auth-register", "role": "guest", "path": "/register" },
+        {
+            "id": "auth-forgot-password",
+            "role": "guest",
+            "path": "/forgot-password"
+        },
+        { "id": "admin-login", "role": "guest", "path": "/admin/login" },
+
+        { "id": "dashboard", "role": "lead", "path": "/{team}/dashboard" },
+        { "id": "my-day", "role": "lead", "path": "/{team}/my-day" },
+        { "id": "projects-index", "role": "lead", "path": "/{team}/projects" },
+        {
+            "id": "project-show",
+            "role": "lead",
+            "path": "/{team}/projects/1",
+            "tabs": [
+                {
+                    "name": "board",
+                    "selector": "[data-test=project-tab-board]"
+                },
+                { "name": "list", "selector": "[data-test=project-tab-list]" },
+                {
+                    "name": "modules",
+                    "selector": "[data-test=project-tab-modules]"
+                },
+                {
+                    "name": "members",
+                    "selector": "[data-test=project-tab-members]"
+                },
+                {
+                    "name": "milestones",
+                    "selector": "[data-test=project-tab-milestones]"
+                },
+                {
+                    "name": "sprints",
+                    "selector": "[data-test=project-tab-sprints]"
+                },
+                {
+                    "name": "allocations",
+                    "selector": "[data-test=project-tab-allocations]"
+                },
+                {
+                    "name": "activity",
+                    "selector": "[data-test=project-tab-activity]"
+                }
+            ]
+        },
+        {
+            "id": "task-show",
+            "role": "lead",
+            "path": "/{team}/projects/1/tasks/1"
+        },
+        { "id": "meetings-index", "role": "lead", "path": "/{team}/meetings" },
+        { "id": "todo-lists", "role": "lead", "path": "/{team}/todo-lists" },
+        { "id": "time-logs", "role": "lead", "path": "/{team}/time-logs" },
+        { "id": "timesheet", "role": "lead", "path": "/{team}/timesheet" },
+        {
+            "id": "timesheet-approvals",
+            "role": "lead",
+            "path": "/{team}/timesheet-approvals"
+        },
+        {
+            "id": "time-off",
+            "role": "lead",
+            "path": "/{team}/time-off-requests"
+        },
+        {
+            "id": "availability",
+            "role": "lead",
+            "path": "/{team}/availability"
+        },
+        {
+            "id": "team-capacity",
+            "role": "lead",
+            "path": "/{team}/team-capacity"
+        },
+        {
+            "id": "setup-scopes",
+            "role": "lead",
+            "path": "/{team}/setup/scopes"
+        },
+        {
+            "id": "setup-task-types",
+            "role": "lead",
+            "path": "/{team}/setup/task-types"
+        },
+        {
+            "id": "setup-labels",
+            "role": "lead",
+            "path": "/{team}/setup/labels"
+        },
+        {
+            "id": "settings-profile",
+            "role": "lead",
+            "path": "/settings/profile"
+        },
+        {
+            "id": "settings-security",
+            "role": "lead",
+            "path": "/settings/security",
+            "note": "RequirePassword middleware: captures the confirm-password page unless recently confirmed"
+        },
+        {
+            "id": "settings-appearance",
+            "role": "lead",
+            "path": "/settings/appearance"
+        },
+        { "id": "teams-index", "role": "lead", "path": "/settings/teams" },
+        { "id": "team-edit", "role": "lead", "path": "/settings/teams/{team}" },
+
+        {
+            "id": "member-dashboard",
+            "role": "member",
+            "path": "/{team}/dashboard"
+        },
+        {
+            "id": "member-projects-index",
+            "role": "member",
+            "path": "/{team}/projects"
+        },
+        {
+            "id": "member-project-show",
+            "role": "member",
+            "path": "/{team}/projects/1"
+        },
+        {
+            "id": "member-task-show",
+            "role": "member",
+            "path": "/{team}/projects/1/tasks/1"
+        },
+        { "id": "member-my-day", "role": "member", "path": "/{team}/my-day" },
+
+        { "id": "admin-dashboard", "role": "admin", "path": "/admin" },
+        { "id": "admin-users", "role": "admin", "path": "/admin/users" },
+        { "id": "admin-teams", "role": "admin", "path": "/admin/teams" },
+        {
+            "id": "admin-team-roles",
+            "role": "admin",
+            "path": "/admin/team-roles"
+        },
+        {
+            "id": "admin-work-schedules",
+            "role": "admin",
+            "path": "/admin/work-schedules"
+        },
+        { "id": "admin-holidays", "role": "admin", "path": "/admin/holidays" },
+        { "id": "admin-admins", "role": "admin", "path": "/admin/admins" },
+        { "id": "admin-profile", "role": "admin", "path": "/admin/profile" }
+    ],
+    "skipped": [
+        {
+            "page": "meetings/show",
+            "reason": "No meeting records in the local database; not created to avoid changing data"
+        },
+        {
+            "page": "auth/reset-password",
+            "reason": "Requires a password-reset token"
+        },
+        {
+            "page": "auth/two-factor-challenge",
+            "reason": "No demo user has 2FA enabled"
+        },
+        {
+            "page": "auth/verify-email",
+            "reason": "User model does not implement MustVerifyEmail"
+        },
+        { "page": "no-team", "reason": "Every demo user belongs to a team" }
+    ]
+}
