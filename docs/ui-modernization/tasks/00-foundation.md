@@ -408,7 +408,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes, and D-7.
 - **Commit Requirement:** `ui: implement UI-FIX-012 remove placeholder meeting actions card`
 
-## [ ] UI-FIX-013 — Toast every `useHttp` success message in admin
+## [x] UI-FIX-013 — Toast every `useHttp` success message in admin
 - **Objective:** Admins get feedback after each save.
 - **Current State:** These actions drop `response.message`: create user (`admin/users/index.tsx:73`); create, rename and assign lead on teams (`admin/teams/index.tsx:34,75,139`); holidays create and delete; admins create; team-role update (`team-roles/index.tsx:189`).
 - **Problem:** Silent successes lead to repeated submissions.

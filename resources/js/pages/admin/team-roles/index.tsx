@@ -1,6 +1,7 @@
 import { Head, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -110,7 +111,8 @@ function CreateRoleForm({ permissions }: { permissions: PermissionOption[] }) {
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         void form.post(store.url(), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 form.setData('name', '');
                 form.setData('description', '');
                 form.setData('permissions', []);
@@ -191,7 +193,8 @@ function RoleCard({
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         void form.patch(update.url(role.id), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 setEditing(false);
                 router.reload({ only: ['roles'] });
             },

@@ -1,5 +1,6 @@
 import { Head, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -26,7 +27,8 @@ function CreateHolidayForm({ year }: { year: number }) {
         event.preventDefault();
 
         void form.post(store.url(), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 form.setData('name', '');
                 router.reload({ only: ['holidays'] });
             },
@@ -76,7 +78,10 @@ function DeleteHolidayButton({ holiday }: { holiday: Holiday }) {
 
     const submit = () => {
         void form.delete(destroy.url(holiday.id), {
-            onSuccess: () => router.reload({ only: ['holidays'] }),
+            onSuccess: (response) => {
+                toast.success(response.message);
+                router.reload({ only: ['holidays'] });
+            },
         });
     };
 

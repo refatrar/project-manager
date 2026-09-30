@@ -1,5 +1,6 @@
 import { Head, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,8 @@ function CreateAdminForm() {
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         void form.post(store.url(), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 form.setData('name', '');
                 form.setData('email', '');
                 form.setData('password', '');

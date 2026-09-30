@@ -70,7 +70,8 @@ function CreateUserForm() {
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         void form.post(store.url(), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 form.setData('name', '');
                 form.setData('email', '');
                 form.setData('password', '');
@@ -337,7 +338,10 @@ function UserRow({
 
     const removeTeam = (team: UserTeam) => {
         void removeForm.delete(removeFromTeam.url([user.id, team.slug]), {
-            onSuccess: () => router.reload({ only: ['users'] }),
+            onSuccess: (response) => {
+                toast.success(response.message);
+                router.reload({ only: ['users'] });
+            },
         });
     };
 

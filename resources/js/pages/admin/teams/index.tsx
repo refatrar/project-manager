@@ -1,5 +1,6 @@
 import { Head, Link, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { toast } from 'sonner';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +32,8 @@ function CreateTeamForm() {
         event.preventDefault();
 
         void form.post(store.url(), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 form.setData('name', '');
                 router.reload({ only: ['teams'] });
             },
@@ -72,7 +74,10 @@ function RenameTeamForm({ team }: { team: AdminTeam }) {
         event.preventDefault();
 
         void form.patch(update.url(team.slug), {
-            onSuccess: () => router.reload({ only: ['teams'] }),
+            onSuccess: (response) => {
+                toast.success(response.message);
+                router.reload({ only: ['teams'] });
+            },
         });
     };
 
@@ -111,7 +116,10 @@ function RemoveLeaderButton({ team }: { team: AdminTeam }) {
 
     const submit = () => {
         void form.delete(removeLeader.url(team.slug), {
-            onSuccess: () => router.reload({ only: ['teams'] }),
+            onSuccess: (response) => {
+                toast.success(response.message);
+                router.reload({ only: ['teams'] });
+            },
         });
     };
 
@@ -136,7 +144,8 @@ function AssignLeaderForm({ team }: { team: AdminTeam }) {
         event.preventDefault();
 
         void form.post(assignLeader.url(team.slug), {
-            onSuccess: () => {
+            onSuccess: (response) => {
+                toast.success(response.message);
                 form.setData('email', '');
                 router.reload({ only: ['teams'] });
             },
