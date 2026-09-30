@@ -437,7 +437,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 
 ## Phase 1a — Dependencies
 
-## [ ] UI-DEP-001 — Add the missing shadcn/Radix primitives packages
+## [x] UI-DEP-001 — Add the missing shadcn/Radix primitives packages
 - **Objective:** Enable accessible tabs, confirmations, popovers, switches, radios and scroll areas.
 - **Current State:** 13 `@radix-ui/*` packages are installed. Tabs are hand-rolled (`projects/show.tsx:194`). Confirmations are built on Dialog.
 - **Problem:** Hand-rolled widgets lack keyboard and ARIA behaviour.
