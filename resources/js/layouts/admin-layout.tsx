@@ -25,7 +25,10 @@ const navItems: NavItem[] = [
 ];
 
 export default function AdminLayout({ children }: PropsWithChildren) {
-    const { isCurrentUrl } = useCurrentUrl();
+    const { mostSpecificCurrentIndex } = useCurrentUrl();
+    const activeIndex = mostSpecificCurrentIndex(
+        navItems.map((item) => item.href),
+    );
     const { auth } = usePage().props;
 
     return (
@@ -41,13 +44,16 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                     </Link>
 
                     <nav className="flex items-center gap-4 text-sm">
-                        {navItems.map((item) => (
+                        {navItems.map((item, index) => (
                             <Link
                                 key={item.title}
                                 href={item.href}
+                                aria-current={
+                                    index === activeIndex ? 'page' : undefined
+                                }
                                 className={cn(
                                     'text-muted-foreground hover:text-foreground',
-                                    isCurrentUrl(item.href) &&
+                                    index === activeIndex &&
                                         'text-foreground font-medium',
                                 )}
                             >

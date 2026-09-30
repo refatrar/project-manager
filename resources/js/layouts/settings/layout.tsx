@@ -35,7 +35,10 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
-    const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { mostSpecificCurrentIndex } = useCurrentUrl();
+    const activeIndex = mostSpecificCurrentIndex(
+        sidebarNavItems.map((item) => item.href),
+    );
 
     return (
         <div className="px-4 py-6">
@@ -57,10 +60,17 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                 variant="ghost"
                                 asChild
                                 className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentOrParentUrl(item.href),
+                                    'bg-muted': index === activeIndex,
                                 })}
                             >
-                                <Link href={item.href}>
+                                <Link
+                                    href={item.href}
+                                    aria-current={
+                                        index === activeIndex
+                                            ? 'page'
+                                            : undefined
+                                    }
+                                >
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}

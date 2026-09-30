@@ -252,7 +252,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-006 stable decide dialog titles`
 
-## [ ] UI-FIX-007 — Sidebar highlights the parent section on detail pages
+## [x] UI-FIX-007 — Sidebar highlights the parent section on detail pages
 - **Objective:** Projects stays active on `/projects/5` and `/projects/5/tasks/9`; Meetings stays active on `/meetings/3`.
 - **Current State:** `components/nav-main.tsx:29` uses exact `isCurrentUrl`. `isCurrentOrParentUrl` exists in `hooks/use-current-url.ts`.
 - **Problem:** The user loses their location in the navigation.

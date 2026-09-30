@@ -16,20 +16,29 @@ export function NavMain({
     items: NavItem[];
     label?: string;
 }) {
-    const { isCurrentUrl } = useCurrentUrl();
+    const { mostSpecificCurrentIndex } = useCurrentUrl();
+    const activeIndex = mostSpecificCurrentIndex(
+        items.map((item) => item.href),
+    );
 
     return (
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel>{label}</SidebarGroupLabel>
             <SidebarMenu>
-                {items.map((item) => (
+                {items.map((item, index) => (
                     <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton
                             asChild
-                            isActive={isCurrentUrl(item.href)}
+                            isActive={index === activeIndex}
                             tooltip={{ children: item.title }}
                         >
-                            <Link href={item.href} prefetch>
+                            <Link
+                                href={item.href}
+                                prefetch
+                                aria-current={
+                                    index === activeIndex ? 'page' : undefined
+                                }
+                            >
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
                             </Link>
