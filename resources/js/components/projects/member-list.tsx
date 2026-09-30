@@ -15,6 +15,7 @@ import type {
     ProjectMemberRoleOption,
     TeamMemberOption,
 } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type Props = {
     projectId: number;
@@ -109,7 +110,7 @@ export default function MemberList({
                                         {member.user.name}
                                     </span>
                                     <Badge variant="secondary">
-                                        {member.role.replace('_', ' ')}
+                                        {optionLabel(roleOptions, member.role)}
                                     </Badge>
                                     {member.status === 'inactive' ? (
                                         <Badge variant="outline">

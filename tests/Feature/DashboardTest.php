@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ProjectHealth;
+use App\Enums\ProjectStatus;
 use App\Enums\TaskStatus;
 use App\Enums\TeamRole;
 use App\Models\OMS\Project;
@@ -61,6 +62,8 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->component('dashboard')
+            ->where('statusOptions', ProjectStatus::options())
+            ->where('healthOptions', ProjectHealth::options())
             ->has('pendingInvitations', 1)
             ->where('pendingInvitations.0.code', $invitation->code)
             ->where('pendingInvitations.0.inviterName', 'Taylor Otwell')

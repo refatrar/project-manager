@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\OMS;
 
 use App\Enums\ApprovalStatus;
+use App\Enums\TimeLogActivityType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OMS\DecideTimeLogRequest;
 use App\Models\OMS\TimeLog;
@@ -46,6 +47,7 @@ class TimesheetApprovalController extends Controller
 
         return Inertia::render('timesheet-approvals/index', [
             'entries' => $entries,
+            'activityTypeOptions' => TimeLogActivityType::options(),
         ]);
     }
 

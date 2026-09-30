@@ -5,6 +5,7 @@ import SprintFormModal from '@/components/projects/sprint-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Sprint, SprintStatusOption } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type Props = {
     projectId: number;
@@ -60,7 +61,10 @@ export default function SprintList({
                                             {sprint.name}
                                         </span>
                                         <Badge variant="secondary">
-                                            {sprint.status}
+                                            {optionLabel(
+                                                statusOptions,
+                                                sprint.status,
+                                            )}
                                         </Badge>
                                         {overCommitted ? (
                                             <Badge variant="destructive">

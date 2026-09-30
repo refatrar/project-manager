@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { start, stop } from '@/routes/time-logs';
 import type { ProjectOption, TimeLog, TimeLogActivityType, TimeLogActivityTypeOption } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type StartedResponse = {
     message: string;
@@ -110,7 +111,7 @@ export default function TimeLogTimer({ running, projects, activityTypeOptions, o
                 </span>
                 <span className="text-muted-foreground text-sm">
                     {running.project ? `${running.project.code} · ` : ''}
-                    {running.activity_type.replace('_', ' ')}
+                    {optionLabel(activityTypeOptions, running.activity_type)}
                 </span>
                 <Button
                     type="button"

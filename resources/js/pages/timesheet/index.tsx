@@ -6,7 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { index as timesheetIndex, submit } from '@/routes/timesheet';
-import type { TimesheetRow, TimesheetStatusCounts } from '@/types';
+import { optionLabel } from '@/lib/enum';
+import type {
+    TimeLogActivityTypeOption,
+    TimesheetRow,
+    TimesheetStatusCounts,
+} from '@/types';
 
 type Props = {
     weekStart: string;
@@ -18,6 +23,7 @@ type Props = {
     statusCounts: TimesheetStatusCounts;
     canSubmit: boolean;
     hasRunningTimer: boolean;
+    activityTypeOptions: TimeLogActivityTypeOption[];
 };
 
 type SubmittedResponse = {
@@ -48,6 +54,7 @@ export default function TimesheetIndex({
     statusCounts,
     canSubmit,
     hasRunningTimer,
+    activityTypeOptions,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const form = useHttp<{ week: string }, SubmittedResponse>({
@@ -200,9 +207,9 @@ export default function TimesheetIndex({
                                                     ? `${row.project.code} · `
                                                     : ''}
                                                 <span className="capitalize">
-                                                    {row.activity_type.replace(
-                                                        '_',
-                                                        ' ',
+                                                    {optionLabel(
+                                                        activityTypeOptions,
+                                                        row.activity_type,
                                                     )}
                                                 </span>
                                             </td>

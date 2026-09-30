@@ -178,6 +178,7 @@ class MeetingController extends Controller
             'roleOptions' => MeetingAttendeeRole::options(),
             'attendanceStatusOptions' => MeetingAttendanceStatus::options(),
             'typeOptions' => MeetingType::options(),
+            'statusOptions' => MeetingStatus::options(),
             'can' => [
                 'update' => Gate::allows('update', $meeting),
                 'cancel' => Gate::allows('cancel', $meeting),

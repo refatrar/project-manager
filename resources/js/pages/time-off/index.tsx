@@ -8,13 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTeamAccess } from '@/hooks/use-team-access';
 import { index as timeOffIndex } from '@/routes/time-off-requests';
-import type { TimeOffRequest, TimeOffTypeOption } from '@/types';
+import type {
+    ApprovalStatusOption,
+    TimeOffRequest,
+    TimeOffTypeOption,
+} from '@/types';
 
 type Props = {
     myRequests: TimeOffRequest[];
     pendingApprovals: TimeOffRequest[];
     isApprover: boolean;
     typeOptions: TimeOffTypeOption[];
+    statusOptions: ApprovalStatusOption[];
 };
 
 export default function TimeOffIndex({
@@ -22,6 +27,7 @@ export default function TimeOffIndex({
     pendingApprovals,
     isApprover,
     typeOptions,
+    statusOptions,
 }: Props) {
     const can = useTeamAccess();
     const refresh = () => router.reload({ only: ['myRequests', 'pendingApprovals'] });
@@ -52,7 +58,11 @@ export default function TimeOffIndex({
                             <CardTitle>Pending approvals</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <TimeOffApprovalQueue requests={pendingApprovals} onChanged={refresh} />
+                            <TimeOffApprovalQueue
+                                requests={pendingApprovals}
+                                typeOptions={typeOptions}
+                                onChanged={refresh}
+                            />
                         </CardContent>
                     </Card>
                 ) : null}
@@ -65,6 +75,7 @@ export default function TimeOffIndex({
                         <TimeOffRequestList
                             requests={myRequests}
                             typeOptions={typeOptions}
+                            statusOptions={statusOptions}
                             onChanged={refresh}
                         />
                     </CardContent>

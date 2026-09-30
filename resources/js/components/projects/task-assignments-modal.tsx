@@ -27,6 +27,7 @@ import type {
     TaskAssignmentRole,
     TaskAssignmentRoleOption,
 } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type AssignedResponse = {
     assignment: { id: number };
@@ -139,7 +140,10 @@ export default function TaskAssignmentsModal({
                                         {assignment.user.name}
                                     </span>
                                     <Badge variant="secondary">
-                                        {assignment.role}
+                                        {optionLabel(
+                                            roleOptions,
+                                            assignment.role,
+                                        )}
                                     </Badge>
                                     {assignment.allocated_hours ? (
                                         <span className="text-muted-foreground text-xs">

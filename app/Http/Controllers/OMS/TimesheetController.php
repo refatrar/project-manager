@@ -5,6 +5,7 @@ namespace App\Http\Controllers\OMS;
 use App\Actions\OMS\SubmitTimesheet;
 use App\Enums\ApprovalStatus;
 use App\Enums\TeamModulePermission;
+use App\Enums\TimeLogActivityType;
 use App\Http\Controllers\Controller;
 use App\Models\OMS\TimeLog;
 use App\Models\Team;
@@ -58,6 +59,7 @@ class TimesheetController extends Controller
             'canSubmit' => $user->teamCan($current_team, TeamModulePermission::SubmitTimesheet)
                 && $logs->contains(fn (TimeLog $log): bool => $log->approval_status === ApprovalStatus::Pending && $log->ended_at !== null),
             'hasRunningTimer' => $logs->contains(fn (TimeLog $log): bool => $log->ended_at === null),
+            'activityTypeOptions' => TimeLogActivityType::options(),
         ]);
     }
 

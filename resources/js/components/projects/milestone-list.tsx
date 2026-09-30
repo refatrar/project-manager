@@ -5,6 +5,7 @@ import MilestoneFormModal from '@/components/projects/milestone-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Milestone, MilestoneStatusOption } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type Props = {
     projectId: number;
@@ -92,7 +93,10 @@ export default function MilestoneList({
                                             'outline'
                                         }
                                     >
-                                        {milestone.status.replace('_', ' ')}
+                                        {optionLabel(
+                                            statusOptions,
+                                            milestone.status,
+                                        )}
                                     </Badge>
                                     {milestone.is_billable ? (
                                         <Badge variant="secondary">

@@ -4,6 +4,7 @@ namespace Tests\Feature\OMS;
 
 use App\Enums\ApprovalStatus;
 use App\Enums\TeamRole;
+use App\Enums\TimeLogActivityType;
 use App\Models\OMS\Project;
 use App\Models\OMS\ProjectMember;
 use App\Models\OMS\TimeLog;
@@ -36,6 +37,7 @@ class TimesheetApprovalControllerTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('timesheet-approvals/index')
+            ->where('activityTypeOptions', TimeLogActivityType::options())
             ->has('entries', 1)
             ->where('entries.0.id', $timeLog->id));
     }

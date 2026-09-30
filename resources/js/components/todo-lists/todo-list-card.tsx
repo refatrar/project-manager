@@ -8,15 +8,18 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { optionLabel } from '@/lib/enum';
 import { cn } from '@/lib/utils';
 import { show as showTask } from '@/routes/projects/tasks';
 import { destroy as destroyItem, toggle } from '@/routes/todo-lists/items';
 import type {
+    PriorityOption,
     ProjectOption,
     TaskTypeOption,
     TeamMemberOption,
     TodoItem,
     TodoList,
+    TodoListStatusOption,
 } from '@/types';
 
 type ToggledResponse = {
@@ -28,6 +31,8 @@ type Props = {
     teamMembers: TeamMemberOption[];
     projects: ProjectOption[];
     taskTypes: TaskTypeOption[];
+    statusOptions: TodoListStatusOption[];
+    priorityOptions: PriorityOption[];
     onEditList: () => void;
     onDeleteList: () => void;
     onChanged: () => void;
@@ -38,6 +43,8 @@ export default function TodoListCard({
     teamMembers,
     projects,
     taskTypes,
+    statusOptions,
+    priorityOptions,
     onEditList,
     onDeleteList,
     onChanged,
@@ -98,7 +105,9 @@ export default function TodoListCard({
                             </Badge>
                         ) : null}
                         {list.status !== 'open' ? (
-                            <Badge variant="outline">{list.status}</Badge>
+                            <Badge variant="outline">
+                                {optionLabel(statusOptions, list.status)}
+                            </Badge>
                         ) : null}
                     </CardTitle>
                     {list.description ? (
@@ -156,7 +165,10 @@ export default function TodoListCard({
                                     </p>
                                     <p className="text-muted-foreground mt-0.5 flex flex-wrap gap-x-2 text-xs">
                                         <span className="capitalize">
-                                            {item.priority}
+                                            {optionLabel(
+                                                priorityOptions,
+                                                item.priority,
+                                            )}
                                         </span>
                                         {item.due_at ? (
                                             <span>

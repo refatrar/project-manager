@@ -7,7 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTeamAccess } from '@/hooks/use-team-access';
 import { cancel } from '@/routes/time-off-requests';
-import type { TimeOffRequest, TimeOffTypeOption } from '@/types';
+import { optionLabel } from '@/lib/enum';
+import type {
+    ApprovalStatusOption,
+    TimeOffRequest,
+    TimeOffTypeOption,
+} from '@/types';
 
 type CancelledResponse = {
     message: string;
@@ -16,6 +21,7 @@ type CancelledResponse = {
 type Props = {
     requests: TimeOffRequest[];
     typeOptions: TimeOffTypeOption[];
+    statusOptions: ApprovalStatusOption[];
     onChanged: () => void;
 };
 
@@ -26,7 +32,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'o
     cancelled: 'outline',
 };
 
-export default function TimeOffRequestList({ requests, typeOptions, onChanged }: Props) {
+export default function TimeOffRequestList({ requests, typeOptions, statusOptions, onChanged }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const can = useTeamAccess();
     const [editingRequest, setEditingRequest] = useState<TimeOffRequest | null>(null);
@@ -61,10 +67,10 @@ export default function TimeOffRequestList({ requests, typeOptions, onChanged }:
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-medium capitalize">
-                                    {request.type.replace('_', ' ')}
+                                    {optionLabel(typeOptions, request.type)}
                                 </span>
                                 <Badge variant={statusVariant[request.status] ?? 'outline'}>
-                                    {request.status}
+                                    {optionLabel(statusOptions, request.status)}
                                 </Badge>
                             </div>
                             <p className="text-muted-foreground text-sm">

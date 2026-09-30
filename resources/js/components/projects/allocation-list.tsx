@@ -14,6 +14,7 @@ import type {
     ProjectMember,
     ResourceAllocation,
 } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type Props = {
     projectId: number;
@@ -87,7 +88,10 @@ export default function AllocationList({
                                             'outline'
                                         }
                                     >
-                                        {allocation.status}
+                                        {optionLabel(
+                                            statusOptions,
+                                            allocation.status,
+                                        )}
                                     </Badge>
                                     {allocation.over_allocated ? (
                                         <Tooltip>

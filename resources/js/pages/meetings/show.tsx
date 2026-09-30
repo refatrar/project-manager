@@ -13,6 +13,7 @@ import MinutesEditor from '@/components/meetings/minutes-editor';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { optionLabel } from '@/lib/enum';
 import { index, show } from '@/routes/meetings';
 import type {
     MeetingAgendaItem,
@@ -20,6 +21,7 @@ import type {
     MeetingAttendee,
     MeetingAttendeeRoleOption,
     MeetingDetail,
+    MeetingStatusOption,
     MeetingTimer as MeetingTimerData,
     MeetingTypeOption,
     ProjectOption,
@@ -40,6 +42,7 @@ type Props = {
     roleOptions: MeetingAttendeeRoleOption[];
     attendanceStatusOptions: MeetingAttendanceStatusOption[];
     typeOptions: MeetingTypeOption[];
+    statusOptions: MeetingStatusOption[];
     projects: ProjectOption[];
     projectTasks: TaskReference[];
     taskTypes: TaskTypeOption[];
@@ -66,6 +69,7 @@ export default function MeetingShow({
     roleOptions,
     attendanceStatusOptions,
     typeOptions,
+    statusOptions,
     projects,
     projectTasks,
     taskTypes,
@@ -92,11 +96,11 @@ export default function MeetingShow({
                                     statusVariant[meeting.status] ?? 'default'
                                 }
                             >
-                                {meeting.status.replace('_', ' ')}
+                                {optionLabel(statusOptions, meeting.status)}
                             </Badge>
                         </div>
                         <p className="text-muted-foreground text-sm">
-                            {meeting.type.replace('_', ' ')}
+                            {optionLabel(typeOptions, meeting.type)}
                             {meeting.project
                                 ? ` · ${meeting.project.code} ${meeting.project.name}`
                                 : ' · Team-wide'}

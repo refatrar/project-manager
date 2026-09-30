@@ -131,6 +131,7 @@ class MeetingControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn (Assert $page) => $page
             ->component('meetings/show')
+            ->where('statusOptions', MeetingStatus::options())
             ->where('meeting.id', $meeting->id)
             ->has('attendees', 1),
         );

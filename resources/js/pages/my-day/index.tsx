@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { myDay } from '@/routes';
 import type {
+    PriorityOption,
     ProjectOption,
     TaskTypeOption,
     TeamMemberOption,
@@ -27,6 +28,7 @@ type Props = {
     taskTypes: TaskTypeOption[];
     typeOptions: TodoListTypeOption[];
     statusOptions: TodoListStatusOption[];
+    priorityOptions: PriorityOption[];
 };
 
 export default function MyDayIndex({
@@ -37,6 +39,7 @@ export default function MyDayIndex({
     taskTypes,
     typeOptions,
     statusOptions,
+    priorityOptions,
 }: Props) {
     const [editingList, setEditingList] = useState<TodoList | null>(null);
     const [listToDelete, setListToDelete] = useState<TodoList | null>(null);
@@ -91,6 +94,8 @@ export default function MyDayIndex({
                                 teamMembers={teamMembers}
                                 projects={projects}
                                 taskTypes={taskTypes}
+                                statusOptions={statusOptions}
+                                priorityOptions={priorityOptions}
                                 onEditList={() => setEditingList(list)}
                                 onDeleteList={() => setListToDelete(list)}
                                 onChanged={refresh}

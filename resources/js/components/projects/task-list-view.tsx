@@ -11,13 +11,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { optionLabel } from '@/lib/enum';
 import { show as showTask } from '@/routes/projects/tasks';
 import type {
     MilestoneOption,
+    PriorityOption,
     ProjectMember,
     SprintOption,
     Task,
     TaskLabel,
+    TaskStatusOption,
 } from '@/types';
 
 type Props = {
@@ -27,6 +30,8 @@ type Props = {
     milestones: MilestoneOption[];
     sprints: SprintOption[];
     labels: TaskLabel[];
+    statusOptions: TaskStatusOption[];
+    priorityOptions: PriorityOption[];
 };
 
 export default function TaskListView({
@@ -36,6 +41,8 @@ export default function TaskListView({
     milestones,
     sprints,
     labels,
+    statusOptions,
+    priorityOptions,
 }: Props) {
     const teamSlug = usePage().props.currentTeam?.slug;
     const [assigneeId, setAssigneeId] = useState('all');
@@ -233,8 +240,9 @@ export default function TaskListView({
                                 ))}
                             </div>
                             <p className="text-muted-foreground mt-1 text-sm">
-                                {task.status.replace('_', ' ')} ·{' '}
-                                {task.priority} priority
+                                {optionLabel(statusOptions, task.status)} ·{' '}
+                                {optionLabel(priorityOptions, task.priority)}{' '}
+                                priority
                                 {task.due_at
                                     ? ` · due ${task.due_at.slice(0, 10)}`
                                     : ''}

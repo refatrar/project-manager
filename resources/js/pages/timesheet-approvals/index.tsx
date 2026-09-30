@@ -6,10 +6,12 @@ import DecideTimeLogModal from '@/components/time-logs/decide-time-log-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { index as timesheetApprovalsIndex } from '@/routes/timesheet-approvals';
-import type { TimeLog } from '@/types';
+import { optionLabel } from '@/lib/enum';
+import type { TimeLog, TimeLogActivityTypeOption } from '@/types';
 
 type Props = {
     entries: TimeLog[];
+    activityTypeOptions: TimeLogActivityTypeOption[];
 };
 
 function formatMinutes(minutes: number): string {
@@ -19,7 +21,10 @@ function formatMinutes(minutes: number): string {
     return hours > 0 ? `${hours}h ${remaining}m` : `${remaining}m`;
 }
 
-export default function TimesheetApprovalsIndex({ entries }: Props) {
+export default function TimesheetApprovalsIndex({
+    entries,
+    activityTypeOptions,
+}: Props) {
     const [decision, setDecision] = useState<{ entry: TimeLog; decision: 'approved' | 'rejected' } | null>(null);
 
     const refresh = () => router.reload({ only: ['entries'] });
@@ -54,7 +59,7 @@ export default function TimesheetApprovalsIndex({ entries }: Props) {
                                                     {' '}
                                                     · {formatMinutes(entry.duration_minutes)} ·{' '}
                                                     <span className="capitalize">
-                                                        {entry.activity_type.replace('_', ' ')}
+                                                        {optionLabel(activityTypeOptions, entry.activity_type)}
                                                     </span>
                                                 </span>
                                             </p>

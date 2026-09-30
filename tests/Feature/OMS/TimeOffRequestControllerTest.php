@@ -226,6 +226,7 @@ class TimeOffRequestControllerTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('time-off/index')
+            ->where('statusOptions', ApprovalStatus::options())
             ->where('isApprover', false)
             ->has('pendingApprovals', 0));
     }

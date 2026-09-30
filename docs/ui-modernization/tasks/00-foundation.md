@@ -176,7 +176,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-003 save before publishing minutes`
 
-## [ ] UI-FIX-004 — Display enum labels from server options
+## [x] UI-FIX-004 — Display enum labels from server options
 - **Objective:** Stop client-side label mangling.
 - **Current State:** There are 21 `.replace('_',' ')` calls (first underscore only, lowercase), plus about 6 raw `{x.status}` renders (`sprint-list.tsx:63`, `allocation-list.tsx:90`, `todo-list-card.tsx:101,159`, `time-off-request-list.tsx:67`, `module-tree.tsx:126`). This violates RULES.md §3/§10.
 - **Problem:** Wrong labels such as "ready_for qa", and inconsistent casing.

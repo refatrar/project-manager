@@ -2,14 +2,16 @@ import { Check, X } from 'lucide-react';
 import { useState } from 'react';
 import DecideTimeOffRequestModal from '@/components/time-off/decide-time-off-request-modal';
 import { Button } from '@/components/ui/button';
-import type { TimeOffRequest } from '@/types';
+import { optionLabel } from '@/lib/enum';
+import type { TimeOffRequest, TimeOffTypeOption } from '@/types';
 
 type Props = {
     requests: TimeOffRequest[];
+    typeOptions: TimeOffTypeOption[];
     onChanged: () => void;
 };
 
-export default function TimeOffApprovalQueue({ requests, onChanged }: Props) {
+export default function TimeOffApprovalQueue({ requests, typeOptions, onChanged }: Props) {
     const [decision, setDecision] = useState<{ request: TimeOffRequest; decision: 'approved' | 'rejected' } | null>(null);
 
     if (requests.length === 0) {
@@ -28,7 +30,7 @@ export default function TimeOffApprovalQueue({ requests, onChanged }: Props) {
                         <div className="min-w-0">
                             <p className="text-sm font-medium">
                                 {request.user.name}
-                                <span className="text-muted-foreground font-normal capitalize"> · {request.type.replace('_', ' ')}</span>
+                                <span className="text-muted-foreground font-normal capitalize"> · {optionLabel(typeOptions, request.type)}</span>
                             </p>
                             <p className="text-muted-foreground text-sm">
                                 {request.starts_on} – {request.ends_on}

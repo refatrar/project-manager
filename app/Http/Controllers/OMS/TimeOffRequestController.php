@@ -62,6 +62,7 @@ class TimeOffRequestController extends Controller
             'pendingApprovals' => $pendingApprovals,
             'isApprover' => $isAdmin,
             'typeOptions' => TimeOffType::options(),
+            'statusOptions' => ApprovalStatus::options(),
         ]);
     }
 

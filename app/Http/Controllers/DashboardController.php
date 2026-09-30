@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Teams\FindPendingInvitations;
 use App\Enums\ProjectHealth;
+use App\Enums\ProjectStatus;
 use App\Enums\TaskStatus;
 use App\Enums\TeamModulePermission;
 use App\Models\OMS\Project;
@@ -21,6 +22,8 @@ class DashboardController extends Controller
         return Inertia::render('dashboard', [
             'pendingInvitations' => $findPendingInvitations->handle($request->user('web')),
             ...$this->portfolio($request, $current_team),
+            'statusOptions' => ProjectStatus::options(),
+            'healthOptions' => ProjectHealth::options(),
         ]);
     }
 

@@ -13,6 +13,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useTeamAccess } from '@/hooks/use-team-access';
+import { optionLabel } from '@/lib/enum';
 import { index, show } from '@/routes/meetings';
 import type {
     Meeting,
@@ -175,7 +176,10 @@ export default function MeetingsIndex({
                                             'default'
                                         }
                                     >
-                                        {meeting.status.replace('_', ' ')}
+                                        {optionLabel(
+                                            statusOptions,
+                                            meeting.status,
+                                        )}
                                     </Badge>
                                     {meeting.project ? (
                                         <Badge variant="outline">
@@ -184,7 +188,7 @@ export default function MeetingsIndex({
                                     ) : null}
                                 </div>
                                 <p className="text-muted-foreground mt-1 text-sm">
-                                    {meeting.type.replace('_', ' ')} ·{' '}
+                                    {optionLabel(typeOptions, meeting.type)} ·{' '}
                                     {new Date(
                                         meeting.scheduled_start,
                                     ).toLocaleString()}

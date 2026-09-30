@@ -4,6 +4,7 @@ import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import PortfolioHealthBar from '@/components/portfolio-health-bar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { optionLabel } from '@/lib/enum';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { show as showProject } from '@/routes/projects';
@@ -11,6 +12,8 @@ import type {
     DashboardInvitation,
     PortfolioHealthCounts,
     Project,
+    ProjectHealthOption,
+    ProjectStatusOption,
 } from '@/types';
 
 type Props = {
@@ -19,6 +22,8 @@ type Props = {
     healthCounts: PortfolioHealthCounts;
     overdueTasks: number;
     blockedTasks: number;
+    statusOptions: ProjectStatusOption[];
+    healthOptions: ProjectHealthOption[];
 };
 
 const healthVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {
@@ -39,6 +44,8 @@ export default function Dashboard({
     healthCounts,
     overdueTasks,
     blockedTasks,
+    statusOptions,
+    healthOptions,
 }: Props) {
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
@@ -145,15 +152,18 @@ export default function Dashboard({
                                                     ] ?? 'default'
                                                 }
                                             >
-                                                {project.health.replace(
-                                                    '_',
-                                                    ' ',
+                                                {optionLabel(
+                                                    healthOptions,
+                                                    project.health,
                                                 )}
                                             </Badge>
                                         </div>
                                         <p className="text-muted-foreground mt-1 text-sm">
-                                            {project.status.replace('_', ' ')} ·{' '}
-                                            {project.progress_percentage}%
+                                            {optionLabel(
+                                                statusOptions,
+                                                project.status,
+                                            )}{' '}
+                                            · {project.progress_percentage}%
                                             complete
                                         </p>
                                         <div

@@ -542,6 +542,7 @@ export type TimeOffType =
 export type TimeOffTypeOption = { value: TimeOffType; label: string };
 export type ApprovalStatus =
     'pending' | 'submitted' | 'approved' | 'rejected' | 'cancelled';
+export type ApprovalStatusOption = { value: ApprovalStatus; label: string };
 
 export type TimeOffRequest = {
     id: number;

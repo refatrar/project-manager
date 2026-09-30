@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { destroy } from '@/routes/time-logs';
 import type { ProjectOption, TimeLog, TimeLogActivityTypeOption } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type DeletedResponse = {
     message: string;
@@ -60,7 +61,10 @@ export default function TimeLogList({ logs, projects, activityTypeOptions, onCha
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-medium capitalize">
-                                    {log.activity_type.replace('_', ' ')}
+                                    {optionLabel(
+                                        activityTypeOptions,
+                                        log.activity_type,
+                                    )}
                                 </span>
                                 <Badge variant="outline">{formatMinutes(log.duration_minutes)}</Badge>
                                 {log.approval_status !== 'pending' ? (

@@ -9,6 +9,7 @@ import TaskFormModal from '@/components/projects/task-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { optionLabel } from '@/lib/enum';
 import { index as projectsIndex, show as showProject } from '@/routes/projects';
 import { show as showTask } from '@/routes/projects/tasks';
 import type {
@@ -128,7 +129,9 @@ export default function TaskShow({
                             <CardTitle>Status</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-1 text-sm">
-                            <Badge>{task.status.replace('_', ' ')}</Badge>
+                            <Badge>
+                                {optionLabel(statusOptions, task.status)}
+                            </Badge>
                             <p>{task.progress_percentage}% complete</p>
                         </CardContent>
                     </Card>
@@ -139,7 +142,10 @@ export default function TaskShow({
                         </CardHeader>
                         <CardContent className="space-y-1 text-sm">
                             <p>{task.taskType.name}</p>
-                            <p>{task.priority} priority</p>
+                            <p>
+                                {optionLabel(priorityOptions, task.priority)}{' '}
+                                priority
+                            </p>
                         </CardContent>
                     </Card>
 
@@ -258,7 +264,10 @@ export default function TaskShow({
                                             {subtask.title}
                                         </span>
                                         <Badge variant="secondary">
-                                            {subtask.status.replace('_', ' ')}
+                                            {optionLabel(
+                                                statusOptions,
+                                                subtask.status,
+                                            )}
                                         </Badge>
                                     </Link>
                                 ))}

@@ -35,6 +35,7 @@ import type {
     TaskStatusOption,
     TaskTypeOption,
 } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type MovedResponse = {
     task: Task;
@@ -253,7 +254,10 @@ export default function KanbanBoard({
                                                 {task.taskType.name}
                                             </Badge>
                                             <Badge variant="outline">
-                                                {task.priority}
+                                                {optionLabel(
+                                                    priorityOptions,
+                                                    task.priority,
+                                                )}
                                             </Badge>
                                         </div>
 

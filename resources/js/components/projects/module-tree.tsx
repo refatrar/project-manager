@@ -12,6 +12,7 @@ import type {
     ProjectModule,
     ProjectModuleStatusOption,
 } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type ReorderedResponse = {
     modules: ProjectModule[];
@@ -120,7 +121,7 @@ export default function ModuleTree({
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="font-medium">{module.name}</span>
                             <Badge variant="secondary">
-                                {module.status.replace('_', ' ')}
+                                {optionLabel(statusOptions, module.status)}
                             </Badge>
                             <span className="text-muted-foreground text-xs">
                                 {module.priority} priority ·{' '}

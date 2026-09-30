@@ -8,6 +8,7 @@ import TodoListFormModal from '@/components/todo-lists/todo-list-form-modal';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/todo-lists';
 import type {
+    PriorityOption,
     ProjectOption,
     TaskTypeOption,
     TeamMemberOption,
@@ -23,6 +24,7 @@ type Props = {
     taskTypes: TaskTypeOption[];
     typeOptions: TodoListTypeOption[];
     statusOptions: TodoListStatusOption[];
+    priorityOptions: PriorityOption[];
 };
 
 export default function TodoListsIndex({
@@ -32,6 +34,7 @@ export default function TodoListsIndex({
     taskTypes,
     typeOptions,
     statusOptions,
+    priorityOptions,
 }: Props) {
     const [editingList, setEditingList] = useState<TodoList | null>(null);
     const [listToDelete, setListToDelete] = useState<TodoList | null>(null);
@@ -71,6 +74,8 @@ export default function TodoListsIndex({
                                 teamMembers={teamMembers}
                                 projects={projects}
                                 taskTypes={taskTypes}
+                                statusOptions={statusOptions}
+                                priorityOptions={priorityOptions}
                                 onEditList={() => setEditingList(list)}
                                 onDeleteList={() => setListToDelete(list)}
                                 onChanged={refresh}

@@ -19,6 +19,7 @@ import type {
     TaskDependencyTypeOption,
     TaskReference,
 } from '@/types';
+import { optionLabel } from '@/lib/enum';
 
 type AddedResponse = {
     dependency: TaskDependencyItem;
@@ -106,7 +107,7 @@ export default function TaskDependencyEditor({
                         >
                             <div className="flex items-center gap-2 text-sm">
                                 <Badge variant="secondary">
-                                    {dependency.type.replace('_', ' ')}
+                                    {optionLabel(typeOptions, dependency.type)}
                                 </Badge>
                                 <Link
                                     href={showTask.url([

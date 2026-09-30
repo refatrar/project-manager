@@ -18,6 +18,7 @@ import TaskListView from '@/components/projects/task-list-view';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { optionLabel } from '@/lib/enum';
 import { cn } from '@/lib/utils';
 import { index } from '@/routes/projects';
 import type {
@@ -222,6 +223,9 @@ export default function ProjectShow({
                         progress={progress}
                         burndown={burndown}
                         cycleTime={cycleTime}
+                        statusOptions={statusOptions}
+                        healthOptions={healthOptions}
+                        priorityOptions={priorityOptions}
                     />
                 ) : null}
                 {tab === 'board' ? (
@@ -253,6 +257,8 @@ export default function ProjectShow({
                         milestones={milestones}
                         sprints={sprints}
                         labels={labels}
+                        statusOptions={taskStatusOptions}
+                        priorityOptions={priorityOptions}
                     />
                 ) : null}
                 {tab === 'modules' ? (
@@ -380,11 +386,17 @@ function OverviewTab({
     progress,
     burndown,
     cycleTime,
+    statusOptions,
+    healthOptions,
+    priorityOptions,
 }: {
     project: ProjectPayload;
     progress: ProjectProgress;
     burndown: BurndownPoint[];
     cycleTime: CycleTimeReport;
+    statusOptions: ProjectStatusOption[];
+    healthOptions: ProjectHealthOption[];
+    priorityOptions: PriorityOption[];
 }) {
     const healthVariant: Record<
         string,
@@ -403,7 +415,9 @@ function OverviewTab({
                         <CardTitle>Status</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <Badge>{project.status.replace('_', ' ')}</Badge>
+                        <Badge>
+                            {optionLabel(statusOptions, project.status)}
+                        </Badge>
                         <p className="text-muted-foreground text-sm">
                             {progress.progressPercentage}% complete ·{' '}
                             {progress.completedTasks}/{progress.totalTasks}{' '}
@@ -420,10 +434,11 @@ function OverviewTab({
                         <Badge
                             variant={healthVariant[project.health] ?? 'default'}
                         >
-                            {project.health.replace('_', ' ')}
+                            {optionLabel(healthOptions, project.health)}
                         </Badge>
                         <p className="text-muted-foreground text-sm">
-                            {project.priority} priority
+                            {optionLabel(priorityOptions, project.priority)}{' '}
+                            priority
                         </p>
                     </CardContent>
                 </Card>

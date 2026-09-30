@@ -3,6 +3,7 @@
 namespace Tests\Feature\OMS;
 
 use App\Enums\ApprovalStatus;
+use App\Enums\TimeLogActivityType;
 use App\Models\OMS\Project;
 use App\Models\OMS\TimeLog;
 use App\Models\User;
@@ -35,6 +36,7 @@ class TimesheetControllerTest extends TestCase
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
             ->component('timesheet/index')
+            ->where('activityTypeOptions', TimeLogActivityType::options())
             ->where('weekStart', '2026-03-09')
             ->where('weekEnd', '2026-03-15')
             ->where('weekTotal', 4)

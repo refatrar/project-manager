@@ -13,6 +13,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useTeamAccess } from '@/hooks/use-team-access';
+import { optionLabel } from '@/lib/enum';
 import { index, show } from '@/routes/projects';
 import type {
     Paginated,
@@ -232,7 +233,10 @@ export default function ProjectsIndex({
                                     <Badge
                                         variant={healthVariant[project.health]}
                                     >
-                                        {project.health.replace('_', ' ')}
+                                        {optionLabel(
+                                            healthOptions,
+                                            project.health,
+                                        )}
                                     </Badge>
                                     {project.archived_at ? (
                                         <Badge variant="outline">
@@ -241,9 +245,14 @@ export default function ProjectsIndex({
                                     ) : null}
                                 </div>
                                 <p className="text-muted-foreground mt-1 text-sm">
-                                    {project.status.replace('_', ' ')} ·{' '}
-                                    {project.priority} priority ·{' '}
-                                    {project.progress_percentage}% complete
+                                    {optionLabel(statusOptions, project.status)}{' '}
+                                    ·{' '}
+                                    {optionLabel(
+                                        priorityOptions,
+                                        project.priority,
+                                    )}{' '}
+                                    priority · {project.progress_percentage}%
+                                    complete
                                 </p>
                             </Link>
 
