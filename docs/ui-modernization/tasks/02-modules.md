@@ -1435,7 +1435,7 @@ A task that must break one of these stops and asks.
 - **UX Reason:** Accessibility.
 - **Files/Components Affected:** `admin/admins`, `admin/holidays`, `admin/work-schedules`.
 - **Routes Affected:** None · **APIs Affected:** None · **Database Impact:** None.
-- **Dependencies:** DS-009, CMP-009, FIX-005.
+- **Dependencies:** DS-009, CMP-009. (FIX-005 was closed as not a bug: keep the work-schedule date in UTC.)
 - **Feasibility:** Tech L · FE M · BE none · Arch ✓ · Perf none · A11y + · Regr L · Mobile M · Scope M.
 - **Implementation Steps:**
   1. Work through the three pages one by one within this task.

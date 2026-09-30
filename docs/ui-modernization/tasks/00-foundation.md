@@ -203,7 +203,8 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-004 enum labels from server options`
 
-## [ ] UI-FIX-005 — Work schedule "today" uses local date, not UTC
+## [x] UI-FIX-005 — Work schedule "today" uses local date, not UTC — CLOSED: NOT A BUG
+- **Resolution (2026-09-30):** Investigation showed the current code is correct. The app runs in UTC (`config/app.php`), and `SaveWorkScheduleRequest` validates `effective_from` as `after_or_equal:today`, which is evaluated in UTC. `new Date().toISOString().slice(0, 10)` yields that same UTC date, so the default and `min` match what the server accepts. A browser-local date would be rejected for admins west of UTC in their evening. This differs from the MEMORY.md:225 trap, which concerns re-parsing a date-only string. Closed with an explanatory code comment only; the original analysis below is kept for the record.
 - **Objective:** Fix the off-by-one default date.
 - **Current State:** `pages/admin/work-schedules/index.tsx:75` uses `toISOString()`. MEMORY.md:225 documents this trap; `timesheet/index.tsx:29-39` does it correctly.
 - **Problem:** Between 00:00 and 06:00 local time (UTC+6), the default effective date is yesterday.
@@ -225,7 +226,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Risks:** None.
 - **Rollback Plan:** Revert.
 - **Approval Required:** Yes.
-- **Commit Requirement:** `ui: implement UI-FIX-005 local date default for work schedules`
+- **Commit Requirement:** `ui: close UI-FIX-005 work schedule date is intentionally UTC`
 
 ## [ ] UI-FIX-006 — Decide dialogs keep their title while closing
 - **Objective:** Remove the Reject → Approve title flicker.

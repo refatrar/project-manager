@@ -72,6 +72,9 @@ function toFormDay(
     };
 }
 
+// Deliberately the UTC date, not the browser's local date: the app runs in
+// UTC and the server validates `effective_from` as `after_or_equal:today`
+// in UTC, so a local date would be rejected west of UTC in the evening.
 function todayIsoDate(): string {
     return new Date().toISOString().slice(0, 10);
 }
