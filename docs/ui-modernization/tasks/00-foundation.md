@@ -302,7 +302,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-008 team switcher slug handling`
 
-## [ ] UI-FIX-009 — Natural tab order on login pages
+## [x] UI-FIX-009 — Natural tab order on login pages
 - **Objective:** Remove positive `tabIndex` values.
 - **Current State:** `pages/auth/login.tsx:71,118` (values 1–5, with 5 used twice) and `pages/admin/auth/login.tsx:32-66`.
 - **Problem:** Keyboard focus order breaks (WCAG 2.4.3).
