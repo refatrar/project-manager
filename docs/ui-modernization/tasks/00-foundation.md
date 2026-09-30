@@ -491,7 +491,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 
 ## Phase 1 — Design system foundation
 
-## [ ] UI-DS-001 — Audit current tokens and finalise the design-system document
+## [x] UI-DS-001 — Audit current tokens and finalise the design-system document
 - **Objective:** Lock the token values after decisions D-1 and D-2.
 - **Current State:** `docs/design-system/README.md` is PROPOSED. Tokens live at `resources/css/app.css:10-186`.
 - **Problem:** Some values are marked *verify*.

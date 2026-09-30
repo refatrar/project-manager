@@ -1,6 +1,6 @@
 # Design System — Kazsoft Project Manager
 
-Status: **PROPOSED (not yet implemented)**. Nothing in this document is live until the matching `UI-DS-*` task in `docs/ui-modernization/tasks/` is approved, implemented and committed. Values marked *verify* must be checked with a contrast tool during implementation.
+Status: **FINAL — colour and type decisions locked (UI-DS-001, 2026-09-30)**. Decisions applied: D-1 teal-700 primary, D-2 Plus Jakarta Sans. The values are specified here but not yet live in `resources/css/app.css`; each lands with its own `UI-DS-*` task. Every contrast ratio in §2 was computed with the WCAG 2.x relative-luminance formula; re-run `python3 docs/design-system/contrast-check.py` (57 pairs, exits non-zero on any failure) after changing a colour.
 
 Derived with the UI UX Pro Max methodology (product type → reasoning profile → style → palette → typography → UX rules → anti-patterns → pre-delivery checklist). The generator classified this product as **Productivity Tool** (dashboard style: *Drill-Down Analytics*; style priority: *Flat Design / Minimalism & Swiss Style*; density 8/10). Where the generator's output was adapted, the reason is written next to it.
 
@@ -26,25 +26,29 @@ Implemented as CSS variables in `resources/css/app.css` (`:root` and `.dark`), m
 
 ### 2.1 Light
 
-| Token | Role | Value | Contrast note |
+Surfaces: canvas `#F8FAFC`, card/popover `#FFFFFF`, secondary/hover `#F1F5F9`. Minimums are 4.5:1 for text and 3:1 for control boundaries and focus indicators (WCAG 1.4.3 / 1.4.11).
+
+| Token | Role | Value | Measured contrast |
 |---|---|---|---|
 | `--background` | App canvas | `#F8FAFC` | — |
 | `--card` / `--popover` | Surface / elevated surface | `#FFFFFF` | — |
-| `--foreground` | Text primary | `#0F172A` | 17:1 on white |
-| `--muted-foreground` | Text secondary / muted | `#475569` | 7.6:1 on white |
-| `--subtle-foreground` | Tertiary (timestamps, helper) | `#64748B` | 4.7:1 on white, 4.5:1 on canvas — *verify* |
-| `--disabled-foreground` | Disabled text | `#94A3B8` | exempt (WCAG 1.4.3) |
-| `--primary` | Primary action, selection | `#0F766E` (teal-700) | white text 5.5:1 |
-| `--primary-hover` | Hover/pressed | `#115E59` | — |
-| `--primary-foreground` | Text on primary | `#FFFFFF` | — |
+| `--foreground` | Text primary | `#0F172A` | 17.85 card · 17.06 canvas · 16.30 secondary |
+| `--muted-foreground` | Text secondary / muted | `#475569` | 7.58 card · 7.24 canvas · 6.92 secondary |
+| `--subtle-foreground` | Tertiary (timestamps, helper) | `#5F6E86` | 5.17 card · 4.94 canvas · 4.72 secondary |
+| `--disabled-foreground` | Disabled text | `#94A3B8` | exempt (WCAG 1.4.3 inactive components) |
+| `--primary` | Primary action, selection, links | `#0F766E` (teal-700) | as text: 5.47 card · 5.23 canvas |
+| `--primary-hover` | Hover/pressed | `#115E59` | label 7.58 |
+| `--primary-foreground` | Text on primary | `#FFFFFF` | 5.47 on primary |
 | `--secondary` / `--accent` | Secondary button, hover surface | `#F1F5F9` | — |
-| `--border` | Decorative dividers, card borders | `#E2E8F0` | decorative only |
-| `--input` | Form-control boundary | `#7C8798` | 3.6:1 — meets 1.4.11 |
-| `--ring` | Focus ring | `#0F766E` | 2px ring + 2px offset |
-| `--success` / `-foreground` / `-subtle` / `-subtle-foreground` | Done, approved, on track | `#15803D` / `#FFF` / `#F0FDF4` / `#166534` | *verify* |
-| `--warning` … | At risk, pending, due soon | `#B45309` / `#FFF` / `#FFFBEB` / `#92400E` | *verify* |
-| `--destructive` … | Errors, overdue, delete | `#B91C1C` / `#FFF` / `#FEF2F2` / `#991B1B` | fixes current bug where `--destructive-foreground` = `--destructive` |
-| `--info` … | Informational, in review | `#1D4ED8` / `#FFF` / `#EFF6FF` / `#1E40AF` | *verify* |
+| `--border` | Decorative dividers, card borders | `#E2E8F0` | decorative only (not a control boundary) |
+| `--input` | Form-control boundary | `#7C8798` | 3.64 card · 3.47 canvas |
+| `--ring` | Focus ring (2px + 2px offset) | `#0F766E` | 5.47 card |
+| `--success` · `-foreground` · `-subtle` · `-subtle-foreground` | Done, approved, on track | `#15803D` · `#FFFFFF` · `#F0FDF4` · `#166534` | label 5.02 · as text 5.02 · subtle 6.81 |
+| `--warning` · … | At risk, pending, due soon | `#B45309` · `#FFFFFF` · `#FFFBEB` · `#92400E` | label 5.02 · as text 5.02 · subtle 6.84 |
+| `--destructive` · … | Errors, overdue, delete | `#B91C1C` · `#FFFFFF` · `#FEF2F2` · `#991B1B` | label 6.47 · as text 6.47 · subtle 7.60 |
+| `--info` · … | Informational, in review | `#1D4ED8` · `#FFFFFF` · `#EFF6FF` · `#1E40AF` | label 6.70 · as text 6.70 · subtle 8.01 |
+
+Changed during verification: `--subtle-foreground` was proposed as `#64748B`, but it measured 4.34:1 on the secondary surface (hovered rows, secondary buttons), below 4.5. It is darkened to `#5F6E86`, which is still lighter than muted text so the hierarchy holds. `--destructive-foreground` is now distinct from `--destructive`; in the current `app.css` they are identical.
 
 **Kept unchanged:** `--status-good/warning/critical`, `--heatmap-1..7`, `--chart-1..5`. They were contrast-validated in earlier work (`app.css:102-136`). `--status-*` become aliases of `--success`/`--warning`/`--destructive` only if the validated values match; otherwise both sets remain.
 
@@ -52,21 +56,32 @@ Implemented as CSS variables in `resources/css/app.css` (`:root` and `.dark`), m
 
 ### 2.2 Dark (`.dark`)
 
-| Token | Value |
-|---|---|
-| `--background` | `#0A0F14` |
-| `--card` | `#0F172A` |
-| `--popover` (elevated) | `#1E293B` |
-| `--foreground` | `#F1F5F9` |
-| `--muted-foreground` | `#94A3B8` (≈6.9:1 on card — *verify*) |
-| `--border` | `#1E293B` |
-| `--input` | `#64748B` (≈3.8:1 on card) |
-| `--primary` / `-foreground` | `#2DD4BF` / `#042F2E` |
-| `--ring` | `#2DD4BF` |
-| `--success` / `--warning` / `--destructive` / `--info` | `#4ADE80` / `#FBBF24` / `#F87171` / `#60A5FA`, each with a dark `-foreground` and a `-subtle` of the hue at ~15% alpha |
-| `--sidebar-primary` / `-foreground` | `#2DD4BF` / `#042F2E` (fixes the current identical-values bug at `app.css:176-177`) |
+Surfaces: background `#0A0F14`, card `#0F172A`, popover (elevated) `#1E293B`. The popover is the lightest surface, so it is the hardest case for light-on-dark text.
 
-The generator does not produce dark tokens; these are derived and must pass the same checks in both themes (pre-delivery checklist §15). `resources/views/app.blade.php` inline background colours must be updated to match (no flash on load).
+| Token | Value | Measured contrast |
+|---|---|---|
+| `--background` | `#0A0F14` | — |
+| `--card` | `#0F172A` | — |
+| `--popover` (elevated) | `#1E293B` | — |
+| `--foreground` | `#F1F5F9` | 16.30 card · 17.56 background · 13.35 popover |
+| `--muted-foreground` | `#94A3B8` | 6.96 card · 7.50 background · 5.71 popover |
+| `--subtle-foreground` | `#8492A8` | 5.66 card · 6.10 background · 4.64 popover |
+| `--border` | `#1E293B` | decorative only |
+| `--input` | `#6B7A90` | 4.09 card · 3.35 popover |
+| `--primary` · `-foreground` | `#2DD4BF` · `#042F2E` | label 7.77 · as text 9.59 card · 7.86 popover |
+| `--primary-hover` | `#5EEAD4` | label 9.78 |
+| `--ring` | `#2DD4BF` | 9.59 card |
+| `--success` · `-foreground` | `#4ADE80` · `#052E16` | label 8.55 · as text 10.25 |
+| `--warning` · `-foreground` | `#FBBF24` · `#451A03` | label 8.97 · as text 10.69 |
+| `--destructive` · `-foreground` | `#F87171` · `#450A0A` | label 5.84 · as text 6.45 |
+| `--info` · `-foreground` | `#60A5FA` · `#172554` | label 5.78 · as text 7.02 |
+| `--{tone}-subtle` | the tone at 15% alpha over card: success `#183537`, warning `#323029`, destructive `#322435`, info `#1B2C49` | tone text on it: 7.52 · 7.91 · 5.27 · 5.50 |
+| `--{tone}-subtle-foreground` | the tone itself (e.g. `#4ADE80`) | as above |
+| `--sidebar-primary` · `-foreground` | `#2DD4BF` · `#042F2E` | 7.77; replaces the current bug where both values are identical (`app.css:176-177`) |
+
+Added or changed during verification: `--subtle-foreground` and `--primary-hover` had no dark values; they are now `#8492A8` and `#5EEAD4`. `--input` was lightened from `#64748B` (3.07:1 on popover, too close to the limit) to `#6B7A90` (3.35:1).
+
+The generator does not produce dark tokens; these are derived and pass the same thresholds as light. `resources/views/app.blade.php` inline background colours must be updated to match, so there is no flash on load (UI-DS-003).
 
 ### 2.3 Status mapping (single source: `resources/js/lib/status.ts`)
 
@@ -84,7 +99,7 @@ The exact enum → tone table is finalised in UI-CMP-002 from `app/Enums/*`. It 
 
 ## 3. Typography
 
-- **Family:** *Decision D-2.* Recommended **Plus Jakarta Sans** (generator pick for SaaS/productivity; 400/500/600/700). The fallback is to keep the current **Instrument Sans** (400/500/600, `app.blade.php:37`). Either way, load through fonts.bunny.net as today and use `font-display: swap`.
+- **Family:** **Plus Jakarta Sans**, weights 400/500/600/700 (decision D-2; the generator's pick for SaaS/productivity). It replaces Instrument Sans (`app.blade.php:37`) in UI-DS-004. Load it through fonts.bunny.net as today, with `font-display: swap`.
 - **Numbers:** `tabular-nums` on every table cell, KPI, duration, date and hour value.
 
 | Role | Size / line-height | Weight | Tailwind |
@@ -157,7 +172,7 @@ Rules: 12px minimum (removes the `text-[10px]`/`text-[11px]` in burndown); input
 - Group long forms into titled sections (the `project-form.tsx` sections are the reference pattern).
 - Errors: inline below the field (from `useHttp` 422 `errors`). Non-field failures (403/500/network) show a form-level `Alert` at the top of the dialog. After a failed submit, focus moves to the first invalid field.
 - Optional Radix selects keep the server sentinel `'none'` (MEMORY.md): do not change the value contract.
-- Dates: native `date`/`datetime-local`/`time` inputs stay (29 in use) unless decision D-3 approves a date picker. Keep the `Date.UTC` rule and seconds in `datetime-local` pre-fill (MEMORY.md).
+- Dates: native `date`/`datetime-local`/`time` inputs stay (29 in use); decision D-3 deferred a date-picker dependency. Keep the `Date.UTC` rule and seconds in `datetime-local` pre-fill (MEMORY.md).
 - Two-column field grids only at ≥640px (`sm:grid-cols-2`). Dialog footer: Cancel (outline) then primary; stacked full-width on mobile.
 
 ## 8. Tables
