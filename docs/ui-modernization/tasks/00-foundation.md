@@ -228,7 +228,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: close UI-FIX-005 work schedule date is intentionally UTC`
 
-## [ ] UI-FIX-006 — Decide dialogs keep their title while closing
+## [x] UI-FIX-006 — Decide dialogs keep their title while closing
 - **Objective:** Remove the Reject → Approve title flicker.
 - **Current State:** `decision ?? 'approved'` at `pages/timesheet-approvals/index.tsx:103` and `components/time-off/time-off-approval-queue.tsx:68`.
 - **Problem:** A confusing flash during the close animation.

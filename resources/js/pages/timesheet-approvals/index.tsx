@@ -25,7 +25,14 @@ export default function TimesheetApprovalsIndex({
     entries,
     activityTypeOptions,
 }: Props) {
+    // Kept after the dialog closes so its title and entry don't change
+    // during the close animation; only `decisionOpen` controls visibility.
     const [decision, setDecision] = useState<{ entry: TimeLog; decision: 'approved' | 'rejected' } | null>(null);
+    const [decisionOpen, setDecisionOpen] = useState(false);
+    const openDecision = (entry: TimeLog, choice: 'approved' | 'rejected') => {
+        setDecision({ entry, decision: choice });
+        setDecisionOpen(true);
+    };
 
     const refresh = () => router.reload({ only: ['entries'] });
 
@@ -78,7 +85,7 @@ export default function TimesheetApprovalsIndex({
                                                 variant="outline"
                                                 size="sm"
                                                 data-test="timesheet-approve"
-                                                onClick={() => setDecision({ entry, decision: 'approved' })}
+                                                onClick={() => openDecision(entry, 'approved')}
                                             >
                                                 <Check className="h-4 w-4" /> Approve
                                             </Button>
@@ -86,7 +93,7 @@ export default function TimesheetApprovalsIndex({
                                                 variant="outline"
                                                 size="sm"
                                                 data-test="timesheet-reject"
-                                                onClick={() => setDecision({ entry, decision: 'rejected' })}
+                                                onClick={() => openDecision(entry, 'rejected')}
                                             >
                                                 <X className="h-4 w-4" /> Reject
                                             </Button>
@@ -106,12 +113,8 @@ export default function TimesheetApprovalsIndex({
             <DecideTimeLogModal
                 entry={decision?.entry ?? null}
                 decision={decision?.decision ?? 'approved'}
-                open={decision !== null}
-                onOpenChange={(nextOpen) => {
-                    if (!nextOpen) {
-                        setDecision(null);
-                    }
-                }}
+                open={decisionOpen}
+                onOpenChange={setDecisionOpen}
                 onDecided={refresh}
             />
         </>

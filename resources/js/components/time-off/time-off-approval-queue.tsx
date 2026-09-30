@@ -12,7 +12,14 @@ type Props = {
 };
 
 export default function TimeOffApprovalQueue({ requests, typeOptions, onChanged }: Props) {
+    // Kept after the dialog closes so its title and request don't change
+    // during the close animation; only `decisionOpen` controls visibility.
     const [decision, setDecision] = useState<{ request: TimeOffRequest; decision: 'approved' | 'rejected' } | null>(null);
+    const [decisionOpen, setDecisionOpen] = useState(false);
+    const openDecision = (request: TimeOffRequest, choice: 'approved' | 'rejected') => {
+        setDecision({ request, decision: choice });
+        setDecisionOpen(true);
+    };
 
     if (requests.length === 0) {
         return <p className="text-muted-foreground py-4 text-center text-sm">Nothing pending approval.</p>;
@@ -48,7 +55,7 @@ export default function TimeOffApprovalQueue({ requests, typeOptions, onChanged 
                                 variant="outline"
                                 size="sm"
                                 data-test="approval-approve"
-                                onClick={() => setDecision({ request, decision: 'approved' })}
+                                onClick={() => openDecision(request, 'approved')}
                             >
                                 <Check className="h-4 w-4" /> Approve
                             </Button>
@@ -56,7 +63,7 @@ export default function TimeOffApprovalQueue({ requests, typeOptions, onChanged 
                                 variant="outline"
                                 size="sm"
                                 data-test="approval-reject"
-                                onClick={() => setDecision({ request, decision: 'rejected' })}
+                                onClick={() => openDecision(request, 'rejected')}
                             >
                                 <X className="h-4 w-4" /> Reject
                             </Button>
@@ -68,12 +75,8 @@ export default function TimeOffApprovalQueue({ requests, typeOptions, onChanged 
             <DecideTimeOffRequestModal
                 request={decision?.request ?? null}
                 decision={decision?.decision ?? 'approved'}
-                open={decision !== null}
-                onOpenChange={(nextOpen) => {
-                    if (!nextOpen) {
-                        setDecision(null);
-                    }
-                }}
+                open={decisionOpen}
+                onOpenChange={setDecisionOpen}
                 onDecided={onChanged}
             />
         </>
