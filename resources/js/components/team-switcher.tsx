@@ -16,6 +16,22 @@ type TeamSwitcherProps = {
     inHeader?: boolean;
 };
 
+/**
+ * Swap the first path segment equal to `from` for `to`. Only whole
+ * segments match, so switching away from `acme` leaves `/acme-corp`
+ * alone. Returns null when the URL has no such segment.
+ */
+function replaceSlugSegment(
+    url: string,
+    from: string,
+    to: string,
+): string | null {
+    const escaped = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`/${escaped}(?=[/?#]|$)`);
+
+    return pattern.test(url) ? url.replace(pattern, `/${to}`) : null;
+}
+
 export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
     const page = usePage();
     const isMobile = useIsMobile();
@@ -23,6 +39,10 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
     const teams = page.props.teams ?? [];
 
     const switchTeam = (team: Team) => {
+        if (currentTeam?.id === team.id) {
+            return;
+        }
+
         const previousTeamSlug = currentTeam?.slug;
 
         router.visit(switchMethod(team.slug), {
@@ -34,12 +54,14 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                 }
 
                 const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-                const segment = `/${previousTeamSlug}`;
+                const nextUrl = replaceSlugSegment(
+                    currentUrl,
+                    previousTeamSlug,
+                    team.slug,
+                );
 
-                if (currentUrl.includes(segment)) {
-                    router.visit(currentUrl.replace(segment, `/${team.slug}`), {
-                        replace: true,
-                    });
+                if (nextUrl !== null) {
+                    router.visit(nextUrl, { replace: true });
 
                     return;
                 }

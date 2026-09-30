@@ -277,7 +277,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-007 parent-aware active navigation`
 
-## [ ] UI-FIX-008 — Team switcher slug replacement and no-op on the current team
+## [x] UI-FIX-008 — Team switcher slug replacement and no-op on the current team
 - **Objective:** Switching teams rewrites the URL correctly and doesn't reload when the current team is chosen.
 - **Current State:** `currentUrl.includes('/slug')` substring logic (`team-switcher.tsx:350`) plus a second visit (`:339-359`).
 - **Problem:** The slug `acme` also matches `/acme-corp`; there's an unnecessary request.
