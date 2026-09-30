@@ -462,7 +462,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes (new dependencies).
 - **Commit Requirement:** `ui: implement UI-DEP-001 radix primitive packages`
 
-## [ ] UI-DEP-002 — Add `cmdk` (command palette and combobox)
+## [x] UI-DEP-002 — Add `cmdk` (command palette and combobox)
 - **Objective:** Searchable pickers and a keyboard navigation palette.
 - **Current State:** People, project and task pickers are plain Selects without search. The dependency picker lists every task (`task-dependency-editor.tsx:174-195`).
 - **Problem:** Large lists are slow to use, and there is no keyboard jump navigation (the skill's "keyboard-shortcuts" must-have for productivity tools).
