@@ -150,7 +150,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-002 overdue filter excludes closed tasks`
 
-## [ ] UI-FIX-003 — Publishing minutes cannot send unsaved text
+## [x] UI-FIX-003 — Publishing minutes cannot send unsaved text
 - **Objective:** Prevent emailing attendees stale minutes.
 - **Current State:** Publish is a separate PATCH with no body (`components/meetings/minutes-editor.tsx:50-61`). Emails go out immediately (`MeetingController.php:248-255`).
 - **Problem:** Text typed but not saved is silently excluded from the published minutes.

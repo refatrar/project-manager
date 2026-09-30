@@ -1,4 +1,5 @@
 import { useHttp, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -36,18 +37,54 @@ export default function MinutesEditor({ meeting, canEdit, onChanged }: Props) {
     );
     const publishForm = useHttp<Record<string, never>, SavedResponse>({});
 
-    const submit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    // The text as last saved on the server. Publishing sends nothing, so
+    // unsaved edits must be saved first or they would be left out of the
+    // minutes that attendees are emailed.
+    const [saved, setSaved] = useState<MinutesFormData>({
+        minutes: meeting.minutes ?? '',
+        decisions: meeting.decisions ?? '',
+    });
+    const isDirty =
+        form.data.minutes !== saved.minutes ||
+        form.data.decisions !== saved.decisions;
+
+    const save = (onSaved?: () => void) => {
+        const failed = () => {
+            toast.error(
+                onSaved
+                    ? 'The minutes could not be saved, so they were not published.'
+                    : 'The minutes could not be saved.',
+            );
+        };
 
         void form.submit({
             onSuccess: (response) => {
+                setSaved({
+                    minutes: response.meeting.minutes ?? '',
+                    decisions: response.meeting.decisions ?? '',
+                });
+
+                if (onSaved) {
+                    onSaved();
+
+                    return;
+                }
+
                 toast.success(response.message);
                 onChanged();
             },
+            onError: failed,
+            onHttpException: failed,
+            onNetworkError: failed,
         });
     };
 
-    const publishMinutes = () => {
+    const submit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        save();
+    };
+
+    const sendPublish = () => {
         if (!teamSlug) {
             return;
         }
@@ -59,6 +96,18 @@ export default function MinutesEditor({ meeting, canEdit, onChanged }: Props) {
             },
         });
     };
+
+    const publishMinutes = () => {
+        if (isDirty) {
+            save(sendPublish);
+
+            return;
+        }
+
+        sendPublish();
+    };
+
+    const busy = form.processing || publishForm.processing;
 
     const publishedBadge = meeting.minutes_published_at ? (
         <Badge variant="outline" data-test="minutes-published-badge">
@@ -129,11 +178,11 @@ export default function MinutesEditor({ meeting, canEdit, onChanged }: Props) {
                 />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
                 <Button
                     type="submit"
                     variant="outline"
-                    disabled={form.processing || !teamSlug}
+                    disabled={busy || !teamSlug}
                     data-test="minutes-save"
                 >
                     Save minutes
@@ -142,13 +191,21 @@ export default function MinutesEditor({ meeting, canEdit, onChanged }: Props) {
                 {!meeting.minutes_published_at ? (
                     <Button
                         type="button"
-                        disabled={publishForm.processing || !teamSlug}
+                        disabled={busy || !teamSlug}
                         onClick={publishMinutes}
                         data-test="minutes-publish"
                     >
-                        Publish minutes
+                        {isDirty ? 'Save & publish minutes' : 'Publish minutes'}
                     </Button>
                 ) : null}
+
+                <p
+                    className="text-muted-foreground text-sm"
+                    aria-live="polite"
+                    data-test="minutes-dirty-hint"
+                >
+                    {isDirty ? 'Unsaved changes' : ''}
+                </p>
             </div>
         </form>
     );
