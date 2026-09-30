@@ -147,6 +147,11 @@ function CreateRoleForm({ permissions }: { permissions: PermissionOption[] }) {
                             form.setData('description', event.target.value)
                         }
                     />
+                    {form.errors.description ? (
+                        <p className="text-destructive text-sm">
+                            {form.errors.description}
+                        </p>
+                    ) : null}
                 </div>
             </div>
             <PermissionChecklist
@@ -273,6 +278,11 @@ function RoleCard({
                                         )
                                     }
                                 />
+                                {form.errors.description ? (
+                                    <p className="text-destructive text-sm">
+                                        {form.errors.description}
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
                         <PermissionChecklist

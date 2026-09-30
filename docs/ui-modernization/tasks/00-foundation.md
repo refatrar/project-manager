@@ -358,7 +358,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: close UI-FIX-010 task page actions already match policy`
 
-## [ ] UI-FIX-011 — Render validation errors that are currently dropped
+## [x] UI-FIX-011 — Render validation errors that are currently dropped
 - **Objective:** Every server validation error is visible.
 - **Current State:** Time-log form never shows `project_id` or `description` errors (`time-log-form.tsx:102,159`). Availability search shows no errors (`pages/availability/index.tsx`, controller `:40`). Time-off `decision_note` errors aren't shown. Team-role description errors aren't shown.
 - **Problem:** A save fails with no explanation.

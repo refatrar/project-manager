@@ -2,6 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,8 @@ type Props = {
 };
 
 export default function AvailabilityIndex({ filters, results }: Props) {
-    const teamSlug = usePage().props.currentTeam?.slug;
+    const { currentTeam, errors } = usePage().props;
+    const teamSlug = currentTeam?.slug;
     const [from, setFrom] = useState(filters.from ?? '');
     const [to, setTo] = useState(filters.to ?? '');
     const [hoursPerDay, setHoursPerDay] = useState(filters.hours_per_day ?? '');
@@ -73,6 +75,7 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                                     data-test="availability-from"
                                     required
                                 />
+                                <InputError message={errors.from} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="availability-to">To</Label>
@@ -86,6 +89,7 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                                     data-test="availability-to"
                                     required
                                 />
+                                <InputError message={errors.to} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="availability-hours">
@@ -105,6 +109,7 @@ export default function AvailabilityIndex({ filters, results }: Props) {
                                     data-test="availability-hours"
                                     required
                                 />
+                                <InputError message={errors.hours_per_day} />
                             </div>
                             <Button
                                 type="submit"

@@ -1,6 +1,7 @@
 import { useHttp, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -82,6 +83,7 @@ export default function DecideTimeOffRequestModal({
                         onChange={(event) => setNote(event.target.value)}
                         data-test="decision-note"
                     />
+                    <InputError message={form.errors.decision_note} />
                 </div>
 
                 <DialogFooter className="gap-2">

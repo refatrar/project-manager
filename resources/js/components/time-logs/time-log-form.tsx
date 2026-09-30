@@ -100,6 +100,7 @@ export default function TimeLogForm({ log = null, projects, activityTypeOptions,
                             ))}
                         </SelectContent>
                     </Select>
+                    <InputError message={form.errors.project_id} />
                 </div>
 
                 <div className="grid gap-2">
@@ -157,6 +158,7 @@ export default function TimeLogForm({ log = null, projects, activityTypeOptions,
                     onChange={(event) => form.setData('description', event.target.value)}
                     data-test="time-log-description"
                 />
+                <InputError message={form.errors.description} />
             </div>
 
             <div className="flex items-center gap-2">
