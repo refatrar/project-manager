@@ -327,7 +327,12 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-009 natural tab order on login`
 
-## [ ] UI-FIX-010 — Task page gates subtask and checklist actions like the server
+## [x] UI-FIX-010 — Task page gates subtask and checklist actions like the server — CLOSED: NOT A BUG
+- **Resolution (2026-09-30):** The UI already matches the server. Every listed action is allowed for anyone who can open the task page (`TaskPolicy::view`):
+  - **Add subtask:** `TaskPolicy::create`, which equals `viewAny`. It is deliberately broader than `update`/`canManageTask`.
+  - **Checklist add, edit, toggle, delete:** `TodoListPolicy::update` → `view` → for a task checklist, `TaskPolicy::view` on the task.
+  - **Checklist promote:** `TaskPolicy::create` on the project.
+  Gating on `canManageTask` would have hidden working features from ordinary members. Closed with explanatory code comments in `pages/projects/tasks/show.tsx` and `components/projects/task-checklist.tsx`. The original analysis is kept below for the record.
 - **Objective:** Hide actions the user can't perform.
 - **Current State:** "Add subtask" (`pages/projects/tasks/show.tsx:226`) and checklist edit/delete/promote (`task-checklist.tsx:120-156`) are ungated, while Edit is gated by `canManageTask` (`:102`).
 - **Problem:** Users can open forms that then fail with 403. Server enforcement requires verification per endpoint.
@@ -351,7 +356,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Risks:** If the server allows actions today that the UI would hide, stop and report instead of hiding.
 - **Rollback Plan:** Revert.
 - **Approval Required:** Yes.
-- **Commit Requirement:** `ui: implement UI-FIX-010 gate task page actions`
+- **Commit Requirement:** `ui: close UI-FIX-010 task page actions already match policy`
 
 ## [ ] UI-FIX-011 — Render validation errors that are currently dropped
 - **Objective:** Every server validation error is visible.

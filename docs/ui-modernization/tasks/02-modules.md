@@ -681,17 +681,17 @@ A task that must break one of these stops and asks.
   - Checkboxes have no labels.
   - Delete happens in one click.
   - An icon button at `task-checklist.tsx:128` has no name.
-  - Actions are ungated (`:120-156`); see FIX-010.
+  - Actions are ungated (`:120-156`), which is correct: FIX-010 found they match `TodoListPolicy`/`TaskPolicy`.
 - **Problem:** Accidental deletes, and the control is inaccessible.
 - **Proposed Change:**
   - Checkboxes labelled by the item title.
   - `ConfirmDialog` on delete.
   - Named buttons.
-  - Gating applied as in FIX-010.
+  - Keep the actions ungated; they follow the server policy (FIX-010, closed as not a bug).
 - **UX Reason:** Safety.
 - **Files/Components Affected:** `task-checklist.tsx`.
 - **Routes Affected:** None · **APIs Affected:** None · **Database Impact:** None.
-- **Dependencies:** CMP-009, FIX-010.
+- **Dependencies:** CMP-009.
 - **Feasibility:** Tech L · FE L · BE none · Arch ✓ · Perf none · A11y + · Regr L · Mobile L · Scope S.
 - **Implementation Steps:**
   1. Add the labels.
@@ -850,7 +850,7 @@ A task that must break one of these stops and asks.
 - **Proposed Change:**
   - Label every control.
   - Use `ConfirmDialog` for agenda item, attendee and action item deletes.
-  - Gate action items the way the server does. Check the policy first, as in FIX-010.
+  - Gate action items the way the server does. Check the policy first: FIX-010 showed an ungated action can already be correct.
   - Use `RowActions`.
 - **UX Reason:** Safety.
 - **Files/Components Affected:** `agenda-list.tsx`, `attendee-list.tsx`, `meeting-action-items.tsx`.

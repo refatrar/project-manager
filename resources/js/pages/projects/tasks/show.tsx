@@ -229,6 +229,8 @@ export default function TaskShow({
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Subtasks</CardTitle>
+                            {/* Not gated by canManageTask: TaskPolicy::create is broader
+                                than update — any member who can view this task may add one. */}
                             <Button
                                 variant="outline"
                                 size="sm"

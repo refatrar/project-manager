@@ -28,6 +28,10 @@ export default function TaskChecklist({
     taskTypes,
     onChanged,
 }: Props) {
+    // Actions here are intentionally ungated: the item endpoints authorize
+    // TodoListPolicy::update, which for a task checklist is "can view the
+    // task" — everyone who can open this page (promote needs
+    // TaskPolicy::create, which is the same set of users).
     const teamSlug = usePage().props.currentTeam?.slug;
     const [editingItem, setEditingItem] = useState<TodoItem | null>(null);
     const itemForm = useHttp<{ is_completed: boolean }, ToggledResponse>({
