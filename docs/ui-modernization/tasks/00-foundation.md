@@ -383,7 +383,7 @@ Status key: `[ ]` not started · `[~]` in progress · `[x]` done (committed). Al
 - **Approval Required:** Yes.
 - **Commit Requirement:** `ui: implement UI-FIX-011 show missing validation errors`
 
-## [ ] UI-FIX-012 — Remove the placeholder "Meeting actions" card from My Day
+## [x] UI-FIX-012 — Remove the placeholder "Meeting actions" card from My Day
 - **Objective:** Stop telling users they have no meeting actions when they may.
 - **Current State:** Hardcoded text at `pages/my-day/index.tsx:106-115`; the controller comment is stale (`MyDayController.php:27-28`).
 - **Problem:** The page shows false information.

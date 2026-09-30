@@ -107,17 +107,6 @@ export default function MyDayIndex({
                         No personal lists yet.
                     </p>
                 )}
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Meeting actions</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground text-sm">
-                            No meeting action items assigned to you yet.
-                        </p>
-                    </CardContent>
-                </Card>
             </div>
 
             <TodoListFormModal

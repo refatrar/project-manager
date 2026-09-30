@@ -24,8 +24,8 @@ class MyDayController extends Controller
      * Display the user's day: their own to-do lists, plus every open
      * task-checklist item assigned to them across every project (FR-5's
      * "My day" combined view). Meeting action items belong here too
-     * (RD.md FR-6.5) but are genuinely blocked — Phase 4 (Meetings) has
-     * no controller yet, so there is nothing to query.
+     * (RD.md FR-6.5) but are not queried yet; that is planned as UI-BE-005
+     * in docs/ui-modernization, and the page shows no placeholder for them.
      */
     public function index(Request $request, Team $current_team, GenerateDailyTodoList $generateDailyTodoList): Response
     {
