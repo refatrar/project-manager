@@ -1,7 +1,8 @@
-import { Head, Link, router, useHttp } from '@inertiajs/react';
+import { Head, router, useHttp } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Pagination } from '@/components/patterns/pagination';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -469,43 +470,7 @@ export default function AdminUsersIndex({ users, teams, roles }: Props) {
                     ) : null}
                 </div>
 
-                {users.last_page > 1 ? (
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        {users.links.map((link, linkIndex) =>
-                            link.url ? (
-                                <Button
-                                    key={`${link.label}-${linkIndex}`}
-                                    variant={
-                                        link.active ? 'default' : 'outline'
-                                    }
-                                    size="sm"
-                                    asChild
-                                >
-                                    <Link href={link.url} preserveState>
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button
-                                    key={`${link.label}-${linkIndex}`}
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                >
-                                    <span
-                                        dangerouslySetInnerHTML={{
-                                            __html: link.label,
-                                        }}
-                                    />
-                                </Button>
-                            ),
-                        )}
-                    </div>
-                ) : null}
+                <Pagination paginator={users} />
             </div>
         </>
     );

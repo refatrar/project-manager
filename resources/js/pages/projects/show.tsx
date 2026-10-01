@@ -1,7 +1,23 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { Pencil, Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import Heading from '@/components/heading';
+import {
+    Archive,
+    Ban,
+    CalendarRange,
+    CircleCheck,
+    CircleDot,
+    Pencil,
+    TimerOff,
+    Trash2,
+} from 'lucide-react';
+import type { KeyboardEvent, ReactNode } from 'react';
+import { useRef, useState } from 'react';
+import { PageHeader } from '@/components/patterns/page-header';
+import { ProgressBar } from '@/components/patterns/progress-bar';
+import { StatCard } from '@/components/patterns/stat-card';
+import {
+    PriorityIndicator,
+    StatusBadge,
+} from '@/components/patterns/status-badge';
 import ActivityFeed from '@/components/projects/activity-feed';
 import AllocationList from '@/components/projects/allocation-list';
 import BurndownChart from '@/components/projects/burndown-chart';
@@ -18,7 +34,14 @@ import TaskListView from '@/components/projects/task-list-view';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { optionLabel } from '@/lib/enum';
+import { formatDate } from '@/lib/format';
+import { statusMeta } from '@/lib/status';
 import { cn } from '@/lib/utils';
 import { index } from '@/routes/projects';
 import type {
@@ -148,199 +171,350 @@ export default function ProjectShow({
     const [editOpen, setEditOpen] = useState(false);
     const [archiveOpen, setArchiveOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+    const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
+
+    const tabCounts: Partial<Record<Tab, number>> = {
+        board: tasks?.length,
+        list: tasks?.length,
+        modules: modules?.length,
+        members: members?.length,
+        milestones: milestones?.length,
+        sprints: sprints?.length,
+        allocations: resourceAllocations?.length,
+    };
+
+    // WAI-ARIA tabs: arrow keys move between tabs, Home/End jump to the ends.
+    const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+        const current = TABS.indexOf(tab);
+        const next =
+            event.key === 'ArrowRight'
+                ? (current + 1) % TABS.length
+                : event.key === 'ArrowLeft'
+                  ? (current - 1 + TABS.length) % TABS.length
+                  : event.key === 'Home'
+                    ? 0
+                    : event.key === 'End'
+                      ? TABS.length - 1
+                      : null;
+
+        if (next === null) {
+            return;
+        }
+
+        event.preventDefault();
+        setTab(TABS[next]);
+        tabRefs.current[TABS[next]]?.focus();
+    };
+
+    const description = isProjectDetail(project) ? project.description : null;
 
     return (
         <>
             <Head title={project.name} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading
-                        title={`${project.code} · ${project.name}`}
-                        description={project.description ?? undefined}
-                    />
-
-                    {canManageProject ? (
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setEditOpen(true)}
-                                data-test="project-edit-button"
-                            >
-                                <Pencil className="h-4 w-4" /> Edit
-                            </Button>
-                            {!project.archived_at ? (
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-5 p-4 md:p-6 2xl:p-8">
+                <PageHeader
+                    eyebrow={
+                        <span className="font-mono text-xs tracking-wide">
+                            {project.code}
+                        </span>
+                    }
+                    title={project.name}
+                    meta={
+                        <>
+                            <StatusBadge
+                                kind="project"
+                                value={project.status}
+                                label={optionLabel(
+                                    statusOptions,
+                                    project.status,
+                                )}
+                            />
+                            <StatusBadge
+                                kind="health"
+                                value={project.health}
+                                label={optionLabel(
+                                    healthOptions,
+                                    project.health,
+                                )}
+                            />
+                            <PriorityIndicator
+                                value={project.priority}
+                                label={`${optionLabel(priorityOptions, project.priority)} priority`}
+                                className="ml-1"
+                            />
+                            {project.archived_at ? (
+                                <Badge variant="neutral">
+                                    <Archive aria-hidden="true" />
+                                    Archived
+                                </Badge>
+                            ) : null}
+                        </>
+                    }
+                    actions={
+                        canManageProject ? (
+                            <>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setArchiveOpen(true)}
-                                    data-test="project-archive-button"
+                                    onClick={() => setEditOpen(true)}
+                                    data-test="project-edit-button"
                                 >
-                                    Archive
+                                    <Pencil /> Edit
                                 </Button>
-                            ) : null}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeleteOpen(true)}
-                                data-test="project-delete-button"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ) : null}
-                </div>
+                                {!project.archived_at ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setArchiveOpen(true)}
+                                        data-test="project-archive-button"
+                                    >
+                                        <Archive /> Archive
+                                    </Button>
+                                ) : null}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon-sm"
+                                            className="hover:text-destructive"
+                                            onClick={() => setDeleteOpen(true)}
+                                            data-test="project-delete-button"
+                                            aria-label="Delete project"
+                                        >
+                                            <Trash2 />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        Delete project
+                                    </TooltipContent>
+                                </Tooltip>
+                            </>
+                        ) : null
+                    }
+                />
 
-                <nav
-                    className="flex gap-1 border-b"
-                    role="tablist"
-                    aria-label="Project sections"
-                >
-                    {TABS.map((value) => (
-                        <button
-                            key={value}
-                            type="button"
-                            role="tab"
-                            aria-selected={tab === value}
-                            data-test={`project-tab-${value}`}
-                            onClick={() => setTab(value)}
+                {description ? (
+                    <div className="-mt-1 max-w-4xl">
+                        <p
+                            id="project-description"
                             className={cn(
-                                'border-b-2 px-3 py-2 text-sm font-medium transition-colors',
-                                tab === value
-                                    ? 'border-primary text-foreground'
-                                    : 'text-muted-foreground hover:text-foreground border-transparent',
+                                'text-muted-foreground text-sm leading-6 [overflow-wrap:anywhere] whitespace-pre-line',
+                                !descriptionExpanded && 'line-clamp-2',
                             )}
                         >
-                            {tabLabels[value]}
-                        </button>
-                    ))}
-                </nav>
+                            {description}
+                        </p>
+                        {description.length > 180 ? (
+                            <button
+                                type="button"
+                                className="text-primary focus-visible:ring-ring mt-1 rounded-sm text-[0.8125rem] font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                                aria-expanded={descriptionExpanded}
+                                aria-controls="project-description"
+                                onClick={() =>
+                                    setDescriptionExpanded(
+                                        (expanded) => !expanded,
+                                    )
+                                }
+                            >
+                                {descriptionExpanded
+                                    ? 'Show less'
+                                    : 'Show more'}
+                            </button>
+                        ) : null}
+                    </div>
+                ) : null}
 
-                {tab === 'overview' ? (
-                    <OverviewTab
-                        project={project}
-                        progress={progress}
-                        burndown={burndown}
-                        cycleTime={cycleTime}
-                        statusOptions={statusOptions}
-                        healthOptions={healthOptions}
-                        priorityOptions={priorityOptions}
-                    />
-                ) : null}
-                {tab === 'board' ? (
-                    <KanbanBoard
-                        projectId={project.id}
-                        tasks={tasks}
-                        taskTypes={taskTypes}
-                        modules={modules}
-                        members={members}
-                        milestones={milestones}
-                        sprints={sprints}
-                        labels={labels}
-                        statusOptions={taskStatusOptions}
-                        priorityOptions={priorityOptions}
-                        assignmentRoleOptions={taskAssignmentRoleOptions}
-                        canManage={canManageProject}
-                        onChanged={() =>
-                            router.reload({
-                                only: ['tasks', 'activities', 'cycleTime'],
-                            })
-                        }
-                    />
-                ) : null}
-                {tab === 'list' ? (
-                    <TaskListView
-                        projectId={project.id}
-                        tasks={tasks}
-                        members={members}
-                        milestones={milestones}
-                        sprints={sprints}
-                        labels={labels}
-                        statusOptions={taskStatusOptions}
-                        priorityOptions={priorityOptions}
-                    />
-                ) : null}
-                {tab === 'modules' ? (
-                    <ModuleTree
-                        projectId={project.id}
-                        modules={modules}
-                        statusOptions={moduleStatusOptions}
-                        priorityOptions={priorityOptions}
-                        canManage={canManageProject}
-                        onChanged={() =>
-                            router.reload({ only: ['modules', 'activities'] })
-                        }
-                    />
-                ) : null}
-                {tab === 'members' ? (
-                    <MemberList
-                        projectId={project.id}
-                        members={members}
-                        capacity={memberCapacity}
-                        availableUsers={availableUsers}
-                        roleOptions={memberRoleOptions}
-                        canManage={canManageProject}
-                        onChanged={() =>
-                            router.reload({
-                                only: [
-                                    'members',
-                                    'memberCapacity',
-                                    'availableUsers',
-                                    'activities',
-                                ],
-                            })
-                        }
-                    />
-                ) : null}
-                {tab === 'milestones' ? (
-                    <MilestoneList
-                        projectId={project.id}
-                        milestones={milestones}
-                        statusOptions={milestoneStatusOptions}
-                        canManage={canManageProject}
-                        onChanged={() =>
-                            router.reload({
-                                only: ['milestones', 'activities'],
-                            })
-                        }
-                    />
-                ) : null}
-                {tab === 'sprints' ? (
-                    <SprintList
-                        projectId={project.id}
-                        sprints={sprints}
-                        statusOptions={sprintStatusOptions}
-                        canManage={canManageProject}
-                        onChanged={() =>
-                            router.reload({ only: ['sprints', 'activities'] })
-                        }
-                    />
-                ) : null}
-                {tab === 'allocations' ? (
-                    <div className="space-y-6">
-                        <EstimatedVsActual rows={estimatedVsActual} />
-                        <AllocationList
+                <div className="relative -mx-4 border-b md:mx-0">
+                    <div
+                        className="flex [scrollbar-width:none] gap-1 overflow-x-auto px-4 md:px-0 [&::-webkit-scrollbar]:hidden"
+                        role="tablist"
+                        aria-label="Project sections"
+                    >
+                        {TABS.map((value) => {
+                            const selected = tab === value;
+                            const count = tabCounts[value];
+
+                            return (
+                                <button
+                                    key={value}
+                                    ref={(element) => {
+                                        tabRefs.current[value] = element;
+                                    }}
+                                    type="button"
+                                    role="tab"
+                                    id={`project-tab-${value}`}
+                                    aria-selected={selected}
+                                    aria-controls="project-tabpanel"
+                                    tabIndex={selected ? 0 : -1}
+                                    data-test={`project-tab-${value}`}
+                                    onClick={() => setTab(value)}
+                                    onKeyDown={onTabKeyDown}
+                                    className={cn(
+                                        'focus-visible:ring-ring relative -mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors focus-visible:rounded-t-md focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+                                        selected
+                                            ? 'border-primary text-foreground'
+                                            : 'text-muted-foreground hover:text-foreground hover:border-border border-transparent',
+                                    )}
+                                >
+                                    {tabLabels[value]}
+                                    {count !== undefined ? (
+                                        <span
+                                            className={cn(
+                                                'rounded-full px-1.5 text-[0.6875rem] leading-4 font-semibold tabular-nums',
+                                                selected
+                                                    ? 'bg-primary/10 text-primary'
+                                                    : 'bg-muted text-muted-foreground',
+                                            )}
+                                        >
+                                            {count}
+                                        </span>
+                                    ) : null}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div
+                    id="project-tabpanel"
+                    role="tabpanel"
+                    aria-labelledby={`project-tab-${tab}`}
+                    className="min-w-0 focus-visible:outline-none"
+                >
+                    {tab === 'overview' ? (
+                        <OverviewTab
+                            project={project}
+                            progress={progress}
+                            burndown={burndown}
+                            cycleTime={cycleTime}
+                            statusOptions={statusOptions}
+                            healthOptions={healthOptions}
+                            priorityOptions={priorityOptions}
+                        />
+                    ) : null}
+                    {tab === 'board' ? (
+                        <KanbanBoard
                             projectId={project.id}
-                            allocations={resourceAllocations}
+                            tasks={tasks}
+                            taskTypes={taskTypes}
+                            modules={modules}
                             members={members}
-                            statusOptions={allocationStatusOptions}
+                            milestones={milestones}
+                            sprints={sprints}
+                            labels={labels}
+                            statusOptions={taskStatusOptions}
+                            priorityOptions={priorityOptions}
+                            assignmentRoleOptions={taskAssignmentRoleOptions}
+                            canManage={canManageProject}
+                            onChanged={() =>
+                                router.reload({
+                                    only: ['tasks', 'activities', 'cycleTime'],
+                                })
+                            }
+                        />
+                    ) : null}
+                    {tab === 'list' ? (
+                        <TaskListView
+                            projectId={project.id}
+                            tasks={tasks}
+                            members={members}
+                            milestones={milestones}
+                            sprints={sprints}
+                            labels={labels}
+                            statusOptions={taskStatusOptions}
+                            priorityOptions={priorityOptions}
+                        />
+                    ) : null}
+                    {tab === 'modules' ? (
+                        <ModuleTree
+                            projectId={project.id}
+                            modules={modules}
+                            statusOptions={moduleStatusOptions}
+                            priorityOptions={priorityOptions}
+                            canManage={canManageProject}
+                            onChanged={() =>
+                                router.reload({
+                                    only: ['modules', 'activities'],
+                                })
+                            }
+                        />
+                    ) : null}
+                    {tab === 'members' ? (
+                        <MemberList
+                            projectId={project.id}
+                            members={members}
+                            capacity={memberCapacity}
+                            availableUsers={availableUsers}
+                            roleOptions={memberRoleOptions}
                             canManage={canManageProject}
                             onChanged={() =>
                                 router.reload({
                                     only: [
-                                        'resourceAllocations',
-                                        'estimatedVsActual',
+                                        'members',
+                                        'memberCapacity',
+                                        'availableUsers',
                                         'activities',
                                     ],
                                 })
                             }
                         />
-                    </div>
-                ) : null}
-                {tab === 'activity' ? (
-                    <ActivityFeed activities={activities} members={members} />
-                ) : null}
+                    ) : null}
+                    {tab === 'milestones' ? (
+                        <MilestoneList
+                            projectId={project.id}
+                            milestones={milestones}
+                            statusOptions={milestoneStatusOptions}
+                            canManage={canManageProject}
+                            onChanged={() =>
+                                router.reload({
+                                    only: ['milestones', 'activities'],
+                                })
+                            }
+                        />
+                    ) : null}
+                    {tab === 'sprints' ? (
+                        <SprintList
+                            projectId={project.id}
+                            sprints={sprints}
+                            statusOptions={sprintStatusOptions}
+                            canManage={canManageProject}
+                            onChanged={() =>
+                                router.reload({
+                                    only: ['sprints', 'activities'],
+                                })
+                            }
+                        />
+                    ) : null}
+                    {tab === 'allocations' ? (
+                        <div className="space-y-6">
+                            <EstimatedVsActual rows={estimatedVsActual} />
+                            <AllocationList
+                                projectId={project.id}
+                                allocations={resourceAllocations}
+                                members={members}
+                                statusOptions={allocationStatusOptions}
+                                canManage={canManageProject}
+                                onChanged={() =>
+                                    router.reload({
+                                        only: [
+                                            'resourceAllocations',
+                                            'estimatedVsActual',
+                                            'activities',
+                                        ],
+                                    })
+                                }
+                            />
+                        </div>
+                    ) : null}
+                    {tab === 'activity' ? (
+                        <ActivityFeed
+                            activities={activities}
+                            members={members}
+                        />
+                    ) : null}
+                </div>
             </div>
 
             {canManageProject && isProjectDetail(project) ? (
@@ -398,147 +572,177 @@ function OverviewTab({
     healthOptions: ProjectHealthOption[];
     priorityOptions: PriorityOption[];
 }) {
-    const healthVariant: Record<
-        string,
-        'default' | 'secondary' | 'destructive'
-    > = {
-        on_track: 'default',
-        at_risk: 'secondary',
-        off_track: 'destructive',
-    };
+    const healthTone = statusMeta('health', project.health).tone;
 
     return (
-        <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Status</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <Badge>
-                            {optionLabel(statusOptions, project.status)}
-                        </Badge>
-                        <p className="text-muted-foreground text-sm">
-                            {progress.progressPercentage}% complete ·{' '}
-                            {progress.completedTasks}/{progress.totalTasks}{' '}
-                            tasks
+        <div className="space-y-5">
+            <div className="grid grid-cols-3 gap-3 lg:grid-cols-4">
+                <div className="bg-card col-span-3 flex flex-col gap-1 rounded-lg border p-4 lg:col-span-1">
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="text-muted-foreground text-[0.8125rem] font-medium">
+                            Progress
                         </p>
-                    </CardContent>
-                </Card>
+                        <CircleCheck
+                            className="text-muted-foreground size-4"
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <p className="text-2xl leading-8 font-semibold tracking-tight tabular-nums">
+                        {progress.progressPercentage}%
+                    </p>
+                    <ProgressBar
+                        value={progress.progressPercentage}
+                        label="Project progress"
+                        tone={healthTone === 'neutral' ? 'primary' : healthTone}
+                        className="my-1"
+                    />
+                    <p className="text-subtle-foreground text-xs tabular-nums">
+                        {progress.completedTasks} of {progress.totalTasks} tasks
+                        complete
+                    </p>
+                </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Health</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <Badge
-                            variant={healthVariant[project.health] ?? 'default'}
-                        >
-                            {optionLabel(healthOptions, project.health)}
-                        </Badge>
-                        <p className="text-muted-foreground text-sm">
-                            {optionLabel(priorityOptions, project.priority)}{' '}
-                            priority
-                        </p>
-                    </CardContent>
-                </Card>
+                <StatCard
+                    label="In progress"
+                    value={progress.inProgressTasks}
+                    hint="Tasks being worked on"
+                    icon={CircleDot}
+                />
+                <StatCard
+                    label="Overdue"
+                    value={progress.overdueTasks}
+                    hint="Past due, still open"
+                    icon={TimerOff}
+                    tone={progress.overdueTasks > 0 ? 'destructive' : 'neutral'}
+                    data-test="overview-overdue"
+                />
+                <StatCard
+                    label="Blocked"
+                    value={progress.blockedTasks}
+                    hint="Waiting on something"
+                    icon={Ban}
+                    tone={progress.blockedTasks > 0 ? 'destructive' : 'neutral'}
+                    data-test="overview-blocked"
+                />
+            </div>
 
-                <Card data-test="overview-overdue">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+                <div className="min-w-0 space-y-5">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Burndown</CardTitle>
+                            <p className="text-muted-foreground text-[0.8125rem]">
+                                Open tasks over the last 30 days
+                            </p>
+                        </CardHeader>
+                        <CardContent>
+                            <BurndownChart points={burndown} />
+                        </CardContent>
+                    </Card>
+
+                    <CycleTimeCard cycleTime={cycleTime} />
+                </div>
+
+                <Card className="self-start">
                     <CardHeader>
-                        <CardTitle>Overdue</CardTitle>
+                        <CardTitle>Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p
-                            className={cn(
-                                'text-2xl font-semibold',
-                                progress.overdueTasks > 0 && 'text-destructive',
-                            )}
-                        >
-                            {progress.overdueTasks}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                            past due, still open
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card data-test="overview-blocked">
-                    <CardHeader>
-                        <CardTitle>Blocked</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p
-                            className={cn(
-                                'text-2xl font-semibold',
-                                progress.blockedTasks > 0 && 'text-destructive',
-                            )}
-                        >
-                            {progress.blockedTasks}
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                            {progress.inProgressTasks} in progress
-                        </p>
+                        <dl className="divide-y text-sm">
+                            <DetailRow label="Status">
+                                <StatusBadge
+                                    kind="project"
+                                    value={project.status}
+                                    label={optionLabel(
+                                        statusOptions,
+                                        project.status,
+                                    )}
+                                />
+                            </DetailRow>
+                            <DetailRow label="Health">
+                                <StatusBadge
+                                    kind="health"
+                                    value={project.health}
+                                    label={optionLabel(
+                                        healthOptions,
+                                        project.health,
+                                    )}
+                                />
+                            </DetailRow>
+                            <DetailRow label="Priority">
+                                <PriorityIndicator
+                                    value={project.priority}
+                                    label={optionLabel(
+                                        priorityOptions,
+                                        project.priority,
+                                    )}
+                                    showLabel
+                                    className="text-foreground"
+                                />
+                            </DetailRow>
+                            {project.owner !== undefined ? (
+                                <DetailRow label="Owner">
+                                    {project.owner ? (
+                                        project.owner.name
+                                    ) : (
+                                        <span className="text-muted-foreground">
+                                            Unassigned
+                                        </span>
+                                    )}
+                                </DetailRow>
+                            ) : null}
+                            {project.project_lead !== undefined ? (
+                                <DetailRow label="Project lead">
+                                    {project.project_lead ? (
+                                        project.project_lead.name
+                                    ) : (
+                                        <span className="text-muted-foreground">
+                                            None
+                                        </span>
+                                    )}
+                                </DetailRow>
+                            ) : null}
+                            {project.client_name !== undefined ? (
+                                <DetailRow label="Client">
+                                    {project.client_name ?? (
+                                        <span className="text-muted-foreground">
+                                            Internal project
+                                        </span>
+                                    )}
+                                </DetailRow>
+                            ) : null}
+                            <DetailRow label="Timeline">
+                                <span className="inline-flex items-center gap-1.5 tabular-nums">
+                                    <CalendarRange
+                                        className="text-muted-foreground size-3.5"
+                                        aria-hidden="true"
+                                    />
+                                    {project.start_date || project.end_date
+                                        ? `${formatDate(project.start_date)} – ${formatDate(project.end_date)}`
+                                        : 'Not set'}
+                                </span>
+                            </DetailRow>
+                        </dl>
                     </CardContent>
                 </Card>
             </div>
+        </div>
+    );
+}
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Burndown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <BurndownChart points={burndown} />
-                </CardContent>
-            </Card>
-
-            <CycleTimeCard cycleTime={cycleTime} />
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {project.owner !== undefined ? (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Owner</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-sm">
-                            {project.owner ? project.owner.name : 'Unassigned'}
-                        </CardContent>
-                    </Card>
-                ) : null}
-
-                {project.project_lead !== undefined ? (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Project Lead</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-sm">
-                            {project.project_lead
-                                ? project.project_lead.name
-                                : 'None'}
-                        </CardContent>
-                    </Card>
-                ) : null}
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Timeline</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-1 text-sm">
-                        <p>Start: {project.start_date ?? '—'}</p>
-                        <p>End: {project.end_date ?? '—'}</p>
-                    </CardContent>
-                </Card>
-
-                {project.client_name !== undefined ? (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Client</CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-sm">
-                            {project.client_name ?? 'Internal project'}
-                        </CardContent>
-                    </Card>
-                ) : null}
-            </div>
+function DetailRow({
+    label,
+    children,
+}: {
+    label: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className="flex min-h-11 items-center justify-between gap-4 py-2 first:pt-0 last:pb-0">
+            <dt className="text-muted-foreground shrink-0">{label}</dt>
+            <dd className="min-w-0 truncate text-right font-medium">
+                {children}
+            </dd>
         </div>
     );
 }
@@ -577,7 +781,7 @@ function CycleTimeCard({ cycleTime }: { cycleTime: CycleTimeReport }) {
                             Avg. lead time
                         </p>
                         <p
-                            className="text-2xl font-semibold"
+                            className="text-2xl font-semibold tracking-tight tabular-nums"
                             data-test="cycle-time-lead"
                         >
                             {formatDuration(cycleTime.avgLeadTimeMinutes)}
@@ -588,7 +792,7 @@ function CycleTimeCard({ cycleTime }: { cycleTime: CycleTimeReport }) {
                             Avg. cycle time
                         </p>
                         <p
-                            className="text-2xl font-semibold"
+                            className="text-2xl font-semibold tracking-tight tabular-nums"
                             data-test="cycle-time-cycle"
                         >
                             {formatDuration(cycleTime.avgCycleTimeMinutes)}
@@ -598,7 +802,7 @@ function CycleTimeCard({ cycleTime }: { cycleTime: CycleTimeReport }) {
                         <p className="text-muted-foreground text-sm">
                             Completed tasks
                         </p>
-                        <p className="text-2xl font-semibold">
+                        <p className="text-2xl font-semibold tracking-tight tabular-nums">
                             {cycleTime.completedTaskCount}
                         </p>
                     </div>
@@ -614,20 +818,20 @@ function CycleTimeCard({ cycleTime }: { cycleTime: CycleTimeReport }) {
                                 <li
                                     key={row.status}
                                     data-test="cycle-time-status-row"
-                                    className="grid grid-cols-[8rem_1fr_3.5rem] items-center gap-3 text-sm"
+                                    className="grid grid-cols-[minmax(0,8rem)_1fr_3.5rem] items-center gap-3 text-sm"
                                 >
                                     <span className="truncate">
                                         {row.label}
                                     </span>
                                     <span className="bg-muted h-2 overflow-hidden rounded-full">
                                         <span
-                                            className="bg-chart-1 block h-full rounded-full"
+                                            className="bg-primary block h-full rounded-full"
                                             style={{
                                                 width: `${(row.avgMinutes / maxAvgMinutes) * 100}%`,
                                             }}
                                         />
                                     </span>
-                                    <span className="text-muted-foreground text-right">
+                                    <span className="text-muted-foreground text-right tabular-nums">
                                         {formatDuration(row.avgMinutes)}
                                     </span>
                                 </li>

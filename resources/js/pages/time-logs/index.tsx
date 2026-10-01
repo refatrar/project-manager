@@ -23,8 +23,8 @@ export default function TimeLogsIndex({ logs, running, projects, activityTypeOpt
         <>
             <Head title="Time Logs" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="flex items-center justify-between gap-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <Heading
                         title="Time Logs"
                         description="Actual effort, separate from planned bookings. A running timer, or a manual entry for time already worked."

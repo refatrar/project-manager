@@ -9,13 +9,18 @@
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
+    --radius-xl: calc(var(--radius) + 4px);
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
+
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --default-transition-duration: 120ms;
 
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -27,6 +32,7 @@
     --color-popover-foreground: var(--popover-foreground);
 
     --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
     --color-primary-foreground: var(--primary-foreground);
 
     --color-secondary: var(--secondary);
@@ -34,12 +40,33 @@
 
     --color-muted: var(--muted);
     --color-muted-foreground: var(--muted-foreground);
+    --color-subtle-foreground: var(--subtle-foreground);
 
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-on-destructive: var(--on-destructive);
+    --color-destructive-subtle: var(--destructive-subtle);
+    --color-destructive-subtle-foreground: var(--destructive-subtle-foreground);
+
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-success-subtle: var(--success-subtle);
+    --color-success-subtle-foreground: var(--success-subtle-foreground);
+
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning-subtle: var(--warning-subtle);
+    --color-warning-subtle-foreground: var(--warning-subtle-foreground);
+
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-subtle: var(--info-subtle);
+    --color-info-subtle-foreground: var(--info-subtle-foreground);
+
+    --color-overlay: var(--overlay);
 
     --color-border: var(--border);
     --color-input: var(--input);
@@ -74,25 +101,49 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
+    /*
+     * Light theme tokens: docs/design-system/README.md §2.1 (UI-DS-002).
+     * Contrast for every pair is checked by docs/design-system/contrast-check.py.
+     * --destructive-foreground keeps the starter kit's meaning "destructive
+     * text on a normal surface"; fills use bg-destructive with text-white.
+     */
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: #0f766e;
+    --primary-hover: #115e59;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #0f172a;
+    --muted: #f1f5f9;
+    --muted-foreground: #475569;
+    --subtle-foreground: #5f6e86;
+    --accent: #f1f5f9;
+    --accent-foreground: #0f172a;
+    --destructive: #b91c1c;
+    --destructive-foreground: #b91c1c;
+    --on-destructive: #ffffff;
+    --destructive-subtle: #fef2f2;
+    --destructive-subtle-foreground: #991b1b;
+    --success: #15803d;
+    --success-foreground: #ffffff;
+    --success-subtle: #f0fdf4;
+    --success-subtle-foreground: #166534;
+    --warning: #b45309;
+    --warning-foreground: #ffffff;
+    --warning-subtle: #fffbeb;
+    --warning-subtle-foreground: #92400e;
+    --info: #1d4ed8;
+    --info-foreground: #ffffff;
+    --info-subtle: #eff6ff;
+    --info-subtle-foreground: #1e40af;
+    --border: #e2e8f0;
+    --input: #7c8798;
+    --ring: #0f766e;
+    --overlay: rgb(15 23 42 / 0.6);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
@@ -115,15 +166,20 @@
     --heatmap-6: #12534c;
     --heatmap-7: #0b3e39;
 
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+    --radius: 0.5rem;
+
+    --motion-fast: 120ms;
+    --motion-base: 180ms;
+    --motion-slow: 240ms;
+    /* One step darker than --background so the inset content panel stays distinct. */
+    --sidebar: #f1f5f9;
+    --sidebar-foreground: #0f172a;
+    --sidebar-primary: #0f766e;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e2e8f0;
+    --sidebar-accent-foreground: #0f172a;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #0f766e;
 
     /*
      * Fixed status scale (good/warning/critical) - reserved meaning, never
@@ -137,25 +193,44 @@
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
+    /* Dark theme tokens: docs/design-system/README.md §2.2. */
+    --background: #0a0f14;
+    --foreground: #f1f5f9;
+    --card: #0f172a;
+    --card-foreground: #f1f5f9;
+    --popover: #1e293b;
+    --popover-foreground: #f1f5f9;
+    --primary: #2dd4bf;
+    --primary-hover: #5eead4;
+    --primary-foreground: #042f2e;
+    --secondary: #1e293b;
+    --secondary-foreground: #f1f5f9;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --subtle-foreground: #8492a8;
+    --accent: #1e293b;
+    --accent-foreground: #f1f5f9;
+    --destructive: #f87171;
+    --destructive-foreground: #f87171;
+    --on-destructive: #450a0a;
+    --destructive-subtle: #322435;
+    --destructive-subtle-foreground: #f87171;
+    --success: #4ade80;
+    --success-foreground: #052e16;
+    --success-subtle: #183537;
+    --success-subtle-foreground: #4ade80;
+    --warning: #fbbf24;
+    --warning-foreground: #451a03;
+    --warning-subtle: #323029;
+    --warning-subtle-foreground: #fbbf24;
+    --info: #60a5fa;
+    --info-foreground: #172554;
+    --info-subtle: #1b2c49;
+    --info-subtle-foreground: #60a5fa;
+    --border: #1e293b;
+    --input: #6b7a90;
+    --ring: #2dd4bf;
+    --overlay: rgb(0 0 0 / 0.7);
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
     --chart-3: oklch(0.769 0.188 70.08);
@@ -171,14 +246,15 @@
     --heatmap-6: #3ec6b7;
     --heatmap-7: #47dfce;
 
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+    /* Darker than --background so the inset content panel stays distinct. */
+    --sidebar: #06090d;
+    --sidebar-foreground: #f1f5f9;
+    --sidebar-primary: #2dd4bf;
+    --sidebar-primary-foreground: #042f2e;
+    --sidebar-accent: #1e293b;
+    --sidebar-accent-foreground: #f1f5f9;
+    --sidebar-border: #1e293b;
+    --sidebar-ring: #2dd4bf;
 
     /* Same roles, re-stepped for the dark surface (see the light block). */
     --status-good: #4bcb71;
@@ -191,7 +267,57 @@
         @apply border-border;
     }
 
+    html {
+        -webkit-tap-highlight-color: transparent;
+        scrollbar-color: color-mix(in oklab, var(--muted-foreground) 35%, transparent)
+            transparent;
+    }
+
     body {
         @apply bg-background text-foreground;
+        text-rendering: optimizeLegibility;
+    }
+
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+    }
+
+    ::selection {
+        background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+    }
+
+    :focus-visible {
+        outline-color: var(--ring);
+    }
+
+    button:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='menuitem'],
+    [role='option'],
+    label[for],
+    summary {
+        cursor: pointer;
+    }
+
+    * {
+        scrollbar-width: thin;
+    }
+}
+
+/*
+ * Reduced motion (design system §21): transforms and long fades are removed;
+ * spinners keep turning because they are the only feedback while work runs.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *:not(.animate-spin),
+    *:not(.animate-spin)::before,
+    *:not(.animate-spin)::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

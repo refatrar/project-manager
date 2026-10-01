@@ -1,5 +1,6 @@
 import { Link, useHttp, usePage } from '@inertiajs/react';
 import {
+    CalendarDays,
     ChevronDown,
     ChevronUp,
     Pencil,
@@ -9,10 +10,12 @@ import {
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { LabelChip } from '@/components/patterns/label-chip';
+import { PriorityIndicator } from '@/components/patterns/status-badge';
+import { AvatarStack } from '@/components/patterns/user-avatar';
 import TaskAssignmentsModal from '@/components/projects/task-assignments-modal';
 import TaskDeleteModal from '@/components/projects/task-delete-modal';
 import TaskFormModal from '@/components/projects/task-form-modal';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Select,
@@ -36,6 +39,11 @@ import type {
     TaskTypeOption,
 } from '@/types';
 import { optionLabel } from '@/lib/enum';
+import { formatDate } from '@/lib/format';
+import { statusMeta, toneText } from '@/lib/status';
+import { cn } from '@/lib/utils';
+
+const MAX_CARD_LABELS = 2;
 
 type MovedResponse = {
     task: Task;
@@ -142,135 +150,209 @@ export default function KanbanBoard({
         <div className="min-w-0 space-y-4">
             {/* The whole board scrolls sideways; each column scrolls its own cards. */}
             <div
-                className="flex h-[calc(100svh-16rem)] min-h-96 gap-4 overflow-x-auto overflow-y-hidden pb-3"
+                className="-mx-4 flex h-[calc(100svh-16rem)] min-h-96 snap-x gap-3 overflow-x-auto overflow-y-hidden px-4 pb-3 md:mx-0 md:px-0"
                 data-test="board-scroll"
             >
                 {statusOptions.map((statusOption) => {
                     const column = byStatus.get(statusOption.value) ?? [];
+                    const meta = statusMeta('task', statusOption.value);
+                    const StatusIcon = meta.icon;
 
                     return (
-                        <div
+                        <section
                             key={statusOption.value}
-                            className="bg-muted/40 flex h-full w-72 shrink-0 flex-col rounded-lg border"
+                            aria-label={`${statusOption.label}, ${column.length} tasks`}
+                            className="bg-muted/50 dark:bg-card/50 flex h-full w-[min(18rem,calc(100vw-3rem))] shrink-0 snap-start flex-col rounded-lg border"
                             data-test={`board-column-${statusOption.value}`}
                         >
-                            <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
-                                <h3 className="min-w-0 truncate text-sm font-semibold">
-                                    {statusOption.label}{' '}
-                                    <span className="text-muted-foreground font-normal">
-                                        ({column.length})
+                            <div className="flex shrink-0 items-center justify-between gap-2 py-2 pr-1.5 pl-3">
+                                <h3 className="flex min-w-0 items-center gap-2 text-[0.8125rem] font-semibold">
+                                    <StatusIcon
+                                        className={cn(
+                                            'size-4 shrink-0',
+                                            toneText[meta.tone],
+                                        )}
+                                        aria-hidden="true"
+                                    />
+                                    <span className="truncate">
+                                        {statusOption.label}
+                                    </span>
+                                    <span className="bg-background text-muted-foreground rounded-full border px-1.5 text-[0.6875rem] leading-4 font-semibold tabular-nums">
+                                        {column.length}
                                     </span>
                                 </h3>
                                 <Button
                                     variant="ghost"
-                                    size="sm"
+                                    size="icon-xs"
                                     className="shrink-0"
                                     onClick={() =>
                                         setAddingToStatus(statusOption.value)
                                     }
                                     data-test="board-add-task"
+                                    aria-label={`Add task to ${statusOption.label}`}
                                 >
-                                    <Plus className="h-4 w-4" />
+                                    <Plus />
                                 </Button>
                             </div>
 
                             <div
-                                className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2"
+                                className="min-h-0 flex-1 space-y-2 overflow-y-auto px-2 pb-2"
                                 data-test="board-column-scroll"
                             >
+                                {column.length === 0 ? (
+                                    <p className="text-subtle-foreground rounded-md border border-dashed px-3 py-6 text-center text-xs">
+                                        No tasks
+                                    </p>
+                                ) : null}
                                 {column.map((task, index) => (
-                                    <div
+                                    <article
                                         key={task.id}
                                         data-test="task-card"
-                                        className="bg-card min-w-0 space-y-2 rounded-lg border p-3 shadow-xs"
+                                        className="bg-card hover:border-foreground/20 min-w-0 rounded-lg border shadow-xs transition-colors"
                                     >
-                                        <div className="flex items-start justify-between gap-2">
-                                            <Link
-                                                href={
-                                                    teamSlug
-                                                        ? showTask.url([
-                                                              teamSlug,
-                                                              projectId,
-                                                              task.id,
-                                                          ])
-                                                        : '#'
-                                                }
-                                                className="min-w-0 flex-1"
-                                                data-test="task-card-link"
-                                            >
-                                                <p className="text-muted-foreground truncate font-mono text-xs">
-                                                    {task.reference}
-                                                </p>
-                                                <p className="text-sm font-medium [overflow-wrap:anywhere] hover:underline">
-                                                    {task.title}
-                                                </p>
-                                            </Link>
-                                            {task.can_change_status ? (
-                                                <div className="flex shrink-0 flex-col gap-0.5">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-6 w-6 p-0"
-                                                        disabled={index === 0}
-                                                        onClick={() =>
-                                                            moveWithinColumn(
-                                                                task,
-                                                                -1,
+                                        <div className="space-y-2.5 p-3">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <Link
+                                                    href={
+                                                        teamSlug
+                                                            ? showTask.url([
+                                                                  teamSlug,
+                                                                  projectId,
+                                                                  task.id,
+                                                              ])
+                                                            : '#'
+                                                    }
+                                                    className="focus-visible:ring-ring min-w-0 flex-1 rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                                    data-test="task-card-link"
+                                                >
+                                                    <p className="text-subtle-foreground truncate font-mono text-[0.6875rem] leading-4">
+                                                        {task.reference}
+                                                    </p>
+                                                    <p className="mt-0.5 text-sm leading-5 font-medium [overflow-wrap:anywhere] hover:underline">
+                                                        {task.title}
+                                                    </p>
+                                                </Link>
+                                                {task.can_change_status ? (
+                                                    <div className="-mt-1 -mr-1 flex shrink-0 flex-col">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-xs"
+                                                            className="size-6"
+                                                            disabled={
+                                                                index === 0
+                                                            }
+                                                            onClick={() =>
+                                                                moveWithinColumn(
+                                                                    task,
+                                                                    -1,
+                                                                )
+                                                            }
+                                                            data-test="task-move-up"
+                                                            aria-label="Move task up"
+                                                        >
+                                                            <ChevronUp />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon-xs"
+                                                            className="size-6"
+                                                            disabled={
+                                                                index ===
+                                                                column.length -
+                                                                    1
+                                                            }
+                                                            onClick={() =>
+                                                                moveWithinColumn(
+                                                                    task,
+                                                                    1,
+                                                                )
+                                                            }
+                                                            data-test="task-move-down"
+                                                            aria-label="Move task down"
+                                                        >
+                                                            <ChevronDown />
+                                                        </Button>
+                                                    </div>
+                                                ) : null}
+                                            </div>
+
+                                            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                                                <span className="bg-muted text-muted-foreground max-w-full truncate rounded-md px-1.5 py-0.5 text-xs leading-4 font-medium">
+                                                    {task.taskType.name}
+                                                </span>
+                                                {task.labels
+                                                    .slice(0, MAX_CARD_LABELS)
+                                                    .map((label) => (
+                                                        <LabelChip
+                                                            key={label.id}
+                                                            name={label.name}
+                                                            color={label.color}
+                                                        />
+                                                    ))}
+                                                {task.labels.length >
+                                                MAX_CARD_LABELS ? (
+                                                    <span
+                                                        className="text-subtle-foreground text-xs"
+                                                        title={task.labels
+                                                            .slice(
+                                                                MAX_CARD_LABELS,
                                                             )
-                                                        }
-                                                        data-test="task-move-up"
-                                                        aria-label="Move task up"
-                                                    >
-                                                        <ChevronUp className="h-3 w-3" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-6 w-6 p-0"
-                                                        disabled={
-                                                            index ===
-                                                            column.length - 1
-                                                        }
-                                                        onClick={() =>
-                                                            moveWithinColumn(
-                                                                task,
-                                                                1,
+                                                            .map(
+                                                                (label) =>
+                                                                    label.name,
                                                             )
-                                                        }
-                                                        data-test="task-move-down"
-                                                        aria-label="Move task down"
+                                                            .join(', ')}
                                                     >
-                                                        <ChevronDown className="h-3 w-3" />
-                                                    </Button>
+                                                        +
+                                                        {task.labels.length -
+                                                            MAX_CARD_LABELS}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+
+                                            <div className="flex min-h-6 items-center justify-between gap-2">
+                                                <div className="flex min-w-0 items-center gap-3">
+                                                    <PriorityIndicator
+                                                        value={task.priority}
+                                                        label={optionLabel(
+                                                            priorityOptions,
+                                                            task.priority,
+                                                        )}
+                                                        showLabel
+                                                    />
+                                                    {task.due_at ? (
+                                                        <span
+                                                            className={cn(
+                                                                'inline-flex items-center gap-1 text-xs tabular-nums',
+                                                                task.is_overdue
+                                                                    ? 'text-destructive-foreground font-medium'
+                                                                    : 'text-muted-foreground',
+                                                            )}
+                                                        >
+                                                            <CalendarDays
+                                                                className="size-3.5"
+                                                                aria-hidden="true"
+                                                            />
+                                                            <span className="sr-only">
+                                                                {task.is_overdue
+                                                                    ? 'Overdue, due '
+                                                                    : 'Due '}
+                                                            </span>
+                                                            {formatDate(
+                                                                task.due_at,
+                                                            )}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
-                                            ) : null}
+                                                <AvatarStack
+                                                    people={task.assignees}
+                                                    size="xs"
+                                                />
+                                            </div>
                                         </div>
-
-                                        <div className="flex min-w-0 flex-wrap items-center gap-1">
-                                            <Badge
-                                                variant="secondary"
-                                                className="max-w-full truncate"
-                                            >
-                                                {task.taskType.name}
-                                            </Badge>
-                                            <Badge variant="outline">
-                                                {optionLabel(
-                                                    priorityOptions,
-                                                    task.priority,
-                                                )}
-                                            </Badge>
-                                        </div>
-
-                                        {task.assignees.length > 0 ? (
-                                            <p className="text-muted-foreground text-xs [overflow-wrap:anywhere]">
-                                                {task.assignees
-                                                    .map((a) => a.name)
-                                                    .join(', ')}
-                                            </p>
-                                        ) : null}
 
                                         {task.can_change_status || canManage ? (
-                                            <div className="flex min-w-0 items-center gap-2">
+                                            <div className="flex min-w-0 items-center gap-1 border-t px-2 py-1.5">
                                                 {task.can_change_status ? (
                                                     <Select
                                                         value={task.status}
@@ -284,8 +366,10 @@ export default function KanbanBoard({
                                                         }
                                                     >
                                                         <SelectTrigger
-                                                            className="h-7 min-w-0 flex-1 text-xs"
+                                                            size="sm"
+                                                            className="hover:bg-accent h-7 min-w-0 flex-1 border-transparent bg-transparent px-2 text-xs shadow-none dark:bg-transparent"
                                                             data-test="task-status-select"
+                                                            aria-label={`Status for ${task.reference}`}
                                                         >
                                                             <SelectValue />
                                                         </SelectTrigger>
@@ -308,13 +392,14 @@ export default function KanbanBoard({
                                                             )}
                                                         </SelectContent>
                                                     </Select>
-                                                ) : null}
+                                                ) : (
+                                                    <span className="flex-1" />
+                                                )}
                                                 {canManage ? (
                                                     <>
                                                         <Button
                                                             variant="ghost"
-                                                            size="sm"
-                                                            className="h-7 w-7 p-0"
+                                                            size="icon-xs"
                                                             onClick={() =>
                                                                 setAssigningTaskId(
                                                                     task.id,
@@ -323,12 +408,11 @@ export default function KanbanBoard({
                                                             data-test="task-assign"
                                                             aria-label="Assign task"
                                                         >
-                                                            <Users className="h-3.5 w-3.5" />
+                                                            <Users />
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
-                                                            size="sm"
-                                                            className="h-7 w-7 p-0"
+                                                            size="icon-xs"
                                                             onClick={() =>
                                                                 setEditingTask(
                                                                     task,
@@ -337,12 +421,12 @@ export default function KanbanBoard({
                                                             data-test="task-edit"
                                                             aria-label="Edit task"
                                                         >
-                                                            <Pencil className="h-3.5 w-3.5" />
+                                                            <Pencil />
                                                         </Button>
                                                         <Button
                                                             variant="ghost"
-                                                            size="sm"
-                                                            className="h-7 w-7 p-0"
+                                                            size="icon-xs"
+                                                            className="hover:text-destructive"
                                                             onClick={() =>
                                                                 setDeletingTask(
                                                                     task,
@@ -351,16 +435,16 @@ export default function KanbanBoard({
                                                             data-test="task-delete"
                                                             aria-label="Delete task"
                                                         >
-                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                            <Trash2 />
                                                         </Button>
                                                     </>
                                                 ) : null}
                                             </div>
                                         ) : null}
-                                    </div>
+                                    </article>
                                 ))}
                             </div>
-                        </div>
+                        </section>
                     );
                 })}
             </div>

@@ -48,7 +48,7 @@ export default function AvailabilityIndex({ filters, results }: Props) {
         <>
             <Head title="Find Available People" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
                 <Heading
                     title="Find Available People"
                     description="Who has enough free capacity for a given number of hours per day, over a date range."

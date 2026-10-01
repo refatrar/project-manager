@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { index as timesheetIndex, submit } from '@/routes/timesheet';
 import { optionLabel } from '@/lib/enum';
+import { formatDate } from '@/lib/format';
 import type {
     TimeLogActivityTypeOption,
     TimesheetRow,
@@ -92,8 +93,8 @@ export default function TimesheetIndex({
         <>
             <Head title="Timesheet" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <Heading
                         title="Timesheet"
                         description="Your logged time for the week, grouped by project and activity."
@@ -109,10 +110,10 @@ export default function TimesheetIndex({
                             <ChevronLeft className="h-4 w-4" /> Previous
                         </Button>
                         <span
-                            className="text-sm font-medium"
+                            className="min-w-32 text-center text-sm font-medium tabular-nums"
                             data-test="timesheet-week-range"
                         >
-                            {weekStart} – {weekEnd}
+                            {formatDate(weekStart)} – {formatDate(weekEnd)}
                         </span>
                         <Button
                             variant="outline"

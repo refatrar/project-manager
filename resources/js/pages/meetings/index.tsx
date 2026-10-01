@@ -1,17 +1,13 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { CalendarDays, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { EmptyState } from '@/components/patterns/empty-state';
+import { FilterSelect } from '@/components/patterns/filter-select';
+import { Pagination } from '@/components/patterns/pagination';
 import Heading from '@/components/heading';
 import MeetingFormModal from '@/components/meetings/meeting-form-modal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useTeamAccess } from '@/hooks/use-team-access';
 import { optionLabel } from '@/lib/enum';
 import { index, show } from '@/routes/meetings';
@@ -77,8 +73,8 @@ export default function MeetingsIndex({
         <>
             <Head title="Meetings" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="flex items-center justify-between gap-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <Heading
                         title="Meetings"
                         description="Every meeting scheduled for this team."
@@ -108,50 +104,31 @@ export default function MeetingsIndex({
                     ) : null}
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                    <Select
+                <section
+                    aria-label="Filters"
+                    className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap"
+                >
+                    <FilterSelect
+                        id="meetings-filter-status"
+                        label="Status"
                         value={filters.status ?? 'all'}
+                        allLabel="All statuses"
+                        options={statusOptions}
                         onValueChange={(value) => applyFilter('status', value)}
-                    >
-                        <SelectTrigger
-                            className="w-40"
-                            data-test="filter-status"
-                        >
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All statuses</SelectItem>
-                            {statusOptions.map((option) => (
-                                <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                >
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Select
+                        className="sm:w-44"
+                        data-test="filter-status"
+                    />
+                    <FilterSelect
+                        id="meetings-filter-type"
+                        label="Type"
                         value={filters.type ?? 'all'}
+                        allLabel="All types"
+                        options={typeOptions}
                         onValueChange={(value) => applyFilter('type', value)}
-                    >
-                        <SelectTrigger className="w-40" data-test="filter-type">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All types</SelectItem>
-                            {typeOptions.map((option) => (
-                                <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                >
-                                    {option.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                        className="sm:w-44"
+                        data-test="filter-type"
+                    />
+                </section>
 
                 <div className="space-y-3">
                     {meetings.data.map((meeting) => (
@@ -198,49 +175,19 @@ export default function MeetingsIndex({
                     ))}
 
                     {meetings.data.length === 0 ? (
-                        <p className="text-muted-foreground py-8 text-center">
-                            No meetings yet.
-                        </p>
+                        <EmptyState
+                            icon={CalendarDays}
+                            title="No meetings yet"
+                            description={
+                                filters.status || filters.type
+                                    ? 'No meetings match these filters.'
+                                    : 'Scheduled meetings for this team will appear here.'
+                            }
+                        />
                     ) : null}
                 </div>
 
-                {meetings.last_page > 1 ? (
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        {meetings.links.map((link, linkIndex) =>
-                            link.url ? (
-                                <Button
-                                    key={`${link.label}-${linkIndex}`}
-                                    variant={
-                                        link.active ? 'default' : 'outline'
-                                    }
-                                    size="sm"
-                                    asChild
-                                >
-                                    <Link href={link.url} preserveState>
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button
-                                    key={`${link.label}-${linkIndex}`}
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                >
-                                    <span
-                                        dangerouslySetInnerHTML={{
-                                            __html: link.label,
-                                        }}
-                                    />
-                                </Button>
-                            ),
-                        )}
-                    </div>
-                ) : null}
+                <Pagination paginator={meetings} />
             </div>
         </>
     );

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
+import type { NavGroup } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
 import {
@@ -54,137 +55,122 @@ export function AppSidebar() {
     // dashboard (which a role without `dashboard.view` would 403 on).
     const homeUrl = page.props.teamHome ?? '/';
 
-    const mainNavItems: NavItem[] = [
-        ...(can('dashboard.view')
-            ? [
-                  {
-                      title: 'Dashboard',
-                      href: dashboardUrl,
-                      icon: LayoutGrid,
-                  },
-              ]
-            : []),
-        ...(page.props.currentTeam
-            ? (
-                  [
-                      can('my-day.view')
-                          ? {
-                                title: 'My Day',
-                                href: myDay(page.props.currentTeam.slug),
-                                icon: CalendarCheck,
-                            }
-                          : null,
-                      can('projects.view')
-                          ? {
-                                title: 'Projects',
-                                href: projectsIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: FolderKanban,
-                            }
-                          : null,
-                      can('meetings.view')
-                          ? {
-                                title: 'Meetings',
-                                href: meetingsIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: CalendarDays,
-                            }
-                          : null,
-                      can('todos.manage')
-                          ? {
-                                title: 'My To-Dos',
-                                href: todoListsIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: ListTodo,
-                            }
-                          : null,
-                      can('time-off.view')
-                          ? {
-                                title: 'Time Off',
-                                href: timeOffIndex(page.props.currentTeam.slug),
-                                icon: Plane,
-                            }
-                          : null,
-                      can('time-logs.manage')
-                          ? {
-                                title: 'Time Logs',
-                                href: timeLogsIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: Timer,
-                            }
-                          : null,
-                      can('timesheet.view')
-                          ? {
-                                title: 'Timesheet',
-                                href: timesheetIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: ClipboardList,
-                            }
-                          : null,
-                      page.props.canApproveTimesheets
-                          ? {
-                                title: 'Timesheet Approvals',
-                                href: timesheetApprovalsIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: ClipboardCheck,
-                            }
-                          : null,
-                      can('availability.view')
-                          ? {
-                                title: 'Find Available People',
-                                href: availabilityIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: Search,
-                            }
-                          : null,
-                      can('team-capacity.view')
-                          ? {
-                                title: 'Team Capacity',
-                                href: teamCapacityIndex(
-                                    page.props.currentTeam.slug,
-                                ),
-                                icon: Users,
-                            }
-                          : null,
-                  ] as (NavItem | null)[]
-              ).filter((item): item is NavItem => item !== null)
-            : []),
-    ];
+    const slug = page.props.currentTeam?.slug;
+    // Each item keeps the exact gate it had before; empty groups are hidden.
+    const only = (
+        items: (NavItem | false | null | undefined | '')[],
+    ): NavItem[] => items.filter((item): item is NavItem => Boolean(item));
 
-    const setupNavItems: NavItem[] = page.props.currentTeam
-        ? [
-              ...(can('setup.manage')
-                  ? [
-                        {
-                            title: 'Scopes',
-                            href: scopesIndex(page.props.currentTeam.slug),
-                            icon: ListTree,
-                        },
-                        {
-                            title: 'Task types',
-                            href: taskTypesIndex(page.props.currentTeam.slug),
-                            icon: ListChecks,
-                        },
-                        {
-                            title: 'Labels',
-                            href: labelsIndex(page.props.currentTeam.slug),
-                            icon: Tag,
-                        },
-                    ]
-                  : []),
-          ]
-        : [];
+    const groups: NavGroup[] = [
+        {
+            items: only([
+                can('dashboard.view') && {
+                    title: 'Dashboard',
+                    href: dashboardUrl,
+                    icon: LayoutGrid,
+                },
+                slug &&
+                    can('my-day.view') && {
+                        title: 'My Day',
+                        href: myDay(slug),
+                        icon: CalendarCheck,
+                    },
+            ]),
+        },
+        {
+            label: 'Work',
+            items: slug
+                ? only([
+                      can('projects.view') && {
+                          title: 'Projects',
+                          href: projectsIndex(slug),
+                          icon: FolderKanban,
+                      },
+                      can('meetings.view') && {
+                          title: 'Meetings',
+                          href: meetingsIndex(slug),
+                          icon: CalendarDays,
+                      },
+                      can('todos.manage') && {
+                          title: 'My To-Dos',
+                          href: todoListsIndex(slug),
+                          icon: ListTodo,
+                      },
+                  ])
+                : [],
+        },
+        {
+            label: 'Time',
+            items: slug
+                ? only([
+                      can('time-logs.manage') && {
+                          title: 'Time Logs',
+                          href: timeLogsIndex(slug),
+                          icon: Timer,
+                      },
+                      can('timesheet.view') && {
+                          title: 'Timesheet',
+                          href: timesheetIndex(slug),
+                          icon: ClipboardList,
+                      },
+                      can('time-off.view') && {
+                          title: 'Time Off',
+                          href: timeOffIndex(slug),
+                          icon: Plane,
+                      },
+                  ])
+                : [],
+        },
+        {
+            label: 'Team',
+            items: slug
+                ? only([
+                      page.props.canApproveTimesheets && {
+                          title: 'Timesheet Approvals',
+                          href: timesheetApprovalsIndex(slug),
+                          icon: ClipboardCheck,
+                      },
+                      can('team-capacity.view') && {
+                          title: 'Team Capacity',
+                          href: teamCapacityIndex(slug),
+                          icon: Users,
+                      },
+                      can('availability.view') && {
+                          title: 'Find Available People',
+                          href: availabilityIndex(slug),
+                          icon: Search,
+                      },
+                  ])
+                : [],
+        },
+        {
+            label: 'Setup',
+            items:
+                slug && can('setup.manage')
+                    ? [
+                          {
+                              title: 'Scopes',
+                              href: scopesIndex(slug),
+                              icon: ListTree,
+                          },
+                          {
+                              title: 'Task types',
+                              href: taskTypesIndex(slug),
+                              icon: ListChecks,
+                          },
+                          {
+                              title: 'Labels',
+                              href: labelsIndex(slug),
+                              icon: Tag,
+                          },
+                      ]
+                    : [],
+        },
+    ];
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+            <SidebarHeader className="gap-1 pb-1">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
@@ -201,14 +187,11 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
-            <SidebarContent>
-                <NavMain items={mainNavItems} />
-                {setupNavItems.length > 0 ? (
-                    <NavMain items={setupNavItems} label="Setup" />
-                ) : null}
+            <SidebarContent className="gap-1 py-1">
+                <NavMain groups={groups} />
             </SidebarContent>
 
-            <SidebarFooter>
+            <SidebarFooter className="border-sidebar-border border-t">
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

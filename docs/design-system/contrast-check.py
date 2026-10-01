@@ -43,6 +43,10 @@ light = [
  ('destructive-subtle-foreground on destructive-subtle', '#991B1B', '#FEF2F2', 4.5),
  ('info-foreground on info', '#FFFFFF', '#1D4ED8', 4.5), ('info as text on card', '#1D4ED8', W, 4.5),
  ('info-subtle-foreground on info-subtle', '#1E40AF', '#EFF6FF', 4.5),
+ ('sidebar foreground on sidebar', '#0F172A', '#F1F5F9', 4.5), ('sidebar muted text on sidebar', '#475569', '#F1F5F9', 4.5),
+ ('sidebar subtle text on sidebar', '#5F6E86', '#F1F5F9', 4.5), ('active nav item text on sidebar-accent', '#0F172A', '#E2E8F0', 4.5),
+ ('muted text on sidebar-accent', '#475569', '#E2E8F0', 4.5), ('sidebar-primary-foreground on sidebar-primary', '#FFFFFF', '#0F766E', 4.5),
+ ('sidebar ring vs sidebar (UI 3:1)', '#0F766E', '#F1F5F9', 3),
 ]
 CARD, BG, POP = '#0F172A', '#0A0F14', '#1E293B'
 dark = [

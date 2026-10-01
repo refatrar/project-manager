@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { formatDate } from '@/lib/format';
 import type { BurndownPoint } from '@/types';
 
 type Props = {
@@ -89,17 +90,17 @@ export default function BurndownChart({ points }: Props) {
                             y={tick.y}
                             textAnchor="end"
                             dominantBaseline="middle"
-                            className="fill-muted-foreground text-[10px]"
+                            className="fill-muted-foreground text-[12px]"
                         >
                             {tick.value}
                         </text>
                     </g>
                 ))}
 
-                <path d={chart.areaPath} className="fill-chart-1" fillOpacity={0.1} />
+                <path d={chart.areaPath} className="fill-primary" fillOpacity={0.1} />
                 <path
                     d={chart.linePath}
-                    className="stroke-chart-1"
+                    className="stroke-primary"
                     strokeWidth={2}
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -110,14 +111,14 @@ export default function BurndownChart({ points }: Props) {
                     cx={chart.x(points.length - 1)}
                     cy={chart.y(last.open)}
                     r={4}
-                    className="fill-chart-1 stroke-background"
+                    className="fill-primary stroke-card"
                     strokeWidth={2}
                 />
                 <text
                     x={chart.x(points.length - 1)}
                     y={chart.y(last.open) - 10}
                     textAnchor="end"
-                    className="fill-foreground text-[11px] font-medium"
+                    className="fill-foreground text-[12px] font-medium"
                 >
                     {last.open} open
                 </text>
@@ -137,7 +138,7 @@ export default function BurndownChart({ points }: Props) {
                             cx={chart.x(hoverIndex ?? 0)}
                             cy={chart.y(hovered.open)}
                             r={4}
-                            className="fill-chart-1 stroke-background"
+                            className="fill-primary stroke-card"
                             strokeWidth={2}
                         />
                     </>
@@ -146,17 +147,17 @@ export default function BurndownChart({ points }: Props) {
                 <text
                     x={PADDING.left}
                     y={HEIGHT - 6}
-                    className="fill-muted-foreground text-[10px]"
+                    className="fill-muted-foreground text-[12px]"
                 >
-                    {points[0].date}
+                    {formatDate(points[0].date)}
                 </text>
                 <text
                     x={WIDTH - PADDING.right}
                     y={HEIGHT - 6}
                     textAnchor="end"
-                    className="fill-muted-foreground text-[10px]"
+                    className="fill-muted-foreground text-[12px]"
                 >
-                    {last.date}
+                    {formatDate(last.date)}
                 </text>
 
                 <rect
@@ -176,7 +177,7 @@ export default function BurndownChart({ points }: Props) {
                     className="text-muted-foreground flex justify-between text-xs"
                     data-test="burndown-tooltip"
                 >
-                    <span>{hovered.date}</span>
+                    <span>{formatDate(hovered.date)}</span>
                     <span>
                         <strong className="text-foreground">{hovered.open}</strong>{' '}
                         open · {hovered.completed}/{hovered.total} done

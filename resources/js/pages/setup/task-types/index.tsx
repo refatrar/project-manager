@@ -1,6 +1,7 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Pagination } from '@/components/patterns/pagination';
 import Heading from '@/components/heading';
 import TaskTypeDeleteModal from '@/components/setup/task-type-delete-modal';
 import TaskTypeFormModal from '@/components/setup/task-type-form-modal';
@@ -32,8 +33,8 @@ export default function TaskTypesIndex({ taskTypes, statusOptions }: Props) {
         <>
             <Head title="Task types" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="flex items-center justify-between gap-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <Heading
                         title="Task types"
                         description="Manage reusable task types."
@@ -52,12 +53,12 @@ export default function TaskTypesIndex({ taskTypes, statusOptions }: Props) {
                     </TaskTypeFormModal>
                 </div>
 
-                <div className="space-y-3">
+                <div className="bg-card divide-y overflow-hidden rounded-lg border">
                     {taskTypes.data.map((scope) => (
                         <div
                             key={scope.id}
                             data-test="task-type-row"
-                            className="flex items-center justify-between gap-4 rounded-lg border p-4"
+                            className="hover:bg-accent/40 flex items-center justify-between gap-4 px-4 py-3.5 transition-colors"
                         >
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -89,13 +90,14 @@ export default function TaskTypesIndex({ taskTypes, statusOptions }: Props) {
                                         <TooltipTrigger asChild>
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
+                                                size="icon-sm"
+                                                aria-label="Edit task type"
                                                 data-test="edit-task-type"
                                                 onClick={() =>
                                                     setEditingScope(scope)
                                                 }
                                             >
-                                                <Pencil className="h-4 w-4" />
+                                                <Pencil />
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -107,13 +109,14 @@ export default function TaskTypesIndex({ taskTypes, statusOptions }: Props) {
                                         <TooltipTrigger asChild>
                                             <Button
                                                 variant="ghost"
-                                                size="sm"
+                                                size="icon-sm"
+                                                aria-label="Delete task type"
                                                 data-test="delete-task-type"
                                                 onClick={() =>
                                                     setScopeToDelete(scope)
                                                 }
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 />
                                             </Button>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -126,49 +129,13 @@ export default function TaskTypesIndex({ taskTypes, statusOptions }: Props) {
                     ))}
 
                     {taskTypes.data.length === 0 ? (
-                        <p className="text-muted-foreground py-8 text-center">
+                        <p className="text-muted-foreground px-4 py-10 text-center text-sm">
                             No task types have been created yet.
                         </p>
                     ) : null}
                 </div>
 
-                {taskTypes.last_page > 1 ? (
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        {taskTypes.links.map((link, linkIndex) =>
-                            link.url ? (
-                                <Button
-                                    key={`${link.label}-${linkIndex}`}
-                                    variant={
-                                        link.active ? 'default' : 'outline'
-                                    }
-                                    size="sm"
-                                    asChild
-                                >
-                                    <Link href={link.url} preserveState>
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    </Link>
-                                </Button>
-                            ) : (
-                                <Button
-                                    key={`${link.label}-${linkIndex}`}
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                >
-                                    <span
-                                        dangerouslySetInnerHTML={{
-                                            __html: link.label,
-                                        }}
-                                    />
-                                </Button>
-                            ),
-                        )}
-                    </div>
-                ) : null}
+                <Pagination paginator={taskTypes} />
             </div>
 
             <TaskTypeFormModal

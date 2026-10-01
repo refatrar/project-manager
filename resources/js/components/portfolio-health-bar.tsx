@@ -1,9 +1,9 @@
-import { CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { statusMeta, toneFill, toneText } from '@/lib/status';
 import { cn } from '@/lib/utils';
 import type { PortfolioHealthCounts } from '@/types';
 
@@ -12,33 +12,25 @@ type Props = {
 };
 
 const SEGMENTS = [
-    {
-        key: 'on_track' as const,
-        label: 'On track',
-        icon: CircleCheck,
-        className: 'bg-status-good',
-    },
-    {
-        key: 'at_risk' as const,
-        label: 'At risk',
-        icon: TriangleAlert,
-        className: 'bg-status-warning',
-    },
-    {
-        key: 'off_track' as const,
-        label: 'Off track',
-        icon: CircleX,
-        className: 'bg-status-critical',
-    },
+    { key: 'on_track' as const, label: 'On track' },
+    { key: 'at_risk' as const, label: 'At risk' },
+    { key: 'off_track' as const, label: 'Off track' },
 ];
 
 export default function PortfolioHealthBar({ counts }: Props) {
     const total = counts.on_track + counts.at_risk + counts.off_track;
 
     return (
-        <div className="space-y-3" data-test="portfolio-health-bar">
+        <div className="space-y-4" data-test="portfolio-health-bar">
             {total > 0 ? (
-                <div className="bg-muted flex h-3 w-full overflow-hidden rounded-full">
+                <div
+                    className="flex h-2.5 w-full gap-0.5 overflow-hidden rounded-full"
+                    role="img"
+                    aria-label={SEGMENTS.map(
+                        (segment) =>
+                            `${counts[segment.key]} ${segment.label.toLowerCase()}`,
+                    ).join(', ')}
+                >
                     {SEGMENTS.map((segment) => {
                         const count = counts[segment.key];
 
@@ -47,14 +39,15 @@ export default function PortfolioHealthBar({ counts }: Props) {
                         }
 
                         const percentage = Math.round((count / total) * 100);
+                        const { tone } = statusMeta('health', segment.key);
 
                         return (
                             <Tooltip key={segment.key}>
                                 <TooltipTrigger asChild>
                                     <div
                                         className={cn(
-                                            'h-full border-r-2 border-white/40 first:rounded-l-full last:rounded-r-full last:border-r-0 dark:border-black/30',
-                                            segment.className,
+                                            'h-full first:rounded-l-full last:rounded-r-full',
+                                            toneFill[tone],
                                         )}
                                         style={{
                                             width: `${(count / total) * 100}%`,
@@ -71,35 +64,35 @@ export default function PortfolioHealthBar({ counts }: Props) {
                     })}
                 </div>
             ) : (
-                <div className="bg-muted h-3 w-full rounded-full" />
+                <div className="bg-muted h-2.5 w-full rounded-full" />
             )}
 
-            <div className="flex flex-wrap gap-4 text-sm">
-                {SEGMENTS.map((segment) => (
-                    <span
-                        key={segment.key}
-                        className="flex items-center gap-1.5"
-                    >
-                        <segment.icon
-                            className={cn(
-                                'h-4 w-4',
-                                segment.key === 'on_track' &&
-                                    'text-status-good',
-                                segment.key === 'at_risk' &&
-                                    'text-status-warning',
-                                segment.key === 'off_track' &&
-                                    'text-status-critical',
-                            )}
-                        />
-                        <span className="text-muted-foreground">
-                            {segment.label}
-                        </span>
-                        <span className="font-medium tabular-nums">
-                            {counts[segment.key]}
-                        </span>
-                    </span>
-                ))}
-            </div>
+            <dl className="grid grid-cols-3 gap-2">
+                {SEGMENTS.map((segment) => {
+                    const { tone, icon: Icon } = statusMeta(
+                        'health',
+                        segment.key,
+                    );
+
+                    return (
+                        <div
+                            key={segment.key}
+                            className="bg-background/60 rounded-md border px-3 py-2"
+                        >
+                            <dt className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+                                <Icon
+                                    className={cn('size-3.5', toneText[tone])}
+                                    aria-hidden="true"
+                                />
+                                {segment.label}
+                            </dt>
+                            <dd className="mt-0.5 text-lg font-semibold tabular-nums">
+                                {counts[segment.key]}
+                            </dd>
+                        </div>
+                    );
+                })}
+            </dl>
         </div>
     );
 }

@@ -1,8 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
+import { CircleCheck } from 'lucide-react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TeamInvitationAlert from '@/components/team-invitation-alert';
 import TextLink from '@/components/text-link';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -36,6 +38,13 @@ export default function Login({
                 />
             )}
 
+            {status && (
+                <Alert variant="success">
+                    <CircleCheck />
+                    <AlertDescription>{status}</AlertDescription>
+                </Alert>
+            )}
+
             <PasskeyVerify />
 
             <Form
@@ -45,7 +54,7 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
+                        <div className="grid gap-5">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
                                 <Input
@@ -66,7 +75,7 @@ export default function Login({
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="ml-auto text-[0.8125rem]"
                                         >
                                             Forgot password?
                                         </TextLink>
@@ -82,14 +91,19 @@ export default function Login({
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center gap-2.5">
                                 <Checkbox id="remember" name="remember" />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label
+                                    htmlFor="remember"
+                                    className="font-normal"
+                                >
+                                    Remember me
+                                </Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-1 w-full"
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -98,7 +112,7 @@ export default function Login({
                             </Button>
                         </div>
 
-                        <div className="text-muted-foreground text-center text-sm">
+                        <div className="text-muted-foreground border-t pt-5 text-center text-sm">
                             Don't have an account?{' '}
                             <TextLink
                                 href={register({
@@ -114,12 +128,6 @@ export default function Login({
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </>
     );
 }

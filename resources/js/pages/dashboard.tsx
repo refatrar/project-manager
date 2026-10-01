@@ -1,13 +1,26 @@
 import { Head, Link, usePage } from '@inertiajs/react';
+import {
+    Ban,
+    ChevronRight,
+    FolderKanban,
+    HeartPulse,
+    TimerOff,
+} from 'lucide-react';
 import { useState } from 'react';
+import { EmptyState } from '@/components/patterns/empty-state';
+import { PageHeader } from '@/components/patterns/page-header';
+import { ProgressBar } from '@/components/patterns/progress-bar';
+import { StatCard } from '@/components/patterns/stat-card';
+import { StatusBadge } from '@/components/patterns/status-badge';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import PortfolioHealthBar from '@/components/portfolio-health-bar';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useTeamAccess } from '@/hooks/use-team-access';
 import { optionLabel } from '@/lib/enum';
-import { cn } from '@/lib/utils';
+import { formatDate } from '@/lib/format';
+import { statusMeta } from '@/lib/status';
 import { dashboard } from '@/routes';
-import { show as showProject } from '@/routes/projects';
+import { index as projectsIndex, show as showProject } from '@/routes/projects';
 import type {
     DashboardInvitation,
     PortfolioHealthCounts,
@@ -26,18 +39,6 @@ type Props = {
     healthOptions: ProjectHealthOption[];
 };
 
-const healthVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {
-    on_track: 'default',
-    at_risk: 'secondary',
-    off_track: 'destructive',
-};
-
-const healthMeterClass: Record<string, string> = {
-    on_track: 'bg-status-good',
-    at_risk: 'bg-status-warning',
-    off_track: 'bg-status-critical',
-};
-
 export default function Dashboard({
     pendingInvitations = [],
     projects,
@@ -51,6 +52,8 @@ export default function Dashboard({
         pendingInvitations.length > 0,
     );
     const teamSlug = usePage().props.currentTeam?.slug;
+    const can = useTeamAccess();
+    const needsAttention = healthCounts.at_risk + healthCounts.off_track;
 
     return (
         <>
@@ -60,142 +63,214 @@ export default function Dashboard({
                 open={pendingInvitations.length > 0 && showInvitations}
                 onOpenChange={setShowInvitations}
             />
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Projects</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-2xl font-semibold">
-                                {projects.length}
-                            </p>
-                            <p className="text-muted-foreground text-sm">
-                                active
-                            </p>
-                        </CardContent>
-                    </Card>
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
+                <PageHeader
+                    title="Dashboard"
+                    description="Delivery health and open risks across the projects you can see."
+                />
 
-                    <Card data-test="portfolio-overdue">
-                        <CardHeader>
-                            <CardTitle>Overdue tasks</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p
-                                className={cn(
-                                    'text-2xl font-semibold',
-                                    overdueTasks > 0 && 'text-status-critical',
-                                )}
-                            >
-                                {overdueTasks}
-                            </p>
-                        </CardContent>
-                    </Card>
+                <section
+                    aria-label="Key figures"
+                    className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
+                >
+                    <StatCard
+                        label="Open projects"
+                        value={projects.length}
+                        icon={FolderKanban}
+                        hint="Visible to you on this team"
+                        href={
+                            teamSlug && can('projects.view')
+                                ? projectsIndex(teamSlug)
+                                : undefined
+                        }
+                    />
+                    <StatCard
+                        label="Need attention"
+                        value={needsAttention}
+                        icon={HeartPulse}
+                        tone={needsAttention > 0 ? 'warning' : 'neutral'}
+                        hint="Projects at risk or off track"
+                    />
+                    <StatCard
+                        label="Overdue tasks"
+                        value={overdueTasks}
+                        icon={TimerOff}
+                        tone={overdueTasks > 0 ? 'destructive' : 'neutral'}
+                        hint="Past due and still open"
+                        data-test="portfolio-overdue"
+                    />
+                    <StatCard
+                        label="Blocked tasks"
+                        value={blockedTasks}
+                        icon={Ban}
+                        tone={blockedTasks > 0 ? 'destructive' : 'neutral'}
+                        hint="Waiting on something else"
+                        data-test="portfolio-blocked"
+                    />
+                </section>
 
-                    <Card data-test="portfolio-blocked">
-                        <CardHeader>
-                            <CardTitle>Blocked tasks</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p
-                                className={cn(
-                                    'text-2xl font-semibold',
-                                    blockedTasks > 0 && 'text-status-critical',
-                                )}
-                            >
-                                {blockedTasks}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Portfolio health</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <PortfolioHealthBar counts={healthCounts} />
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-2">
-                    <h2 className="text-sm font-medium">Your projects</h2>
-
-                    {projects.length > 0 ? (
-                        <div className="space-y-2">
-                            {projects.map((project) => (
-                                <Link
-                                    key={project.id}
-                                    href={
-                                        teamSlug
-                                            ? showProject.url([
-                                                  teamSlug,
-                                                  project.id,
-                                              ])
-                                            : '#'
-                                    }
-                                    data-test="portfolio-project-row"
-                                    className="hover:bg-accent flex items-center justify-between gap-4 rounded-lg border p-4"
+                <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+                    <section
+                        aria-labelledby="dashboard-projects-heading"
+                        className="bg-card min-w-0 rounded-lg border"
+                    >
+                        <div className="flex items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
+                            <div>
+                                <h2
+                                    id="dashboard-projects-heading"
+                                    className="text-[0.9375rem] font-semibold"
                                 >
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span className="text-muted-foreground font-mono text-xs">
-                                                {project.code}
-                                            </span>
-                                            <span className="font-medium">
-                                                {project.name}
-                                            </span>
-                                            <Badge
-                                                variant={
-                                                    healthVariant[
-                                                        project.health
-                                                    ] ?? 'default'
-                                                }
-                                            >
-                                                {optionLabel(
-                                                    healthOptions,
-                                                    project.health,
-                                                )}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-muted-foreground mt-1 text-sm">
-                                            {optionLabel(
-                                                statusOptions,
-                                                project.status,
-                                            )}{' '}
-                                            · {project.progress_percentage}%
-                                            complete
-                                        </p>
-                                        <div
-                                            className="bg-muted mt-2 h-1.5 w-full max-w-64 overflow-hidden rounded-full"
-                                            role="meter"
-                                            aria-valuenow={
-                                                project.progress_percentage
-                                            }
-                                            aria-valuemin={0}
-                                            aria-valuemax={100}
-                                        >
-                                            <div
-                                                className={cn(
-                                                    'h-full rounded-full',
-                                                    healthMeterClass[
-                                                        project.health
-                                                    ] ?? 'bg-status-good',
-                                                )}
-                                                style={{
-                                                    width: `${project.progress_percentage}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))}
+                                    Your projects
+                                </h2>
+                                <p className="text-muted-foreground text-xs">
+                                    Progress, health and target dates
+                                </p>
+                            </div>
+                            {teamSlug && can('projects.view') ? (
+                                <Button variant="ghost" size="sm" asChild>
+                                    <Link href={projectsIndex(teamSlug)}>
+                                        View all
+                                        <ChevronRight aria-hidden="true" />
+                                    </Link>
+                                </Button>
+                            ) : null}
                         </div>
-                    ) : (
-                        <p className="text-muted-foreground py-8 text-center text-sm">
-                            No projects yet.
-                        </p>
-                    )}
+
+                        {projects.length > 0 ? (
+                            <ul className="divide-y">
+                                {projects.map((project) => {
+                                    const healthTone = statusMeta(
+                                        'health',
+                                        project.health,
+                                    ).tone;
+
+                                    return (
+                                        <li key={project.id}>
+                                            <Link
+                                                href={
+                                                    teamSlug
+                                                        ? showProject.url([
+                                                              teamSlug,
+                                                              project.id,
+                                                          ])
+                                                        : '#'
+                                                }
+                                                data-test="portfolio-project-row"
+                                                className="hover:bg-accent/50 focus-visible:bg-accent/50 group grid gap-3 px-4 py-3.5 transition-colors focus-visible:outline-none md:grid-cols-[minmax(0,1fr)_11rem_7rem] md:items-center md:gap-6 md:px-5"
+                                            >
+                                                <div className="min-w-0 space-y-1.5">
+                                                    <div className="flex min-w-0 items-center gap-2">
+                                                        <span className="text-subtle-foreground shrink-0 font-mono text-xs">
+                                                            {project.code}
+                                                        </span>
+                                                        <span className="truncate text-sm font-semibold group-hover:underline group-hover:underline-offset-2">
+                                                            {project.name}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-1.5">
+                                                        <StatusBadge
+                                                            kind="project"
+                                                            value={
+                                                                project.status
+                                                            }
+                                                            label={optionLabel(
+                                                                statusOptions,
+                                                                project.status,
+                                                            )}
+                                                        />
+                                                        <StatusBadge
+                                                            kind="health"
+                                                            value={
+                                                                project.health
+                                                            }
+                                                            label={optionLabel(
+                                                                healthOptions,
+                                                                project.health,
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center justify-between text-xs">
+                                                        <span className="text-muted-foreground">
+                                                            Progress
+                                                        </span>
+                                                        <span className="font-medium tabular-nums">
+                                                            {
+                                                                project.progress_percentage
+                                                            }
+                                                            %
+                                                        </span>
+                                                    </div>
+                                                    <ProgressBar
+                                                        value={
+                                                            project.progress_percentage
+                                                        }
+                                                        label={`${project.name} progress`}
+                                                        tone={healthTone}
+                                                    />
+                                                </div>
+
+                                                <div className="text-xs md:text-right">
+                                                    <span className="text-muted-foreground md:block">
+                                                        Target{' '}
+                                                    </span>
+                                                    <span className="font-medium tabular-nums">
+                                                        {formatDate(
+                                                            project.end_date,
+                                                            'Not set',
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : (
+                            <EmptyState
+                                compact
+                                icon={FolderKanban}
+                                title="No open projects"
+                                description="Open projects you can see will appear here with their progress and health."
+                                className="py-12"
+                                action={
+                                    teamSlug && can('projects.view') ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
+                                            <Link
+                                                href={projectsIndex(teamSlug)}
+                                            >
+                                                Go to projects
+                                            </Link>
+                                        </Button>
+                                    ) : null
+                                }
+                            />
+                        )}
+                    </section>
+
+                    <section
+                        aria-labelledby="dashboard-health-heading"
+                        className="bg-card space-y-4 rounded-lg border p-4 md:p-5"
+                    >
+                        <div>
+                            <h2
+                                id="dashboard-health-heading"
+                                className="text-[0.9375rem] font-semibold"
+                            >
+                                Portfolio health
+                            </h2>
+                            <p className="text-muted-foreground text-xs">
+                                Reported health of your open projects
+                            </p>
+                        </div>
+                        <PortfolioHealthBar counts={healthCounts} />
+                    </section>
                 </div>
             </div>
         </>

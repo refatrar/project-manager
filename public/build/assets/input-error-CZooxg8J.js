@@ -1,0 +1,1 @@
+import{i as e,t}from"./utils-CGR0LiZ2.js";var n=e();function r({message:e,className:r=``,...i}){return e?(0,n.jsx)(`p`,{...i,className:t(`text-destructive-foreground text-[0.8125rem] leading-5 font-medium`,r),children:e}):null}export{r as t};

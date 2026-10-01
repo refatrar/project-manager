@@ -147,7 +147,7 @@ export default function TeamCapacityIndex({ from, to, members }: Props) {
         <>
             <Head title="Team Capacity" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
                 <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 [&>header]:mb-0">
                     <Heading
                         title="Team Capacity"

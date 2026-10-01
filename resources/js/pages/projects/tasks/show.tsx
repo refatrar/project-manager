@@ -1,15 +1,30 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { CornerLeftUp, ListTree, Pencil, Plus, Trash2 } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useState } from 'react';
-import Heading from '@/components/heading';
+import { EmptyState } from '@/components/patterns/empty-state';
+import { LabelChip } from '@/components/patterns/label-chip';
+import { PageHeader } from '@/components/patterns/page-header';
+import { ProgressBar } from '@/components/patterns/progress-bar';
+import {
+    PriorityIndicator,
+    StatusBadge,
+} from '@/components/patterns/status-badge';
+import { UserAvatar } from '@/components/patterns/user-avatar';
 import TaskChecklist from '@/components/projects/task-checklist';
 import TaskDeleteModal from '@/components/projects/task-delete-modal';
 import TaskDependencyEditor from '@/components/projects/task-dependency-editor';
 import TaskFormModal from '@/components/projects/task-form-modal';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { optionLabel } from '@/lib/enum';
+import { formatDate } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import { index as projectsIndex, show as showProject } from '@/routes/projects';
 import { show as showTask } from '@/routes/projects/tasks';
 import type {
@@ -74,10 +89,10 @@ export default function TaskShow({
         <>
             <Head title={`${task.reference} — ${task.title}`} />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                        {task.parent ? (
+            <div className="mx-auto flex h-full w-full max-w-[1400px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
+                <PageHeader
+                    eyebrow={
+                        task.parent ? (
                             <Link
                                 href={
                                     teamSlug
@@ -88,216 +103,332 @@ export default function TaskShow({
                                           ])
                                         : '#'
                                 }
-                                className="text-muted-foreground hover:text-foreground text-sm"
+                                className="hover:text-foreground focus-visible:ring-ring inline-flex max-w-full items-center gap-1 rounded-sm focus-visible:ring-2 focus-visible:outline-none"
                             >
-                                ↑ {task.parent.reference} {task.parent.title}
+                                <CornerLeftUp
+                                    className="size-3.5 shrink-0"
+                                    aria-hidden="true"
+                                />
+                                <span className="truncate">
+                                    <span className="sr-only">
+                                        Parent task:{' '}
+                                    </span>
+                                    <span className="font-mono">
+                                        {task.parent.reference}
+                                    </span>{' '}
+                                    {task.parent.title}
+                                </span>
                             </Link>
-                        ) : null}
-                        <Heading
-                            title={`${task.reference} · ${task.title}`}
-                            description={task.description ?? undefined}
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        {canManageTask ? (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setEditOpen(true)}
-                                data-test="task-edit-button"
-                            >
-                                <Pencil className="h-4 w-4" /> Edit
-                            </Button>
-                        ) : null}
-                        {canDeleteTask ? (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeleteOpen(true)}
-                                data-test="task-delete-button"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        ) : null}
-                    </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Status</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-1 text-sm">
-                            <Badge>
-                                {optionLabel(statusOptions, task.status)}
-                            </Badge>
-                            <p>{task.progress_percentage}% complete</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Type &amp; priority</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-1 text-sm">
-                            <p>{task.taskType.name}</p>
-                            <p>
-                                {optionLabel(priorityOptions, task.priority)}{' '}
-                                priority
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Hours</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-1 text-sm">
-                            <p>Estimated: {task.estimated_hours ?? '—'}</p>
-                            <p>Logged: {task.logged_hours}</p>
-                            <p>Remaining: {task.remaining_hours ?? '—'}</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Labels</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {task.labels.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
-                                    {task.labels.map((label) => (
-                                        <Badge
-                                            key={label.id}
-                                            style={
-                                                label.color
-                                                    ? {
-                                                          backgroundColor:
-                                                              label.color,
-                                                      }
-                                                    : undefined
-                                            }
-                                        >
-                                            {label.name}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-muted-foreground text-sm">
-                                    No labels.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Assignees</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {task.assignees.length > 0 ? (
-                                <p className="text-sm">
-                                    {task.assignees
-                                        .map((assignee) => assignee.name)
-                                        .join(', ')}
-                                </p>
-                            ) : (
-                                <p className="text-muted-foreground text-sm">
-                                    Unassigned.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Checklist</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <TaskChecklist
-                            checklist={checklist}
-                            projectMembers={projectMembers}
-                            taskTypes={taskTypes}
-                            onChanged={() => reload(['checklist', 'task'])}
-                        />
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Subtasks</CardTitle>
-                            {/* Not gated by canManageTask: TaskPolicy::create is broader
-                                than update — any member who can view this task may add one. */}
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setAddingSubtask(true)}
-                                data-test="subtask-add"
-                            >
-                                <Plus className="h-4 w-4" /> Add subtask
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {task.subtasks.length > 0 ? (
-                            <div className="space-y-2">
-                                {task.subtasks.map((subtask: Task) => (
-                                    <Link
-                                        key={subtask.id}
-                                        href={
-                                            teamSlug
-                                                ? showTask.url([
-                                                      teamSlug,
-                                                      project.id,
-                                                      subtask.id,
-                                                  ])
-                                                : '#'
-                                        }
-                                        data-test="subtask-row"
-                                        className="hover:bg-accent flex items-center justify-between gap-2 rounded-lg border p-2"
-                                    >
-                                        <span className="text-sm">
-                                            <span className="text-muted-foreground font-mono">
-                                                {subtask.reference}
-                                            </span>{' '}
-                                            {subtask.title}
-                                        </span>
-                                        <Badge variant="secondary">
-                                            {optionLabel(
-                                                statusOptions,
-                                                subtask.status,
-                                            )}
-                                        </Badge>
-                                    </Link>
-                                ))}
-                            </div>
                         ) : (
-                            <p className="text-muted-foreground text-sm">
-                                No subtasks yet.
-                            </p>
-                        )}
-                    </CardContent>
-                </Card>
+                            <span className="font-mono text-xs tracking-wide">
+                                {task.reference}
+                            </span>
+                        )
+                    }
+                    title={task.title}
+                    meta={
+                        <>
+                            {task.parent ? (
+                                <span className="text-muted-foreground mr-1 font-mono text-xs">
+                                    {task.reference}
+                                </span>
+                            ) : null}
+                            <StatusBadge
+                                kind="task"
+                                value={task.status}
+                                label={optionLabel(statusOptions, task.status)}
+                            />
+                            <PriorityIndicator
+                                value={task.priority}
+                                label={`${optionLabel(priorityOptions, task.priority)} priority`}
+                                showLabel
+                                className="ml-1"
+                            />
+                        </>
+                    }
+                    actions={
+                        canManageTask || canDeleteTask ? (
+                            <>
+                                {canManageTask ? (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setEditOpen(true)}
+                                        data-test="task-edit-button"
+                                    >
+                                        <Pencil /> Edit
+                                    </Button>
+                                ) : null}
+                                {canDeleteTask ? (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon-sm"
+                                                className="hover:text-destructive"
+                                                onClick={() =>
+                                                    setDeleteOpen(true)
+                                                }
+                                                data-test="task-delete-button"
+                                                aria-label="Delete task"
+                                            >
+                                                <Trash2 />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            Delete task
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ) : null}
+                            </>
+                        ) : null
+                    }
+                />
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Dependencies</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <TaskDependencyEditor
-                            projectId={project.id}
-                            taskId={task.id}
-                            dependencies={task.dependencies}
-                            candidates={taskCandidates}
-                            typeOptions={dependencyTypeOptions}
-                            canManage={canManageTask}
-                            onChanged={() => reload(['task', 'taskCandidates'])}
-                        />
-                    </CardContent>
-                </Card>
+                <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+                    <aside
+                        aria-label="Task details"
+                        className="bg-card rounded-lg border lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1"
+                    >
+                        <dl className="divide-y px-4 text-sm">
+                            <PropertyRow label="Status">
+                                <StatusBadge
+                                    kind="task"
+                                    value={task.status}
+                                    label={optionLabel(
+                                        statusOptions,
+                                        task.status,
+                                    )}
+                                />
+                            </PropertyRow>
+                            <PropertyRow label="Priority">
+                                <PriorityIndicator
+                                    value={task.priority}
+                                    label={optionLabel(
+                                        priorityOptions,
+                                        task.priority,
+                                    )}
+                                    showLabel
+                                    className="text-foreground"
+                                />
+                            </PropertyRow>
+                            <PropertyRow label="Type">
+                                {task.taskType.name}
+                            </PropertyRow>
+                            <PropertyRow label="Assignees" stacked>
+                                {task.assignees.length > 0 ? (
+                                    <ul className="space-y-1.5">
+                                        {task.assignees.map((assignee) => (
+                                            <li
+                                                key={assignee.id}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <UserAvatar
+                                                    name={assignee.name}
+                                                    size="sm"
+                                                />
+                                                <span className="truncate">
+                                                    {assignee.name}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span className="text-muted-foreground font-normal">
+                                        Unassigned
+                                    </span>
+                                )}
+                            </PropertyRow>
+                            <PropertyRow label="Labels" stacked>
+                                {task.labels.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                        {task.labels.map((label) => (
+                                            <LabelChip
+                                                key={label.id}
+                                                name={label.name}
+                                                color={label.color}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-muted-foreground font-normal">
+                                        No labels
+                                    </span>
+                                )}
+                            </PropertyRow>
+                            <PropertyRow label="Due">
+                                <span
+                                    className={cn(
+                                        'tabular-nums',
+                                        task.is_overdue &&
+                                            'text-destructive-foreground',
+                                    )}
+                                >
+                                    {formatDate(task.due_at, 'No due date')}
+                                    {task.is_overdue ? (
+                                        <span className="ml-1.5 text-xs">
+                                            (overdue)
+                                        </span>
+                                    ) : null}
+                                </span>
+                            </PropertyRow>
+                            <PropertyRow label="Progress" stacked>
+                                <div className="flex items-center gap-3">
+                                    <ProgressBar
+                                        value={task.progress_percentage}
+                                        label="Task progress"
+                                    />
+                                    <span className="w-10 shrink-0 text-right tabular-nums">
+                                        {task.progress_percentage}%
+                                    </span>
+                                </div>
+                            </PropertyRow>
+                            <PropertyRow label="Hours" stacked>
+                                <div className="grid grid-cols-3 gap-2 text-center">
+                                    <HoursCell
+                                        label="Estimated"
+                                        value={task.estimated_hours}
+                                    />
+                                    <HoursCell
+                                        label="Logged"
+                                        value={task.logged_hours}
+                                    />
+                                    <HoursCell
+                                        label="Remaining"
+                                        value={task.remaining_hours}
+                                    />
+                                </div>
+                            </PropertyRow>
+                        </dl>
+                    </aside>
+
+                    <div className="min-w-0 space-y-6 lg:col-start-1 lg:row-start-1">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Description</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {task.description ? (
+                                    <p className="text-sm leading-6 [overflow-wrap:anywhere] whitespace-pre-line">
+                                        {task.description}
+                                    </p>
+                                ) : (
+                                    <p className="text-muted-foreground text-sm">
+                                        No description.
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Checklist</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <TaskChecklist
+                                    checklist={checklist}
+                                    projectMembers={projectMembers}
+                                    taskTypes={taskTypes}
+                                    onChanged={() =>
+                                        reload(['checklist', 'task'])
+                                    }
+                                />
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between gap-3">
+                                    <CardTitle className="flex items-center gap-2">
+                                        Subtasks
+                                        {task.subtasks.length > 0 ? (
+                                            <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-[0.6875rem] leading-4 font-semibold tabular-nums">
+                                                {task.subtasks.length}
+                                            </span>
+                                        ) : null}
+                                    </CardTitle>
+                                    {/* Not gated by canManageTask: TaskPolicy::create is broader
+                                        than update — any member who can view this task may add one. */}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setAddingSubtask(true)}
+                                        data-test="subtask-add"
+                                    >
+                                        <Plus /> Add subtask
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {task.subtasks.length > 0 ? (
+                                    <ul className="divide-y overflow-hidden rounded-md border">
+                                        {task.subtasks.map((subtask: Task) => (
+                                            <li key={subtask.id}>
+                                                <Link
+                                                    href={
+                                                        teamSlug
+                                                            ? showTask.url([
+                                                                  teamSlug,
+                                                                  project.id,
+                                                                  subtask.id,
+                                                              ])
+                                                            : '#'
+                                                    }
+                                                    data-test="subtask-row"
+                                                    className="hover:bg-accent/50 focus-visible:ring-ring flex items-center justify-between gap-3 px-3 py-2.5 transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset"
+                                                >
+                                                    <span className="min-w-0 text-sm [overflow-wrap:anywhere]">
+                                                        <span className="text-subtle-foreground font-mono text-xs">
+                                                            {subtask.reference}
+                                                        </span>{' '}
+                                                        <span className="font-medium">
+                                                            {subtask.title}
+                                                        </span>
+                                                    </span>
+                                                    <StatusBadge
+                                                        kind="task"
+                                                        value={subtask.status}
+                                                        label={optionLabel(
+                                                            statusOptions,
+                                                            subtask.status,
+                                                        )}
+                                                        className="shrink-0"
+                                                    />
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <EmptyState
+                                        compact
+                                        icon={ListTree}
+                                        title="No subtasks yet"
+                                        description="Break this task into smaller pieces of work."
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Dependencies</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <TaskDependencyEditor
+                                    projectId={project.id}
+                                    taskId={task.id}
+                                    dependencies={task.dependencies}
+                                    candidates={taskCandidates}
+                                    typeOptions={dependencyTypeOptions}
+                                    canManage={canManageTask}
+                                    onChanged={() =>
+                                        reload(['task', 'taskCandidates'])
+                                    }
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
 
             <TaskFormModal
@@ -369,3 +500,40 @@ TaskShow.layout = (props: {
         },
     ],
 });
+
+function PropertyRow({
+    label,
+    stacked = false,
+    children,
+}: {
+    label: string;
+    stacked?: boolean;
+    children: ReactNode;
+}) {
+    return (
+        <div
+            className={cn(
+                'py-3',
+                stacked
+                    ? 'space-y-2'
+                    : 'flex min-h-11 items-center justify-between gap-4',
+            )}
+        >
+            <dt className="text-muted-foreground shrink-0 text-[0.8125rem]">
+                {label}
+            </dt>
+            <dd className={cn('min-w-0 font-medium', !stacked && 'text-right')}>
+                {children}
+            </dd>
+        </div>
+    );
+}
+
+function HoursCell({ label, value }: { label: string; value: string | null }) {
+    return (
+        <div className="bg-muted/60 rounded-md px-2 py-1.5">
+            <p className="text-sm font-semibold tabular-nums">{value ?? '—'}</p>
+            <p className="text-subtle-foreground text-[0.6875rem]">{label}</p>
+        </div>
+    );
+}

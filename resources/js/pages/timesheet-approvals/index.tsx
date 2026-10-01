@@ -40,7 +40,7 @@ export default function TimesheetApprovalsIndex({
         <>
             <Head title="Timesheet Approvals" />
 
-            <div className="flex h-full flex-1 flex-col gap-6 p-4">
+            <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
                 <Heading
                     title="Timesheet Approvals"
                     description="Submitted time logs for the projects you manage, waiting on a decision."

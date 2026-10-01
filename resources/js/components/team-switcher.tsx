@@ -77,26 +77,39 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                 <Button
                     variant="ghost"
                     data-test="team-switcher-trigger"
+                    aria-label={`Switch team (current: ${currentTeam?.name ?? 'none'})`}
                     className={
                         inHeader
                             ? 'h-8 gap-1 px-2'
-                            : 'data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-full justify-start px-2 has-[>svg]:px-2'
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground border-sidebar-border bg-sidebar h-10 w-full justify-start gap-2.5 border px-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:p-0 has-[>svg]:px-2'
                     }
                 >
-                    <Users
+                    <span
                         className={
                             inHeader
                                 ? 'hidden'
-                                : 'hidden size-4 shrink-0 group-data-[collapsible=icon]:block'
+                                : 'bg-card text-foreground flex size-6 shrink-0 items-center justify-center rounded-md border text-[0.6875rem] font-semibold group-data-[collapsible=icon]:size-8'
                         }
-                    />
+                        aria-hidden="true"
+                    >
+                        {currentTeam ? (
+                            currentTeam.name.trim().charAt(0).toUpperCase()
+                        ) : (
+                            <Users className="size-3.5" />
+                        )}
+                    </span>
                     <div
                         className={
                             inHeader
                                 ? 'grid flex-1 text-left text-sm leading-tight'
-                                : 'grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden'
+                                : 'grid min-w-0 flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden'
                         }
                     >
+                        {inHeader ? null : (
+                            <span className="text-subtle-foreground text-[0.6875rem] font-medium">
+                                Team
+                            </span>
+                        )}
                         <span
                             className={
                                 inHeader
@@ -111,7 +124,7 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                         className={
                             inHeader
                                 ? 'size-4 opacity-50'
-                                : 'ml-auto group-data-[collapsible=icon]:hidden'
+                                : 'text-muted-foreground ml-auto group-data-[collapsible=icon]:hidden'
                         }
                     />
                 </Button>
@@ -140,15 +153,12 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                         }
                         onSelect={() => switchTeam(team)}
                     >
-                        {team.name}
+                        <span className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-md text-[0.6875rem] font-semibold">
+                            {team.name.trim().charAt(0).toUpperCase()}
+                        </span>
+                        <span className="truncate">{team.name}</span>
                         {currentTeam?.id === team.id && (
-                            <Check
-                                className={
-                                    inHeader
-                                        ? 'ml-auto size-4'
-                                        : 'ml-auto h-4 w-4'
-                                }
-                            />
+                            <Check className="text-primary ml-auto size-4" />
                         )}
                     </DropdownMenuItem>
                 ))}

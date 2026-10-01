@@ -1,6 +1,6 @@
 # Design System — Kazsoft Project Manager
 
-Status: **FINAL — colour and type decisions locked (UI-DS-001, 2026-09-30)**. Decisions applied: D-1 teal-700 primary, D-2 Plus Jakarta Sans. The values are specified here but not yet live in `resources/css/app.css`; each lands with its own `UI-DS-*` task. Every contrast ratio in §2 was computed with the WCAG 2.x relative-luminance formula; re-run `python3 docs/design-system/contrast-check.py` (57 pairs, exits non-zero on any failure) after changing a colour.
+Status: **FINAL — colour and type decisions locked (UI-DS-001, 2026-09-30)**. Decisions applied: D-1 teal-700 primary, D-2 Plus Jakarta Sans. The values are specified here but not yet live in `resources/css/app.css`; each lands with its own `UI-DS-*` task. Every contrast ratio in §2 was computed with the WCAG 2.x relative-luminance formula; re-run `python3 docs/design-system/contrast-check.py` (64 pairs, exits non-zero on any failure) after changing a colour.
 
 Derived with the UI UX Pro Max methodology (product type → reasoning profile → style → palette → typography → UX rules → anti-patterns → pre-delivery checklist). The generator classified this product as **Productivity Tool** (dashboard style: *Drill-Down Analytics*; style priority: *Flat Design / Minimalism & Swiss Style*; density 8/10). Where the generator's output was adapted, the reason is written next to it.
 
@@ -43,12 +43,17 @@ Surfaces: canvas `#F8FAFC`, card/popover `#FFFFFF`, secondary/hover `#F1F5F9`. M
 | `--border` | Decorative dividers, card borders | `#E2E8F0` | decorative only (not a control boundary) |
 | `--input` | Form-control boundary | `#7C8798` | 3.64 card · 3.47 canvas |
 | `--ring` | Focus ring (2px + 2px offset) | `#0F766E` | 5.47 card |
+| `--sidebar` | Sidebar surface (one step below the inset content panel) | `#F1F5F9` | foreground 16.30 · muted 6.92 · subtle 4.72 |
+| `--sidebar-accent` · `-foreground` | Active / hovered nav item | `#E2E8F0` · `#0F172A` | 14.48 · muted text on it 6.15 |
+| `--sidebar-primary` · `-foreground` | Logo tile | `#0F766E` · `#FFFFFF` | 5.47 |
+| `--sidebar-border` · `--sidebar-ring` | | `#E2E8F0` · `#0F766E` | decorative · ring 5.00 on sidebar |
+| `--overlay` | Dialog / sheet backdrop | `rgb(15 23 42 / 0.6)` | — |
 | `--success` · `-foreground` · `-subtle` · `-subtle-foreground` | Done, approved, on track | `#15803D` · `#FFFFFF` · `#F0FDF4` · `#166534` | label 5.02 · as text 5.02 · subtle 6.81 |
 | `--warning` · … | At risk, pending, due soon | `#B45309` · `#FFFFFF` · `#FFFBEB` · `#92400E` | label 5.02 · as text 5.02 · subtle 6.84 |
-| `--destructive` · … | Errors, overdue, delete | `#B91C1C` · `#FFFFFF` · `#FEF2F2` · `#991B1B` | label 6.47 · as text 6.47 · subtle 7.60 |
+| `--destructive` · `-foreground` · `-subtle` · `-subtle-foreground` | Errors, overdue, delete | `#B91C1C` · `#B91C1C` · `#FEF2F2` · `#991B1B` | white label on fill 6.47 · as text 6.47 · subtle 7.60 |
 | `--info` · … | Informational, in review | `#1D4ED8` · `#FFFFFF` · `#EFF6FF` · `#1E40AF` | label 6.70 · as text 6.70 · subtle 8.01 |
 
-Changed during verification: `--subtle-foreground` was proposed as `#64748B`, but it measured 4.34:1 on the secondary surface (hovered rows, secondary buttons), below 4.5. It is darkened to `#5F6E86`, which is still lighter than muted text so the hierarchy holds. `--destructive-foreground` is now distinct from `--destructive`; in the current `app.css` they are identical.
+Changed during verification: `--subtle-foreground` was proposed as `#64748B`, but it measured 4.34:1 on the secondary surface (hovered rows, secondary buttons), below 4.5. It is darkened to `#5F6E86`, which is still lighter than muted text so the hierarchy holds. **Destructive naming exception (found while implementing UI-DS-002):** in this starter kit, `--destructive-foreground` means *destructive-coloured text on a normal surface*, not text on a red fill. The `Alert` and `DropdownMenu` primitives and the capacity heatmap all rely on that. Filled destructive buttons use `bg-destructive` with `text-on-destructive` (`--on-destructive`: `#FFFFFF` light, `#450A0A` dark, 5.84:1 on the dark fill). The meaning is kept, and both values are `#B91C1C`, which passes as a fill with white text and as text on white. The audit's claim that equal values were a bug was wrong. The success, warning and info tones use the standard meaning, where `-foreground` is text on the fill.
 
 **Kept unchanged:** `--status-good/warning/critical`, `--heatmap-1..7`, `--chart-1..5`. They were contrast-validated in earlier work (`app.css:102-136`). `--status-*` become aliases of `--success`/`--warning`/`--destructive` only if the validated values match; otherwise both sets remain.
 
@@ -78,6 +83,8 @@ Surfaces: background `#0A0F14`, card `#0F172A`, popover (elevated) `#1E293B`. Th
 | `--{tone}-subtle` | the tone at 15% alpha over card: success `#183537`, warning `#323029`, destructive `#322435`, info `#1B2C49` | tone text on it: 7.52 · 7.91 · 5.27 · 5.50 |
 | `--{tone}-subtle-foreground` | the tone itself (e.g. `#4ADE80`) | as above |
 | `--sidebar-primary` · `-foreground` | `#2DD4BF` · `#042F2E` | 7.77; replaces the current bug where both values are identical (`app.css:176-177`) |
+| `--sidebar` | `#06090D` (one step below background, matching the light-mode relationship) | foreground 18.21 |
+| `--on-destructive` | `#450A0A` | 5.84 on `--destructive` |
 
 Added or changed during verification: `--subtle-foreground` and `--primary-hover` had no dark values; they are now `#8492A8` and `#5EEAD4`. `--input` was lightened from `#64748B` (3.07:1 on popover, too close to the limit) to `#6B7A90` (3.35:1).
 
@@ -205,8 +212,22 @@ Border, radius lg, `bg-card`, no shadow. A `StatCard` has a label, value and opt
 - App sidebar (`ui/sidebar.tsx`, collapsible to icons ≥768px, sheet <768px). Items have an icon and a text label. The active state matches the current URL **or a parent URL** (fixes detail pages losing highlight), with `aria-current="page"`.
 - Header: sidebar trigger, breadcrumbs (collapse middle crumbs <768px), then a right slot for search/command trigger (if D-3 approves `cmdk`).
 - Breadcrumbs go at least 3 levels deep: Projects › ALPHA › ALPHA-114.
-- A skip link reads "Skip to main content", and focus moves to the page `h1` after an Inertia navigation.
-- Admin uses the **same** sidebar primitives with its own item list (it currently has a top bar with no mobile handling).
+- A skip link reads "Skip to main content" and targets the main content region (`#main-content`, `#admin-main` in admin).
+- Sidebar items are grouped (Work, Time, Team, Setup). Every item keeps its original permission gate; empty groups are hidden.
+- Admin keeps its top bar, now sticky, with the section links as a horizontally scrollable tab row so it works on mobile.
+
+### 12.1 Shared patterns (`resources/js/components/patterns/`)
+
+| Component | Use |
+|---|---|
+| `PageHeader` | The page's single `h1`, with optional eyebrow, description, meta badges and actions. `Heading` (default variant) renders the same typography for older pages. |
+| `StatusBadge` · `PriorityIndicator` | Icon + server label + tone from `lib/status.ts`; never colour alone. |
+| `StatCard` | A single real metric from page props. Tone only when the value needs attention. |
+| `ProgressBar` | `role="meter"` with an accessible label. |
+| `EmptyState` | Icon, title, one-line explanation, optional action the user can already take. |
+| `FilterSelect` | Labelled filter dropdown using the existing `all` sentinel; highlighted while active. |
+| `Pagination` | Replaces per-page copies; same `preserveState` link behaviour, no `dangerouslySetInnerHTML`. |
+| `UserAvatar` · `AvatarStack` · `LabelChip` | Neutral initials; label colour shown as a dot beside neutral text. |
 
 ## 13. Tabs
 

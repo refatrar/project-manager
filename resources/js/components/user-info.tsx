@@ -16,19 +16,19 @@ export function UserInfo({
 
     return (
         <>
-            <Avatar className="h-8 w-8 overflow-hidden rounded-lg">
+            <Avatar className="size-8 overflow-hidden rounded-full">
                 {showAvatar ? (
                     <AvatarImage
                         src={user.avatar ?? undefined}
                         alt={user.name}
                     />
                 ) : null}
-                <AvatarFallback className="rounded-lg text-black dark:text-white">
+                <AvatarFallback className="bg-secondary text-secondary-foreground rounded-full text-xs font-semibold">
                     {getInitials(user.name)}
                 </AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-semibold">{user.name}</span>
                 {team ? (
                     <span className="text-muted-foreground truncate text-xs">
                         {team.name}

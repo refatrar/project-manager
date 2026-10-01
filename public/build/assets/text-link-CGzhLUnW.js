@@ -1,0 +1,1 @@
+import{c as e,i as t,t as n}from"./utils-CGR0LiZ2.js";var r=t();function i({className:t=``,children:i,...a}){return(0,r.jsx)(e,{className:n(`text-foreground decoration-foreground/30 underline underline-offset-4 transition-colors duration-(--motion-base) ease-out hover:decoration-current!`,t),...a,children:i})}export{i as t};
