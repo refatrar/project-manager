@@ -9,9 +9,14 @@ return new class extends Migration
     /**
      * Team-panel roles are per team (an Owner on team A is not the Owner
      * role row of team B). `team_id` null stays the platform-admin roles.
-     * A generated (stored, so it also works on PostgreSQL < 18) `team_scope` keeps name/slug unique per team while still
+     * A generated `team_scope` keeps name/slug unique per team while still
      * rejecting two admin-guard roles with the same name: MySQL would
      * otherwise treat every NULL `team_id` as distinct in a unique index.
+     *
+     * MySQL rejects a stored generated column on `team_id` once that column
+     * has an ON DELETE SET NULL foreign key (error 1215). A virtual column
+     * still participates in the unique index. Other drivers keep a stored
+     * column so PostgreSQL before 18 can index it.
      */
     public function up(): void
     {
@@ -25,7 +30,14 @@ return new class extends Migration
         });
 
         Schema::table('roles', function (Blueprint $table) {
-            $table->unsignedBigInteger('team_scope')->storedAs('coalesce(team_id, 0)');
+            $scope = $table->unsignedBigInteger('team_scope');
+
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $scope->virtualAs('coalesce(team_id, 0)');
+            } else {
+                $scope->storedAs('coalesce(team_id, 0)');
+            }
+
             $table->unique(['team_scope', 'name', 'guard_name'], 'roles_scope_name_guard_unique');
             $table->unique(['team_scope', 'slug'], 'roles_scope_slug_unique');
         });
