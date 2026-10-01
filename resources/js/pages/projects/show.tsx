@@ -577,7 +577,7 @@ function OverviewTab({
     return (
         <div className="space-y-5">
             <div className="grid grid-cols-3 gap-3 lg:grid-cols-4">
-                <div className="bg-card col-span-3 flex flex-col gap-1 rounded-lg border p-4 lg:col-span-1">
+                <div className="col-span-3 flex flex-col gap-1 lg:col-span-1">
                     <div className="flex items-center justify-between gap-2">
                         <p className="text-muted-foreground text-[0.8125rem] font-medium">
                             Progress

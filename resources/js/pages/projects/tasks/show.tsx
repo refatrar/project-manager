@@ -16,7 +16,6 @@ import TaskDeleteModal from '@/components/projects/task-delete-modal';
 import TaskDependencyEditor from '@/components/projects/task-dependency-editor';
 import TaskFormModal from '@/components/projects/task-form-modal';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Tooltip,
     TooltipContent,
@@ -188,7 +187,7 @@ export default function TaskShow({
                 <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
                     <aside
                         aria-label="Task details"
-                        className="bg-card rounded-lg border lg:sticky lg:top-20 lg:col-start-2 lg:row-start-1"
+                        className="lg:sticky lg:top-16 lg:col-start-2 lg:row-start-1 lg:border-l lg:pl-6"
                     >
                         <dl className="divide-y px-4 text-sm">
                             <PropertyRow label="Status">
@@ -302,12 +301,11 @@ export default function TaskShow({
                         </dl>
                     </aside>
 
-                    <div className="min-w-0 space-y-6 lg:col-start-1 lg:row-start-1">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Description</CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                    <div className="min-w-0 divide-y lg:col-start-1 lg:row-start-1">
+                        <section className="pb-6">
+                            <h2 className="mb-3 text-sm font-semibold">
+                                Description
+                            </h2>
                                 {task.description ? (
                                     <p className="text-sm leading-6 [overflow-wrap:anywhere] whitespace-pre-line">
                                         {task.description}
@@ -317,14 +315,12 @@ export default function TaskShow({
                                         No description.
                                     </p>
                                 )}
-                            </CardContent>
-                        </Card>
+                        </section>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Checklist</CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        <section className="py-6">
+                            <h2 className="mb-3 text-sm font-semibold">
+                                Checklist
+                            </h2>
                                 <TaskChecklist
                                     checklist={checklist}
                                     projectMembers={projectMembers}
@@ -333,20 +329,18 @@ export default function TaskShow({
                                         reload(['checklist', 'task'])
                                     }
                                 />
-                            </CardContent>
-                        </Card>
+                        </section>
 
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between gap-3">
-                                    <CardTitle className="flex items-center gap-2">
-                                        Subtasks
+                        <section className="py-6">
+                            <div className="mb-3 flex items-center justify-between gap-3">
+                                <h2 className="flex items-center gap-2 text-sm font-semibold">
+                                    Subtasks
                                         {task.subtasks.length > 0 ? (
                                             <span className="bg-muted text-muted-foreground rounded-full px-1.5 text-[0.6875rem] leading-4 font-semibold tabular-nums">
                                                 {task.subtasks.length}
                                             </span>
                                         ) : null}
-                                    </CardTitle>
+                                </h2>
                                     {/* Not gated by canManageTask: TaskPolicy::create is broader
                                         than update — any member who can view this task may add one. */}
                                     <Button
@@ -357,9 +351,7 @@ export default function TaskShow({
                                     >
                                         <Plus /> Add subtask
                                     </Button>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
+                            </div>
                                 {task.subtasks.length > 0 ? (
                                     <ul className="divide-y overflow-hidden rounded-md border">
                                         {task.subtasks.map((subtask: Task) => (
@@ -406,15 +398,13 @@ export default function TaskShow({
                                         description="Break this task into smaller pieces of work."
                                     />
                                 )}
-                            </CardContent>
-                        </Card>
+                        </section>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Dependencies</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <TaskDependencyEditor
+                        <section className="py-6">
+                            <h2 className="mb-3 text-sm font-semibold">
+                                Dependencies
+                            </h2>
+                            <TaskDependencyEditor
                                     projectId={project.id}
                                     taskId={task.id}
                                     dependencies={task.dependencies}
@@ -424,9 +414,8 @@ export default function TaskShow({
                                     onChanged={() =>
                                         reload(['task', 'taskCandidates'])
                                     }
-                                />
-                            </CardContent>
-                        </Card>
+                            />
+                        </section>
                     </div>
                 </div>
             </div>

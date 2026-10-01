@@ -169,7 +169,7 @@ export function AppSidebar() {
     ];
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="sidebar">
             <SidebarHeader className="gap-1 pb-1">
                 <SidebarMenu>
                     <SidebarMenuItem>

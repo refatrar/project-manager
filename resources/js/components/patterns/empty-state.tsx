@@ -25,8 +25,8 @@ export function EmptyState({
             className={cn(
                 'flex flex-col items-center justify-center text-center',
                 compact
-                    ? 'gap-2 px-4 py-6'
-                    : 'gap-3 rounded-lg border border-dashed px-6 py-12',
+                    ? 'gap-2 px-4 py-8'
+                    : 'gap-3 px-6 py-14',
                 className,
             )}
         >

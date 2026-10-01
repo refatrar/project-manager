@@ -119,7 +119,7 @@ export default function TaskListView({
         <div className="space-y-4">
             <section
                 aria-label="Task filters"
-                className="grid grid-cols-2 items-end gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap"
+                className="grid grid-cols-2 items-end gap-3 border-b pb-3 sm:grid-cols-3 lg:flex lg:flex-wrap"
             >
                 <FilterSelect
                     id="task-filter-assignee"
@@ -230,7 +230,7 @@ export default function TaskListView({
             </div>
 
             {filtered.length > 0 ? (
-                <ul className="bg-card divide-y overflow-hidden rounded-lg border">
+                <ul className="divide-y border-b">
                     {filtered.map((task) => (
                         <li key={task.id}>
                             <Link

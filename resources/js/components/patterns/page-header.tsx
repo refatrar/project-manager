@@ -35,7 +35,7 @@ export function PageHeader({
                         {eyebrow}
                     </div>
                 ) : null}
-                <h1 className="text-xl font-semibold tracking-tight [overflow-wrap:anywhere] md:text-2xl">
+                <h1 className="text-xl font-semibold tracking-[-0.02em] [overflow-wrap:anywhere]">
                     {title}
                 </h1>
                 {description ? (

@@ -1,16 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import {
-    Ban,
-    ChevronRight,
-    FolderKanban,
-    HeartPulse,
-    TimerOff,
-} from 'lucide-react';
+import { FolderKanban } from 'lucide-react';
 import { useState } from 'react';
 import { EmptyState } from '@/components/patterns/empty-state';
-import { PageHeader } from '@/components/patterns/page-header';
 import { ProgressBar } from '@/components/patterns/progress-bar';
-import { StatCard } from '@/components/patterns/stat-card';
 import { StatusBadge } from '@/components/patterns/status-badge';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import PortfolioHealthBar from '@/components/portfolio-health-bar';
@@ -64,80 +56,59 @@ export default function Dashboard({
                 onOpenChange={setShowInvitations}
             />
             <div className="mx-auto flex h-full w-full max-w-[1600px] flex-1 flex-col gap-6 p-4 md:p-6 2xl:p-8">
-                <PageHeader
-                    title="Dashboard"
-                    description="Delivery health and open risks across the projects you can see."
-                />
+                <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0 space-y-2">
+                        <h1 className="text-xl font-semibold tracking-[-0.02em]">
+                            Open work
+                        </h1>
+                        <p className="text-muted-foreground flex flex-wrap gap-x-3 gap-y-1 text-sm">
+                            <span className="text-primary font-medium">
+                                {projects.length} open
+                            </span>
+                            <span
+                                className={
+                                    needsAttention > 0
+                                        ? 'text-warning-subtle-foreground'
+                                        : undefined
+                                }
+                            >
+                                {needsAttention} need attention
+                            </span>
+                            <span
+                                data-test="portfolio-overdue"
+                                className={
+                                    overdueTasks > 0
+                                        ? 'text-destructive'
+                                        : undefined
+                                }
+                            >
+                                {overdueTasks} overdue
+                            </span>
+                            <span
+                                data-test="portfolio-blocked"
+                                className={
+                                    blockedTasks > 0
+                                        ? 'text-destructive'
+                                        : undefined
+                                }
+                            >
+                                {blockedTasks} blocked
+                            </span>
+                        </p>
+                    </div>
+                    {teamSlug && can('projects.view') ? (
+                        <Button size="sm" asChild>
+                            <Link href={projectsIndex(teamSlug)}>
+                                All projects
+                            </Link>
+                        </Button>
+                    ) : null}
+                </header>
 
-                <section
-                    aria-label="Key figures"
-                    className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4"
-                >
-                    <StatCard
-                        label="Open projects"
-                        value={projects.length}
-                        icon={FolderKanban}
-                        hint="Visible to you on this team"
-                        href={
-                            teamSlug && can('projects.view')
-                                ? projectsIndex(teamSlug)
-                                : undefined
-                        }
-                    />
-                    <StatCard
-                        label="Need attention"
-                        value={needsAttention}
-                        icon={HeartPulse}
-                        tone={needsAttention > 0 ? 'warning' : 'neutral'}
-                        hint="Projects at risk or off track"
-                    />
-                    <StatCard
-                        label="Overdue tasks"
-                        value={overdueTasks}
-                        icon={TimerOff}
-                        tone={overdueTasks > 0 ? 'destructive' : 'neutral'}
-                        hint="Past due and still open"
-                        data-test="portfolio-overdue"
-                    />
-                    <StatCard
-                        label="Blocked tasks"
-                        value={blockedTasks}
-                        icon={Ban}
-                        tone={blockedTasks > 0 ? 'destructive' : 'neutral'}
-                        hint="Waiting on something else"
-                        data-test="portfolio-blocked"
-                    />
-                </section>
-
-                <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                    <section
-                        aria-labelledby="dashboard-projects-heading"
-                        className="bg-card min-w-0 rounded-lg border"
-                    >
-                        <div className="flex items-center justify-between gap-3 border-b px-4 py-3 md:px-5">
-                            <div>
-                                <h2
-                                    id="dashboard-projects-heading"
-                                    className="text-[0.9375rem] font-semibold"
-                                >
-                                    Your projects
-                                </h2>
-                                <p className="text-muted-foreground text-xs">
-                                    Progress, health and target dates
-                                </p>
-                            </div>
-                            {teamSlug && can('projects.view') ? (
-                                <Button variant="ghost" size="sm" asChild>
-                                    <Link href={projectsIndex(teamSlug)}>
-                                        View all
-                                        <ChevronRight aria-hidden="true" />
-                                    </Link>
-                                </Button>
-                            ) : null}
-                        </div>
-
+                <div className="grid items-start gap-10 xl:grid-cols-[minmax(0,1fr)_18rem]">
+                    <section aria-label="Projects" className="min-w-0">
                         {projects.length > 0 ? (
-                            <ul className="divide-y">
+                            <ul className="divide-y border-y">
                                 {projects.map((project) => {
                                     const healthTone = statusMeta(
                                         'health',
@@ -254,9 +225,9 @@ export default function Dashboard({
                         )}
                     </section>
 
-                    <section
+                    <aside
                         aria-labelledby="dashboard-health-heading"
-                        className="bg-card space-y-4 rounded-lg border p-4 md:p-5"
+                        className="space-y-4"
                     >
                         <div>
                             <h2
@@ -270,7 +241,7 @@ export default function Dashboard({
                             </p>
                         </div>
                         <PortfolioHealthBar counts={healthCounts} />
-                    </section>
+                    </aside>
                 </div>
             </div>
         </>

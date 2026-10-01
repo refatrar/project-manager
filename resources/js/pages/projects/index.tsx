@@ -240,7 +240,7 @@ export default function ProjectsIndex({
                 {projects.data.length > 0 ? (
                     <section
                         aria-label="Projects"
-                        className="bg-card overflow-hidden rounded-lg border"
+                        className="overflow-hidden border-y"
                     >
                         <div
                             className="text-subtle-foreground hidden grid-cols-[minmax(0,1fr)_9rem_8rem_7rem_10rem_6rem] gap-4 border-b px-5 py-2.5 text-xs font-medium lg:grid"

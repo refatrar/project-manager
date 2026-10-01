@@ -55,7 +55,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-card text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] fixed top-[50%] left-[50%] z-50 grid max-h-[min(90dvh,48rem)] w-full min-w-0 *:min-w-0 max-w-[calc(100%-1.5rem)] translate-x-[-50%] translate-y-[-50%] gap-5 overflow-y-auto overscroll-contain rounded-xl border p-6 shadow-lg data-[state=open]:duration-(--motion-slow) data-[state=closed]:duration-(--motion-base) sm:max-w-lg",
+          "bg-card text-card-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] fixed top-[50%] left-[50%] z-50 grid max-h-[min(90dvh,48rem)] w-full min-w-0 *:min-w-0 max-w-[calc(100%-1.5rem)] translate-x-[-50%] translate-y-[-50%] gap-5 overflow-y-auto overscroll-contain rounded-xl p-6 shadow-[0_16px_40px_-16px_rgb(18_20_23/0.35)] data-[state=open]:duration-(--motion-base) data-[state=closed]:duration-(--motion-fast) sm:max-w-lg",
           className
         )}
         {...props}

@@ -140,7 +140,7 @@ export default function MeetingsIndex({
                                     : '#'
                             }
                             data-test="meeting-row"
-                            className="hover:bg-accent flex items-center justify-between gap-4 rounded-lg border p-4"
+                            className="hover:bg-accent/70 focus-visible:ring-ring flex items-center justify-between gap-4 border-b py-3 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         >
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">

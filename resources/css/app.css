@@ -2,6 +2,8 @@
 
 @import 'tw-animate-css';
 
+@import url('https://fonts.bunny.net/css?family=public-sans:400,500,600,700&display=swap');
+
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
@@ -9,7 +11,7 @@
 
 @theme {
     --font-sans:
-        'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif,
+        'Public Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -107,22 +109,22 @@
      * --destructive-foreground keeps the starter kit's meaning "destructive
      * text on a normal surface"; fills use bg-destructive with text-white.
      */
-    --background: #f8fafc;
-    --foreground: #0f172a;
+    --background: #f1f5f4;
+    --foreground: #1a1d23;
     --card: #ffffff;
-    --card-foreground: #0f172a;
+    --card-foreground: #1a1d23;
     --popover: #ffffff;
-    --popover-foreground: #0f172a;
+    --popover-foreground: #1a1d23;
     --primary: #0f766e;
     --primary-hover: #115e59;
     --primary-foreground: #ffffff;
-    --secondary: #f1f5f9;
-    --secondary-foreground: #0f172a;
-    --muted: #f1f5f9;
-    --muted-foreground: #475569;
-    --subtle-foreground: #5f6e86;
-    --accent: #f1f5f9;
-    --accent-foreground: #0f172a;
+    --secondary: #e7f0ed;
+    --secondary-foreground: #1a1d23;
+    --muted: #e7f0ed;
+    --muted-foreground: #4a5160;
+    --subtle-foreground: #5c6370;
+    --accent: #e3f0ec;
+    --accent-foreground: #115e59;
     --destructive: #b91c1c;
     --destructive-foreground: #b91c1c;
     --on-destructive: #ffffff;
@@ -140,10 +142,10 @@
     --info-foreground: #ffffff;
     --info-subtle: #eff6ff;
     --info-subtle-foreground: #1e40af;
-    --border: #e2e8f0;
-    --input: #7c8798;
+    --border: #d8dce3;
+    --input: #6b7280;
     --ring: #0f766e;
-    --overlay: rgb(15 23 42 / 0.6);
+    --overlay: rgb(18 20 23 / 0.55);
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
@@ -166,19 +168,19 @@
     --heatmap-6: #12534c;
     --heatmap-7: #0b3e39;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --motion-fast: 120ms;
-    --motion-base: 180ms;
+    --motion-fast: 150ms;
+    --motion-base: 200ms;
     --motion-slow: 240ms;
-    /* One step darker than --background so the inset content panel stays distinct. */
-    --sidebar: #f1f5f9;
-    --sidebar-foreground: #0f172a;
+    /* Cool teal-gray rail. Active items pick up the same teal as actions. */
+    --sidebar: #e7f0ed;
+    --sidebar-foreground: #1a1d23;
     --sidebar-primary: #0f766e;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #e2e8f0;
-    --sidebar-accent-foreground: #0f172a;
-    --sidebar-border: #e2e8f0;
+    --sidebar-accent: #d4e9e3;
+    --sidebar-accent-foreground: #115e59;
+    --sidebar-border: #c9ddd6;
     --sidebar-ring: #0f766e;
 
     /*
@@ -194,22 +196,22 @@
 
 .dark {
     /* Dark theme tokens: docs/design-system/README.md §2.2. */
-    --background: #0a0f14;
-    --foreground: #f1f5f9;
-    --card: #0f172a;
-    --card-foreground: #f1f5f9;
-    --popover: #1e293b;
-    --popover-foreground: #f1f5f9;
+    --background: #121417;
+    --foreground: #f4f5f7;
+    --card: #1a1d22;
+    --card-foreground: #f4f5f7;
+    --popover: #242830;
+    --popover-foreground: #f4f5f7;
     --primary: #2dd4bf;
     --primary-hover: #5eead4;
     --primary-foreground: #042f2e;
-    --secondary: #1e293b;
-    --secondary-foreground: #f1f5f9;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --subtle-foreground: #8492a8;
-    --accent: #1e293b;
-    --accent-foreground: #f1f5f9;
+    --secondary: #242830;
+    --secondary-foreground: #f4f5f7;
+    --muted: #242830;
+    --muted-foreground: #b4b9c2;
+    --subtle-foreground: #a3a9b3;
+    --accent: #2a2f36;
+    --accent-foreground: #f4f5f7;
     --destructive: #f87171;
     --destructive-foreground: #f87171;
     --on-destructive: #450a0a;
@@ -227,8 +229,8 @@
     --info-foreground: #172554;
     --info-subtle: #1b2c49;
     --info-subtle-foreground: #60a5fa;
-    --border: #1e293b;
-    --input: #6b7a90;
+    --border: #2c3138;
+    --input: #8b939f;
     --ring: #2dd4bf;
     --overlay: rgb(0 0 0 / 0.7);
     --chart-1: oklch(0.488 0.243 264.376);
@@ -246,14 +248,13 @@
     --heatmap-6: #3ec6b7;
     --heatmap-7: #47dfce;
 
-    /* Darker than --background so the inset content panel stays distinct. */
-    --sidebar: #06090d;
-    --sidebar-foreground: #f1f5f9;
+    --sidebar: #101816;
+    --sidebar-foreground: #f4f5f7;
     --sidebar-primary: #2dd4bf;
     --sidebar-primary-foreground: #042f2e;
-    --sidebar-accent: #1e293b;
-    --sidebar-accent-foreground: #f1f5f9;
-    --sidebar-border: #1e293b;
+    --sidebar-accent: #1a3330;
+    --sidebar-accent-foreground: #5eead4;
+    --sidebar-border: #24403b;
     --sidebar-ring: #2dd4bf;
 
     /* Same roles, re-stepped for the dark surface (see the light block). */
@@ -285,7 +286,12 @@
     }
 
     ::selection {
-        background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+        background-color: color-mix(in oklab, var(--ring) 28%, transparent);
+    }
+
+    input,
+    textarea {
+        caret-color: var(--foreground);
     }
 
     :focus-visible {

@@ -23,17 +23,17 @@ def run(title, pairs):
         if not ok: worst.append(label)
     return worst
 
-W, CANVAS, SEC = '#FFFFFF', '#F8FAFC', '#F1F5F9'
+W, CANVAS, SEC = '#FFFFFF', '#F1F5F4', '#E3F0EC'
 light = [
- ('foreground on card', '#0F172A', W, 4.5), ('foreground on canvas', '#0F172A', CANVAS, 4.5),
- ('foreground on secondary/accent', '#0F172A', SEC, 4.5),
- ('muted-foreground on card', '#475569', W, 4.5), ('muted-foreground on canvas', '#475569', CANVAS, 4.5),
- ('muted-foreground on secondary', '#475569', SEC, 4.5),
- ('subtle-foreground on card', '#5F6E86', W, 4.5), ('subtle-foreground on canvas', '#5F6E86', CANVAS, 4.5),
- ('subtle-foreground on secondary', '#5F6E86', SEC, 4.5),
+ ('foreground on card', '#1A1D23', W, 4.5), ('foreground on canvas', '#1A1D23', CANVAS, 4.5),
+ ('foreground on secondary/accent', '#1A1D23', SEC, 4.5),
+ ('muted-foreground on card', '#4A5160', W, 4.5), ('muted-foreground on canvas', '#4A5160', CANVAS, 4.5),
+ ('muted-foreground on secondary', '#4A5160', SEC, 4.5),
+ ('subtle-foreground on card', '#5C6370', W, 4.5), ('subtle-foreground on canvas', '#5C6370', CANVAS, 4.5),
+ ('subtle-foreground on secondary', '#5C6370', SEC, 4.5),
  ('primary-foreground on primary', '#FFFFFF', '#0F766E', 4.5), ('primary-foreground on primary-hover', '#FFFFFF', '#115E59', 4.5),
  ('primary as link text on card', '#0F766E', W, 4.5), ('primary as link text on canvas', '#0F766E', CANVAS, 4.5),
- ('input border vs card (UI 3:1)', '#7C8798', W, 3), ('input border vs canvas (UI 3:1)', '#7C8798', CANVAS, 3),
+ ('input border vs card (UI 3:1)', '#6B7280', W, 3), ('input border vs canvas (UI 3:1)', '#6B7280', CANVAS, 3),
  ('focus ring vs card (UI 3:1)', '#0F766E', W, 3),
  ('success-foreground on success', '#FFFFFF', '#15803D', 4.5), ('success as text on card', '#15803D', W, 4.5),
  ('success-subtle-foreground on success-subtle', '#166534', '#F0FDF4', 4.5),
@@ -43,19 +43,19 @@ light = [
  ('destructive-subtle-foreground on destructive-subtle', '#991B1B', '#FEF2F2', 4.5),
  ('info-foreground on info', '#FFFFFF', '#1D4ED8', 4.5), ('info as text on card', '#1D4ED8', W, 4.5),
  ('info-subtle-foreground on info-subtle', '#1E40AF', '#EFF6FF', 4.5),
- ('sidebar foreground on sidebar', '#0F172A', '#F1F5F9', 4.5), ('sidebar muted text on sidebar', '#475569', '#F1F5F9', 4.5),
- ('sidebar subtle text on sidebar', '#5F6E86', '#F1F5F9', 4.5), ('active nav item text on sidebar-accent', '#0F172A', '#E2E8F0', 4.5),
- ('muted text on sidebar-accent', '#475569', '#E2E8F0', 4.5), ('sidebar-primary-foreground on sidebar-primary', '#FFFFFF', '#0F766E', 4.5),
- ('sidebar ring vs sidebar (UI 3:1)', '#0F766E', '#F1F5F9', 3),
+ ('sidebar foreground on sidebar', '#1A1D23', '#E7F0ED', 4.5), ('sidebar muted text on sidebar', '#4A5160', '#E7F0ED', 4.5),
+ ('sidebar subtle text on sidebar', '#5C6370', '#E7F0ED', 4.5), ('active nav item text on sidebar-accent', '#115E59', '#D4E9E3', 4.5),
+ ('muted text on sidebar-accent', '#4A5160', '#D4E9E3', 4.5), ('sidebar-primary-foreground on sidebar-primary', '#FFFFFF', '#0F766E', 4.5),
+ ('sidebar ring vs sidebar (UI 3:1)', '#0F766E', '#E7F0ED', 3),
 ]
-CARD, BG, POP = '#0F172A', '#0A0F14', '#1E293B'
+CARD, BG, POP = '#1A1D22', '#121417', '#242830'
 dark = [
- ('subtle-foreground on card', '#8492A8', CARD, 4.5), ('subtle-foreground on background', '#8492A8', BG, 4.5), ('subtle-foreground on popover', '#8492A8', POP, 4.5),
+ ('subtle-foreground on card', '#A3A9B3', CARD, 4.5), ('subtle-foreground on background', '#A3A9B3', BG, 4.5), ('subtle-foreground on popover', '#A3A9B3', POP, 4.5),
  ('primary-foreground on primary-hover', '#042F2E', '#5EEAD4', 4.5), ('sidebar-primary-foreground on sidebar-primary', '#042F2E', '#2DD4BF', 4.5),
- ('foreground on card', '#F1F5F9', CARD, 4.5), ('foreground on background', '#F1F5F9', BG, 4.5), ('foreground on popover', '#F1F5F9', POP, 4.5),
- ('muted-foreground on card', '#94A3B8', CARD, 4.5), ('muted-foreground on background', '#94A3B8', BG, 4.5), ('muted-foreground on popover', '#94A3B8', POP, 4.5),
+ ('foreground on card', '#F4F5F7', CARD, 4.5), ('foreground on background', '#F4F5F7', BG, 4.5), ('foreground on popover', '#F4F5F7', POP, 4.5),
+ ('muted-foreground on card', '#B4B9C2', CARD, 4.5), ('muted-foreground on background', '#B4B9C2', BG, 4.5), ('muted-foreground on popover', '#B4B9C2', POP, 4.5),
  ('primary-foreground on primary', '#042F2E', '#2DD4BF', 4.5), ('primary as link text on card', '#2DD4BF', CARD, 4.5), ('primary as link text on popover', '#2DD4BF', POP, 4.5),
- ('input border vs card (UI 3:1)', '#6B7A90', CARD, 3), ('input border vs popover (UI 3:1)', '#6B7A90', POP, 3),
+ ('input border vs card (UI 3:1)', '#8B939F', CARD, 3), ('input border vs popover (UI 3:1)', '#8B939F', POP, 3),
  ('focus ring vs card (UI 3:1)', '#2DD4BF', CARD, 3),
  ('success-foreground on success', '#052E16', '#4ADE80', 4.5), ('success as text on card', '#4ADE80', CARD, 4.5),
  ('warning-foreground on warning', '#451A03', '#FBBF24', 4.5), ('warning as text on card', '#FBBF24', CARD, 4.5),

@@ -43,7 +43,7 @@ export function StatCard({
             </div>
             <p
                 className={cn(
-                    'text-2xl leading-8 font-semibold tracking-tight tabular-nums',
+                    'text-lg leading-6 font-semibold tracking-[-0.02em] tabular-nums',
                     tone !== 'neutral' && toneText[tone],
                 )}
             >
@@ -56,9 +56,9 @@ export function StatCard({
     );
 
     const classes = cn(
-        'bg-card flex flex-col gap-1 rounded-lg border p-4',
+        'flex flex-col gap-0.5 py-1',
         href &&
-            'hover:border-foreground/20 hover:bg-accent/40 focus-visible:ring-ring transition-colors focus-visible:ring-2 focus-visible:outline-none',
+            'hover:text-foreground focus-visible:ring-ring rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none',
         className,
     );
 

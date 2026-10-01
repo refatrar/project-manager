@@ -24,7 +24,7 @@ export default function Heading({
                 className={
                     variant === 'small'
                         ? 'text-base font-semibold'
-                        : 'text-xl font-semibold tracking-tight [overflow-wrap:anywhere] md:text-2xl'
+                        : 'text-xl font-semibold tracking-[-0.02em] [overflow-wrap:anywhere]'
                 }
             >
                 {title}
